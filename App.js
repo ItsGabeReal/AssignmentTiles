@@ -3,8 +3,11 @@ import {
   StyleSheet,
   Text,
   View,
-  FlatList
+  FlatList,
+  TouchableOpacity,
+  PanResponder // <- I think this is what I need for drag & drop stuff
 } from "react-native";
+import { Button } from "react-native-web";
 
 // Variables outside app are the same across all instances of app
 // Variables inside app are unique across each instance of app
@@ -74,16 +77,26 @@ const elements = [
 ];
 
 // Components
-const DayContainer = ({day}) => (
-  <View style={styles.rowContainer}>
-    <View style={styles.dateContainer}>
-      <Text>{day}</Text>
-    </View>
-    <View style={styles.entryContainer}>
+const DayContainer = ({day}) => {
+  return (
+    <View style={styles.rowContainer}>
+      <View style={styles.dateContainer}>
+        <Text>{day}</Text>
+      </View>
+      <View style={styles.entryContainer}>
 
+      </View>
     </View>
-  </View>
-)
+  )
+}
+
+const SimpleButton = ({text}) => {
+  return (
+    <TouchableOpacity style={styles.button}>
+      <Text>{text}</Text>
+    </TouchableOpacity>
+  )
+}
 
 export default function App() {
 
@@ -95,6 +108,9 @@ export default function App() {
         keyExtractor={item => item.date.getTime()} // FlatLists are supposed to have a keyExtractor, but it seems to work fine without it
         renderItem={({item}) => <DayContainer day={item.day}/>}
       />
+      <View style={styles.buttonContainer}>
+        <SimpleButton text={"Test"} />
+      </View>
     </View>
   );
 }
@@ -120,5 +136,20 @@ const styles = StyleSheet.create({
   entryContainer: {
     flex: 4,
     borderWidth: 1
+  },
+  buttonContainer: {
+    backgroundColor: '#ff000080',
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+    alignItems: 'center'
+  },
+  button: {
+    backgroundColor: '#d0d0d0',
+    padding: 10,
+    borderRadius: 5,
+    width: 70,
+    alignItems: 'center'
   }
 });
