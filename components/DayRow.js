@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import {
     StyleSheet,
     Text,
     View,
     FlatList,
+    Button,
 } from "react-native";
 import EventTile from './EventTile';
 
@@ -23,11 +23,8 @@ function getEventIndexesForDate(eventData, date) {
     }
     return eventIndexes;
 }
-
+// export default function DayRow({ date, eventData }) {
 export default function DayRow({ date, eventData }) {
-    // Create a list of events that occur on this day
-    const [eventIndexes, setEventIndexes] = useState(getEventIndexesForDate(eventData, date));
-
     return (
         <View style={styles.dayRow}>
             <View style={styles.dateTextContainer}>
@@ -35,7 +32,7 @@ export default function DayRow({ date, eventData }) {
             </View>
             <View style={styles.eventTileContainer}>
                 <FlatList
-                    data={eventIndexes}
+                    data={getEventIndexesForDate(eventData, date)}
                     keyExtractor={item => item} // FlatLists are supposed to have a keyExtractor, but it seems to work fine without it
                     numColumns={3}
                     renderItem={({ item }) => <EventTile eventIndex={item} eventData={eventData} />}
@@ -49,7 +46,7 @@ const styles = StyleSheet.create({
     dayRow: {
         flex: 1,
         flexDirection: 'row',
-        minHeight: 80,
+        minHeight: 90,
         borderColor: 'black',
         borderBottomWidth: 1,
     },

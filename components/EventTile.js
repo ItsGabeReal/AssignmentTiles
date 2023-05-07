@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Component, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -9,22 +9,13 @@ import {
 import DraggableComponent from './DraggableComponent';
 
 export default function EventTile({ eventIndex, eventData }) {
-    
-    /*return (
-        <View style={styles.eventTile}>
-            <TouchableOpacity>
-                <Text style={styles.eventNameText}>{eventData[eventIndex].name}</Text>
-            </TouchableOpacity>
-        </View>
-    );*/
-
     return (
-        <DraggableComponent style={styles.eventTile}>
-            <TouchableOpacity>
+        <DraggableComponent>
+            <View style={styles.eventTile}>
                 <Text style={styles.eventNameText}>{eventData[eventIndex].name}</Text>
-            </TouchableOpacity>
+            </View>
         </DraggableComponent>
-    );
+    )
 };
 
 const styles = StyleSheet.create({

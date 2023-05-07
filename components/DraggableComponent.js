@@ -1,44 +1,28 @@
-import { Component } from 'react';
-import { View, PanResponder } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, PanResponder, Animated } from 'react-native';
 
-export default class DraggableComponent extends Component {
-    constructor(props) {
-        super(props);
+export default function DraggableComponent({ children }) {
+    const pan = useRef(new Animated.ValueXY()).current;
 
-        this.state = {
-            x: 0,
-            y: 0,
-        };
-
-        this.panResponder = PanResponder.create({
-            onPanResponderGrant: (evt, gestureState) => {
-                this.state = {
-                    x: gestureState.x0,
-                    y: gestureState.y0,
-                }
-            },
-            onPanResponderMove: (evt, gestureState) => {
-                this.state = {
-                    x: gestureState.dx + this.state.x,
-                    y: gestureState.dy + this.state.y,
-                };
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderMove: Animated.event([
+                null,
+                { dx: pan.x, dy: pan.y },
+            ], { useNativeDriver: false }),
+            onPanResponderRelease: () => {
+                Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false, }).start();
             },
         })
-    }
+    ).current;
 
-    render() {
-        return (
-            <View
-                style={{
-                    position: 'absolute',
-                    left: this.state.x,
-                    top: this.state.y,
-                    backgroundColor: 'blue',
-                    width: 50,
-                    height: 50,
-                }}
-                {...this.panResponder.panHandlers}
-            />
-        );
-    }
-}
+    return (
+        <Animated.View
+            style={{ transform: [{ translateX: pan.x }, { translateY: pan.y }] }}
+            {...panResponder.panHandlers}
+        >
+            { children }
+        </Animated.View>
+    );
+};

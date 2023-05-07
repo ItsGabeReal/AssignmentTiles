@@ -5,54 +5,62 @@ import {
     FlatList,
     Button,
 } from "react-native";
+import { EventRegister } from "react-native-event-listeners";
 import DayRow from './components/DayRow';
+import DraggableComponent from "./components/DraggableComponent";
 
 export default function App() {
     const ONE_DAY_IN_MILLISECONDS = 86400000;
 
-    const [eventData, setEventData] = useState([
+    const [eventData, _setEventData] = useState([
         {
             name: 'Football Practice',
-            date: new Date(2023, 4, 5)
-        },
-        {
-            name: 'Brain Surgery',
-            date: new Date(2023, 4, 6)
+            date: new Date()
         },
         {
             name: 'Open Heart Surgery',
-            date: new Date(2023, 4, 6)
-        },
-        {
-            name: 'Brain Surgery',
-            date: new Date(2023, 4, 6)
-        },
-        {
-            name: 'Open Heart Surgery',
-            date: new Date(2023, 4, 6)
-        },
-        {
-            name: 'Brain Surgery',
-            date: new Date(2023, 4, 6)
-        },
-        {
-            name: 'Open Heart Surgery',
-            date: new Date(2023, 4, 6)
-        },
-        {
-            name: 'Brain Surgery',
-            date: new Date(2023, 4, 6)
-        },
-        {
-            name: 'Open Heart Surgery',
-            date: new Date(2023, 4, 6)
+            date: new Date()
         },
         {
             name: 'Football Practice',
-            date: new Date(2023, 4, 7)
+            date: new Date()
+        },
+        {
+            name: 'Football Practice',
+            date: new Date()
+        },
+        {
+            name: 'Open Heart Surgery',
+            date: new Date()
+        },
+        {
+            name: 'Football Practice',
+            date: new Date()
+        },
+        {
+            name: 'Brain Surgery',
+            date: new Date(2023, 4, 8)
         },
     ]);
+
+    function setEventData(callback) {
+        _setEventData(callback);
+        EventRegister.emit('onEventDataChanged');
+    }
+
+    function addEvent(newEvent) {
+        setEventData(prevItems => {
+            return [...prevItems, newEvent];
+        });
+    }
+
+    function removeEvent() {
+
+    }
+
     const [visibleDays, setVisibleDays] = useState(createArrayOfDays(10));
+
+    const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
     function createArrayOfDays(numDays) {
         let today = new Date();
@@ -60,8 +68,9 @@ export default function App() {
     }
 
     function onTestButtonPressed() {
-        console.log(eventData)
-        console.log(visibleDays)
+        setIsScrollEnabled(prevState => {
+            return !prevState;
+        })
     }
 
     // Layout
@@ -71,6 +80,7 @@ export default function App() {
                 data={visibleDays}
                 keyExtractor={item => item.getTime()} // FlatLists are supposed to have a keyExtractor, but it seems to work fine without it
                 renderItem={({ item }) => <DayRow date={item} eventData={eventData} />}
+                scrollEnabled={isScrollEnabled}
             />
             <View style={styles.testButtonContainer}>
                 <Button
@@ -79,6 +89,7 @@ export default function App() {
                 />
 
             </View>
+            <DraggableComponent/>
         </View>
     );
 }
