@@ -1,87 +1,73 @@
-import React, { useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import {
     StyleSheet,
     View,
     FlatList,
     Button,
 } from "react-native";
-import { EventRegister } from "react-native-event-listeners";
+import EventContext from "./context/EventContext";
+import DayRowContext from "./context/DayRowContext";
 import DayRow from './components/DayRow';
-import DraggableComponent from "./components/DraggableComponent";
+
+const testEvents = [
+    {
+        name: 'Event 1',
+        date: new Date()
+    },
+    {
+        name: 'Event 2',
+        date: new Date()
+    },
+    {
+        name: 'Event 3',
+        date: new Date()
+    },
+    {
+        name: 'Event 4',
+        date: new Date()
+    },
+    {
+        name: 'Event 5',
+        date: new Date()
+    },
+    {
+        name: 'Event 6',
+        date: new Date()
+    },
+    {
+        name: 'Event 7',
+        date: new Date(2023, 4, 8)
+    },
+]
 
 export default function App() {
-    const ONE_DAY_IN_MILLISECONDS = 86400000;
-
-    const [eventData, _setEventData] = useState([
-        {
-            name: 'Football Practice',
-            date: new Date()
-        },
-        {
-            name: 'Open Heart Surgery',
-            date: new Date()
-        },
-        {
-            name: 'Football Practice',
-            date: new Date()
-        },
-        {
-            name: 'Football Practice',
-            date: new Date()
-        },
-        {
-            name: 'Open Heart Surgery',
-            date: new Date()
-        },
-        {
-            name: 'Football Practice',
-            date: new Date()
-        },
-        {
-            name: 'Brain Surgery',
-            date: new Date(2023, 4, 8)
-        },
-    ]);
-
-    function setEventData(callback) {
-        _setEventData(callback);
-        EventRegister.emit('onEventDataChanged');
-    }
-
-    function addEvent(newEvent) {
-        setEventData(prevItems => {
-            return [...prevItems, newEvent];
-        });
-    }
-
-    function removeEvent() {
-
-    }
-
     const [visibleDays, setVisibleDays] = useState(createArrayOfDays(10));
-
-    const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
     function createArrayOfDays(numDays) {
         let today = new Date();
-        return Array.from({length: numDays}, (e, i) => new Date(today.getFullYear(), today.getMonth(), today.getDate() + i));
+        return Array.from({ length: numDays }, (e, i) => new Date(today.getFullYear(), today.getMonth(), today.getDate() + i));
     }
+
+    const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
     function onTestButtonPressed() {
-        setIsScrollEnabled(prevState => {
-            return !prevState;
-        })
+        console.log(dayComponentContainer);
     }
 
-    // Layout
+    const dayComponentContainer = useRef(null);
+
     return (
         <View style={styles.container}>
-            <FlatList
-                data={visibleDays}
-                keyExtractor={item => item.getTime()} // FlatLists are supposed to have a keyExtractor, but it seems to work fine without it
-                renderItem={({ item }) => <DayRow date={item} eventData={eventData} />}
-                scrollEnabled={isScrollEnabled}
-            />
+            <EventContext.Provider value={{ events: testEvents }}>
+                <FlatList
+                    ref={dayComponentContainer}
+                    data={visibleDays}
+                    keyExtractor={item => item.getTime()} // FlatLists are supposed to have a keyExtractor, but it seems to work fine without it
+                    renderItem={({ item }) => <DayRow date={item} />}
+                    scrollEnabled={isScrollEnabled}
+                />
+            </EventContext.Provider>
+            
             <View style={styles.testButtonContainer}>
                 <Button
                     onPress={onTestButtonPressed}
@@ -89,7 +75,6 @@ export default function App() {
                 />
 
             </View>
-            <DraggableComponent/>
         </View>
     );
 }

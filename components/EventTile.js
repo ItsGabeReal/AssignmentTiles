@@ -1,18 +1,27 @@
-import { Component, useState } from 'react';
+import { Component, useContext, useState } from 'react';
 import {
     StyleSheet,
     Text,
     View,
-    TouchableOpacity,
-    PanResponder // <- I think this is what I need for drag & drop stuff
 } from "react-native";
+import EventContext from '../context/EventContext';
 import DraggableComponent from './DraggableComponent';
 
-export default function EventTile({ eventIndex, eventData }) {
+export default function EventTile({ eventIndex }) {
+    const contextValue = useContext(EventContext);
+
+    function onDrop(gesture) {
+        // get a list of all day rows
+        // if any overlapped:
+            // move tile to the overlapped day row
+            // update the pan location with the offset between base positions
+        console.log(gesture)
+    }
+
     return (
-        <DraggableComponent>
+        <DraggableComponent onDrop={onDrop}>
             <View style={styles.eventTile}>
-                <Text style={styles.eventNameText}>{eventData[eventIndex].name}</Text>
+                <Text style={styles.eventNameText}>{contextValue.events[eventIndex].name}</Text>
             </View>
         </DraggableComponent>
     )

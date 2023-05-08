@@ -1,11 +1,14 @@
+import { useContext, useRef } from 'react';
 import {
     StyleSheet,
     Text,
     View,
     FlatList,
     Button,
+    PanResponder,
 } from "react-native";
 import EventTile from './EventTile';
+import EventContext from '../context/EventContext';
 
 const DAY_NAMES_ABREV = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const ONE_DAY_IN_MILLISECONDS = 86400000;
@@ -23,19 +26,38 @@ function getEventIndexesForDate(eventData, date) {
     }
     return eventIndexes;
 }
+
 // export default function DayRow({ date, eventData }) {
-export default function DayRow({ date, eventData }) {
+export default function DayRow({ date }) {
+    const viewRef = useRef(null);
+
+    const context = useContext(EventContext);
+
+    function getComponentDimensions() {
+        viewRef.current.measure((x, y, width, height, pageX, pageY) => {
+            console.log('x:', x);
+            console.log('y:', y);
+            console.log('width:', width);
+            console.log('height:', height);
+            console.log('pageX:', pageX);
+            console.log('pageY:', pageY);
+        })
+    }
+
     return (
-        <View style={styles.dayRow}>
+        <View
+            ref={viewRef}
+            style={styles.dayRow}
+        >
             <View style={styles.dateTextContainer}>
                 <Text>{DAY_NAMES_ABREV[date.getDay()]}, {date.getMonth()}/{date.getDate()}</Text>
             </View>
             <View style={styles.eventTileContainer}>
                 <FlatList
-                    data={getEventIndexesForDate(eventData, date)}
+                    data={getEventIndexesForDate(context.events, date)}
                     keyExtractor={item => item} // FlatLists are supposed to have a keyExtractor, but it seems to work fine without it
                     numColumns={3}
-                    renderItem={({ item }) => <EventTile eventIndex={item} eventData={eventData} />}
+                    renderItem={({ item }) => <EventTile eventIndex={item} />}
                 />
             </View>
         </View>
