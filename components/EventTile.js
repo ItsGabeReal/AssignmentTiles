@@ -1,27 +1,23 @@
-import { Component, useContext, useState } from 'react';
+import { useContext } from 'react';
 import {
     StyleSheet,
     Text,
     View,
 } from "react-native";
-import EventContext from '../context/EventContext';
+import GlobalContext from '../context/GlobalContext';
 import DraggableComponent from './DraggableComponent';
 
-export default function EventTile({ eventIndex }) {
-    const contextValue = useContext(EventContext);
+export default function EventTile({ event }) {
+    const globalContext = useContext(GlobalContext);
 
     function onDrop(gesture) {
-        // get a list of all day rows
-        // if any overlapped:
-            // move tile to the overlapped day row
-            // update the pan location with the offset between base positions
-        console.log(gesture)
+        globalContext.onTileDropped(gesture, event);
     }
-
+    
     return (
         <DraggableComponent onDrop={onDrop}>
             <View style={styles.eventTile}>
-                <Text style={styles.eventNameText}>{contextValue.events[eventIndex].name}</Text>
+                <Text style={styles.eventNameText}>{event.name}</Text>
             </View>
         </DraggableComponent>
     )

@@ -4,11 +4,9 @@ import {
     Text,
     View,
     FlatList,
-    Button,
-    PanResponder,
 } from "react-native";
 import EventTile from './EventTile';
-import EventContext from '../context/EventContext';
+import GlobalContext from '../context/GlobalContext';
 
 const DAY_NAMES_ABREV = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const ONE_DAY_IN_MILLISECONDS = 86400000;
@@ -17,47 +15,30 @@ function datesMatch(date1, date2) {
     return Math.floor(date1.valueOf() / ONE_DAY_IN_MILLISECONDS) == Math.floor(date2.valueOf() / ONE_DAY_IN_MILLISECONDS);
 }
 
-function getEventIndexesForDate(eventData, date) {
-    let eventIndexes = []
+function getEventsMatchingDate(eventData, date) {
+    let eventsMatchingDate = [];
     for (let i = 0; i < eventData.length; i++) {
         if (datesMatch(eventData[i].date, date)) {
-            eventIndexes.push(i);
+            eventsMatchingDate.push(eventData[i]);
         }
     }
-    return eventIndexes;
+    return eventsMatchingDate;
 }
 
-// export default function DayRow({ date, eventData }) {
 export default function DayRow({ date }) {
-    const viewRef = useRef(null);
-
-    const context = useContext(EventContext);
-
-    function getComponentDimensions() {
-        viewRef.current.measure((x, y, width, height, pageX, pageY) => {
-            console.log('x:', x);
-            console.log('y:', y);
-            console.log('width:', width);
-            console.log('height:', height);
-            console.log('pageX:', pageX);
-            console.log('pageY:', pageY);
-        })
-    }
+    const globalContext = useContext(GlobalContext);
 
     return (
-        <View
-            ref={viewRef}
-            style={styles.dayRow}
-        >
+        <View style={styles.dayRow} >
             <View style={styles.dateTextContainer}>
                 <Text>{DAY_NAMES_ABREV[date.getDay()]}, {date.getMonth()}/{date.getDate()}</Text>
             </View>
-            <View style={styles.eventTileContainer}>
+            <View style={styles.flatListContainer}>
                 <FlatList
-                    data={getEventIndexesForDate(context.events, date)}
-                    keyExtractor={item => item} // FlatLists are supposed to have a keyExtractor, but it seems to work fine without it
+                    data={getEventsMatchingDate(globalContext.events, date)}
+                    // Note to self: DO NOT DISREGARD THE KEY EXTRACTER! EVER!
                     numColumns={3}
-                    renderItem={({ item }) => <EventTile eventIndex={item} />}
+                    renderItem={({ item }) => <EventTile event={item} />}
                 />
             </View>
         </View>
@@ -78,8 +59,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    eventTileContainer: {
+    flatListContainer: {
         flex: 4,
-        padding: 5,
+        paddingLeft: 5,
+        paddingTop: 5,
     },
 });

@@ -1,47 +1,54 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
     StyleSheet,
     View,
     FlatList,
-    Button,
 } from "react-native";
-import EventContext from "./context/EventContext";
-import DayRowContext from "./context/DayRowContext";
+import GlobalContext from "./context/GlobalContext";
+import TestButton from "./components/TestButton";
 import DayRow from './components/DayRow';
 
 const testEvents = [
     {
         name: 'Event 1',
-        date: new Date()
+        date: new Date(),
+        id: Math.random(),
     },
     {
         name: 'Event 2',
-        date: new Date()
+        date: new Date(),
+        id: Math.random(),
     },
     {
         name: 'Event 3',
-        date: new Date()
+        date: new Date(),
+        id: Math.random(),
     },
     {
         name: 'Event 4',
-        date: new Date()
+        date: new Date(),
+        id: Math.random(),
     },
     {
         name: 'Event 5',
-        date: new Date()
+        date: new Date(),
+        id: Math.random(),
     },
     {
         name: 'Event 6',
-        date: new Date()
+        date: new Date(),
+        id: Math.random(),
     },
     {
         name: 'Event 7',
-        date: new Date(2023, 4, 8)
+        date: new Date(),
+        id: Math.random(),
     },
 ]
 
 export default function App() {
-    const [visibleDays, setVisibleDays] = useState(createArrayOfDays(10));
+    const [eventData, setEventData] = useState(testEvents); // <- Update this to load events from file
+    const [visibleDates, setVisibleDates] = useState(createArrayOfDays(10));
 
     function createArrayOfDays(numDays) {
         let today = new Date();
@@ -50,31 +57,63 @@ export default function App() {
 
     const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
+    const dayRowReferences = [];
+
     function onTestButtonPressed() {
-        console.log(dayComponentContainer);
+        console.log(eventData);
     }
 
-    const dayComponentContainer = useRef(null);
+    function onTileDropped(dropLocation, event) {
+        for (let i = 0; i < dayRowReferences.length; i++) {
+            if (dayRowReferences[i] == null) console.log(`dayRowReferences[${i}] is null`);
+            let rowIndex = i;
+            checkIfDropOverlapsRow(dropLocation, rowIndex, event);
+        }
+    }
+
+    function checkIfDropOverlapsRow(dropLocation, rowIndex, event) {
+        const dropLocationCopy = { ...dropLocation }; // Because dropData resets after some time and measure() is asynchronous, we need to capture a copy of the data.
+        dayRowReferences[rowIndex].measure((x, y, width, height, pageX, pageY) => {
+            const dropY = dropLocationCopy.moveY;
+            if (dropY >= pageY && dropY <= pageY + height) {
+                const rowDate = visibleDates[rowIndex];
+                changeEventDate(event, rowDate);
+            }
+        });
+    }
+
+    function changeEventDate(event, newDate) {
+        setEventData(prevData => {
+            let output = [...prevData];
+            output.find(item => {
+                return item.id == event.id;
+            }).date = newDate;
+            return output;
+        });
+    }
 
     return (
         <View style={styles.container}>
-            <EventContext.Provider value={{ events: testEvents }}>
+            <GlobalContext.Provider value={{ events: eventData, onTileDropped: onTileDropped }}>
                 <FlatList
-                    ref={dayComponentContainer}
-                    data={visibleDays}
-                    keyExtractor={item => item.getTime()} // FlatLists are supposed to have a keyExtractor, but it seems to work fine without it
-                    renderItem={({ item }) => <DayRow date={item} />}
+                    data={visibleDates}
+                    renderItem={
+                        ({ item, index }) => {
+                            return (
+                                <View ref={(ref) => {
+                                    /* Potential bug: It might be possible for dayRowReferences[index] to be set with a null value 
+                                        because sometimes the item is rendered twice. */
+                                    if (!dayRowReferences[index]) dayRowReferences[index] = ref;
+                                }}>
+                                    <DayRow date={item} />
+                                </View>
+                            );
+                        }
+                    }
                     scrollEnabled={isScrollEnabled}
                 />
-            </EventContext.Provider>
-            
-            <View style={styles.testButtonContainer}>
-                <Button
-                    onPress={onTestButtonPressed}
-                    title="Test"
-                />
-
-            </View>
+            </GlobalContext.Provider>
+            <TestButton onPress={onTestButtonPressed}/>
         </View>
     );
 }
@@ -101,18 +140,4 @@ const styles = StyleSheet.create({
         flex: 4,
         borderWidth: 1
     },
-    testButtonContainer: {
-        position: 'absolute',
-        bottom: 20,
-        left: 0,
-        right: 0,
-        alignItems: 'center'
-    },
-    testButton: {
-        backgroundColor: '#d0d0d0',
-        padding: 10,
-        borderRadius: 5,
-        width: 70,
-        alignItems: 'center'
-    }
 });

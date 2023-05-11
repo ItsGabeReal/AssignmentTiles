@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, PanResponder, Animated } from 'react-native';
+import React, { useRef } from 'react';
+import { PanResponder, Animated } from 'react-native';
 
 export default function DraggableComponent({ children, onDrag, onDrop }) {
     const pan = useRef(new Animated.ValueXY()).current; // Animatable values for the pan position
@@ -14,7 +14,7 @@ export default function DraggableComponent({ children, onDrag, onDrop }) {
                 if (onDrag) onDrag(gesture);
             },
             onPanResponderRelease: (event, gesture) => { // When drag is released
-                Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false, }).start(); // Return to base position with spring animation
+                //Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false, }).start(); // Return to base position with spring animation
                 
                 if (onDrop) onDrop(gesture);
             },
