@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
         marginBottom: 5,
         borderRadius: 5,
         justifyContent: 'center',
+        zIndex: 1,
     },
     eventNameText: {
         textAlign: 'center',

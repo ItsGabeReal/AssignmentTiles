@@ -1,4 +1,4 @@
-import { useContext, useRef } from 'react';
+import { useContext } from "react";
 import {
     StyleSheet,
     Text,
@@ -6,27 +6,16 @@ import {
     FlatList,
 } from "react-native";
 import EventTile from './EventTile';
-import GlobalContext from '../context/GlobalContext';
+import GlobalContext from "../context/GlobalContext";
 
 const DAY_NAMES_ABREV = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const ONE_DAY_IN_MILLISECONDS = 86400000;
 
-function datesMatch(date1, date2) {
-    return Math.floor(date1.valueOf() / ONE_DAY_IN_MILLISECONDS) == Math.floor(date2.valueOf() / ONE_DAY_IN_MILLISECONDS);
-}
-
-function getEventsMatchingDate(eventData, date) {
-    let eventsMatchingDate = [];
-    for (let i = 0; i < eventData.length; i++) {
-        if (datesMatch(eventData[i].date, date)) {
-            eventsMatchingDate.push(eventData[i]);
-        }
-    }
-    return eventsMatchingDate;
-}
-
-export default function DayRow({ date }) {
+export default function DayRow({ date, eventIDs }) {
     const globalContext = useContext(GlobalContext);
+    
+    function getEventFromID(events, id) {
+        return events.find(item => (item.id == id));
+    }
 
     return (
         <View style={styles.dayRow} >
@@ -35,10 +24,10 @@ export default function DayRow({ date }) {
             </View>
             <View style={styles.flatListContainer}>
                 <FlatList
-                    data={getEventsMatchingDate(globalContext.events, date)}
-                    // Note to self: DO NOT DISREGARD THE KEY EXTRACTER! EVER!
+                    data={eventIDs}
                     numColumns={3}
-                    renderItem={({ item }) => <EventTile event={item} />}
+                    keyExtractor={item => item}
+                    renderItem={({ item }) => <EventTile event={getEventFromID(globalContext.events, item)} />}
                 />
             </View>
         </View>

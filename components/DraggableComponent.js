@@ -29,7 +29,7 @@ export default function DraggableComponent({ children, onDrag, onDrop }) {
 
     function onLongPress() {
         draggingEnabled.current = true;
-        tileOpacity.setValue(0.5);
+        tileOpacity.setValue(0.75);
     }
 
     return (
