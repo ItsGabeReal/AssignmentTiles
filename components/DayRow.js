@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     dayRow: {
         flex: 1,
         flexDirection: 'row',
-        minHeight: 90,
+        minHeight: 91, // 90 + borderBottomWidth
         borderColor: 'black',
         borderBottomWidth: 1,
     },

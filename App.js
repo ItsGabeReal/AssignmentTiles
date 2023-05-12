@@ -48,38 +48,45 @@ const testEvents = [
 
 export default function App() {
     const [eventData, setEventData] = useState(testEvents); // <- Update this to load events from file
+
     const [visibleDates, setVisibleDates] = useState(createArrayOfDays(10));
 
     function createArrayOfDays(numDays) {
+        const ONE_DAY_IN_MILLISECONDS = 86400000;
         let today = new Date();
-        return Array.from({ length: numDays }, (e, i) => new Date(today.getFullYear(), today.getMonth(), today.getDate() + i));
+        return Array.from({ length: numDays }, (e, i) => new Date(today.getTime() + ONE_DAY_IN_MILLISECONDS * i));
     }
+
+    const dayRowDimensions = useRef([]).current;
 
     const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
-    const dayRowReferences = [];
-
     function onTestButtonPressed() {
-        console.log(eventData);
+        //setIsScrollEnabled(prevValue => !prevValue);
+        console.log(dayRowDimensions);
     }
 
-    function onTileDropped(dropLocation, event) {
-        for (let i = 0; i < dayRowReferences.length; i++) {
-            if (dayRowReferences[i] == null) console.log(`dayRowReferences[${i}] is null`);
-            let rowIndex = i;
-            checkIfDropOverlapsRow(dropLocation, rowIndex, event);
-        }
+    function onTileDropped(gesture, event) {
+        // Step 1: Find the row it was dropped into
+        // Step 2: Check if it dropped on top of a tile and wether it should go before or after it
+        // Step 3: Change event date, triggering a rerender
+        const dropPosition = { x: gesture.moveX, y: gesture.moveY };
+        let overlappingRowIndex = getRowOverlappingPagePosition(dropPosition);
+        changeEventDate(event, visibleDates[overlappingRowIndex]);
     }
 
-    function checkIfDropOverlapsRow(dropLocation, rowIndex, event) {
-        const dropLocationCopy = { ...dropLocation }; // Because dropData resets after some time and measure() is asynchronous, we need to capture a copy of the data.
-        dayRowReferences[rowIndex].measure((x, y, width, height, pageX, pageY) => {
-            const dropY = dropLocationCopy.moveY;
-            if (dropY >= pageY && dropY <= pageY + height) {
-                const rowDate = visibleDates[rowIndex];
-                changeEventDate(event, rowDate);
+    function getRowOverlappingPagePosition(pagePosition) {
+        let sumOfDayRowHeights = 0;
+        for (let i = 0; i < dayRowDimensions.length; i++) {
+            let dayRowPageY = sumOfDayRowHeights;
+            if (pagePosition.y > dayRowPageY && pagePosition.y < dayRowPageY + dayRowDimensions[i].height) {
+                return i; // <- 'i' should line up with the visibleDates index
             }
-        });
+            sumOfDayRowHeights += dayRowDimensions[i].height;
+        }
+        
+        console.error('getRowOverlappingPagePosition: could not find a row overlapping page position', pagePosition);
+        return null;
     }
 
     function changeEventDate(event, newDate) {
@@ -97,19 +104,17 @@ export default function App() {
             <GlobalContext.Provider value={{ events: eventData, onTileDropped: onTileDropped }}>
                 <FlatList
                     data={visibleDates}
-                    renderItem={
-                        ({ item, index }) => {
-                            return (
-                                <View ref={(ref) => {
-                                    /* Potential bug: It might be possible for dayRowReferences[index] to be set with a null value 
-                                        because sometimes the item is rendered twice. */
-                                    if (!dayRowReferences[index]) dayRowReferences[index] = ref;
-                                }}>
-                                    <DayRow date={item} />
-                                </View>
-                            );
-                        }
-                    }
+                    renderItem={({ item, index }) => {
+                        return (
+                            <View
+                                onLayout={(event) => {
+                                    dayRowDimensions[index] = event.nativeEvent.layout;
+                                }}
+                            >
+                                <DayRow date={item} />
+                            </View>
+                        );
+                    }}
                     scrollEnabled={isScrollEnabled}
                 />
             </GlobalContext.Provider>
