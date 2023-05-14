@@ -4,9 +4,10 @@ import {
     View,
     FlatList,
 } from "react-native";
+import VisualSettings from "./json/VisualSettings.json";
 import GlobalContext from "./context/GlobalContext";
 import TestButton from "./components/TestButton";
-import DayRow from './components/DayRow';
+import DayRow from "./components/DayRow";
 
 const testEvents = [
     {
@@ -53,6 +54,8 @@ export default function App() {
 
     const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
+    const scrollYOffset = useRef(0);
+
     const dayRowDimensions = useRef([]).current;
 
     function TEST_createInitialRowData(numRows) {
@@ -90,57 +93,130 @@ export default function App() {
     }
 
     function onTileDropped(gesture, event) {
-        const dropPosition = { x: gesture.moveX, y: gesture.moveY };
-        let overlappingRow = getRowOverlappingPagePosition(dropPosition);
+        setIsScrollEnabled(true);
+        const dropScreenPosition = { x: gesture.moveX, y: gesture.moveY };
+        let overlappingRow = getRowOverlappingScreenPosition(dropScreenPosition);
         dropEventOntoRow(gesture, event, overlappingRow);
     }
 
-    function getRowOverlappingPagePosition(pagePosition) {
-        let sumOfDayRowHeights = 0;
-        for (let i = 0; i < dayRowDimensions.length; i++) {
-            let dayRowPageY = sumOfDayRowHeights;
-            if (pagePosition.y > dayRowPageY && pagePosition.y < dayRowPageY + dayRowDimensions[i].height) {
+    function getRowOverlappingScreenPosition(screenPosition) {
+        for (let i = 0; i < rowData.length; i++) {
+            let dayRowScreenYPosition = getDayRowScreenYPosition(rowData[i]);
+
+            if (screenPosition.y > dayRowScreenYPosition && screenPosition.y < dayRowScreenYPosition + dayRowDimensions[i].height) {
                 return rowData[i]; // <- 'i' should line up with the visibleDates index
             }
-            sumOfDayRowHeights += dayRowDimensions[i].height;
         }
         
-        console.error('getRowOverlappingPagePosition: could not find a row overlapping page position', pagePosition);
+        console.error('getRowOverlappingPagePosition: could not find a row overlapping screen position', dayRowScreenYPosition);
         return null;
     }
     
     function dropEventOntoRow(gesture, event, targetRow) {
+        const copyOf_gesture = { ...gesture }; // Copy data from gesture so that it doesn't get reset before we can use it
+
         setRowData(prevData => {
-            const output = [...prevData];
+            const outputRowData = [...prevData];
             
-            const currentRow = output.find(item => datesMatch(item.date, event.date));
-            const newRow = output.find(item => datesMatch(item.date, targetRow.date));
-            
-            // Remove event from current row
-            currentRow.eventIDs = currentRow.eventIDs.filter(item => (item != event.id));
+            const currentRow = outputRowData.find(row => datesMatch(row.date, event.date));
+            const newRow = outputRowData.find(row => datesMatch(row.date, targetRow.date));
             
             // Insert event into new row
-            newRow.eventIDs.push(event.id);
+            const eventInsertionIndex = getDayRowEventInsertionIndexBasedOnGesture(newRow, copyOf_gesture);
+            newRow.eventIDs.splice(eventInsertionIndex, 0, event.id);
+            
+            // Remove event from current row
+            currentRow.eventIDs = currentRow.eventIDs.filter((item, index) => !(index != eventInsertionIndex && item == event.id));
+            
+            changeEventDate(event, targetRow.date);
 
-            return output;
+            return outputRowData;
         });
+    }
 
+    function getDayRowEventInsertionIndexBasedOnGesture(dayRow, gesture) {
+        const dimensionsForEventTilesInRow = getDimensionsForEventTilesInRow(dayRow);
+        for (let i = 0; i < dimensionsForEventTilesInRow.length; i++) {
+            const tileDimeions = dimensionsForEventTilesInRow[i];
+
+            // Intermediate variables
+            const tileXMidpoint = tileDimeions.x + tileDimeions.width / 2;
+            const eventTileRightEdgePlusMargin = tileDimeions.x + tileDimeions.width + VisualSettings.EventTile.mainContainer.marginRight;
+
+            // Overlap checks
+            const gestureYOverlapsTile = gesture.moveY > tileDimeions.y && gesture.moveY < tileDimeions.y + tileDimeions.width;
+            const gestureXOverlapsLeftHalf = gesture.moveX > tileDimeions.x && gesture.moveX < tileXMidpoint;
+            const gestureXOverlapsRightHalf = gesture.moveX > tileXMidpoint && gesture.moveX < eventTileRightEdgePlusMargin;
+
+            // If gesture overlaps with left side, insert to the left
+            if (gestureXOverlapsLeftHalf && gestureYOverlapsTile) return i;
+
+            // If gesture overlaps with right side, insert to the right
+            if (gestureXOverlapsRightHalf && gestureYOverlapsTile) return(i + 1);
+        }
+
+        // Default return case
+        return dayRow.eventIDs.length;
+    }
+
+    function changeEventDate(event, newDate) {
         setEventData(prevData => {
             const output = [...prevData];
-            output.find(item => (item.id == event.id)).date = targetRow.date;
+            output.find(item => (item.id == event.id)).date = newDate;
             return output;
         });
+    }
 
+    function getDimensionsForEventTilesInRow(row) {
+        const outputDimensions = [];
+
+        const dayRowScreenYPosition = getDayRowScreenYPosition(row);
+        for (let i = 0; i < row.eventIDs.length; i++) {
+            const tilesToTheLeft = i % VisualSettings.DayRow.numEventTileColumns;
+            const tilesAbove = Math.floor(i / VisualSettings.DayRow.numEventTileColumns);
+            
+            const xPosition = (VisualSettings.DayRow.dateTextContainer.width + 
+                VisualSettings.DayRow.dateTextContainer.borderRightWidth +
+                VisualSettings.DayRow.flatListContainer.paddingLeft +
+                tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight));
+            
+            const yPosition = (dayRowScreenYPosition +
+                VisualSettings.DayRow.flatListContainer.paddingTop + 
+                tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.EventTile.mainContainer.marginBottom));
+            
+            outputDimensions[i] = {
+                eventID: row.eventIDs[i],
+                x: xPosition,
+                y: yPosition,
+                width: VisualSettings.EventTile.mainContainer.width,
+                height: VisualSettings.EventTile.mainContainer.height,
+            }
+        }
+
+        return outputDimensions;
+    }
+
+    function getDayRowScreenYPosition(row) {
+        const rowIndex = rowData.findIndex(item => (item.id == row.id));
+
+        let sumOfDayRowHeights = 0;
+        for (let i = 0; i < rowIndex; i++) {
+            sumOfDayRowHeights += dayRowDimensions[i].height;
+        }
+        return (sumOfDayRowHeights - scrollYOffset.current)
+    }
+
+    function onTileDragStart() {
+        setIsScrollEnabled(false);
     }
 
     function onTestButtonPressed() {
-        //setIsScrollEnabled(prevValue => !prevValue);
-        console.log(eventData);
+        console.log(rowData);
     }
 
     return (
         <View style={styles.container}>
-            <GlobalContext.Provider value={{ events: eventData, onTileDropped: onTileDropped }}>
+            <GlobalContext.Provider value={{ events: eventData, onTileDragStart: onTileDragStart, onTileDropped: onTileDropped }}>
                 <FlatList
                     data={rowData}
                     renderItem={({ item, index }) => {
@@ -155,6 +231,7 @@ export default function App() {
                         );
                     }}
                     scrollEnabled={isScrollEnabled}
+                    onScroll={(event) => { scrollYOffset.current = event.nativeEvent.contentOffset.y; }}
                 />
             </GlobalContext.Provider>
             <TestButton onPress={onTestButtonPressed}/>

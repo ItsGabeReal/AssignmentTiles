@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { PanResponder, Animated, TouchableWithoutFeedback } from 'react-native';
 
-export default function DraggableComponent({ children, onDrag, onDrop }) {
+export default function DraggableComponent({ children, onStartDrag, onDrag, onDrop }) {
     const draggingEnabled = useRef(false);
 
     const pan = useRef(new Animated.ValueXY()).current; // Animatable values for the pan position
@@ -30,6 +30,7 @@ export default function DraggableComponent({ children, onDrag, onDrop }) {
     function onLongPress() {
         draggingEnabled.current = true;
         tileOpacity.setValue(0.75);
+        if (onStartDrag) onStartDrag();
     }
 
     return (

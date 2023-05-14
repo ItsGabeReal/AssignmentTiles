@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import EventTile from './EventTile';
 import GlobalContext from "../context/GlobalContext";
+import VisualSettings from "../json/VisualSettings.json"
 
 const DAY_NAMES_ABREV = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
@@ -18,14 +19,14 @@ export default function DayRow({ date, eventIDs }) {
     }
 
     return (
-        <View style={styles.dayRow} >
+        <View style={styles.mainContainer} >
             <View style={styles.dateTextContainer}>
                 <Text>{DAY_NAMES_ABREV[date.getDay()]}, {date.getMonth()}/{date.getDate()}</Text>
             </View>
             <View style={styles.flatListContainer}>
                 <FlatList
                     data={eventIDs}
-                    numColumns={3}
+                    numColumns={VisualSettings.DayRow.numEventTileColumns}
                     keyExtractor={item => item}
                     renderItem={({ item }) => <EventTile event={getEventFromID(globalContext.events, item)} />}
                 />
@@ -35,22 +36,22 @@ export default function DayRow({ date, eventIDs }) {
 };
 
 const styles = StyleSheet.create({
-    dayRow: {
+    mainContainer: {
         flex: 1,
         flexDirection: 'row',
-        minHeight: 91, // 90 + borderBottomWidth
+        minHeight: 91, // 90 (EventTile height) + 1 (borderBottomWidth)
         borderColor: 'black',
-        borderBottomWidth: 1,
+        borderBottomWidth: VisualSettings.DayRow.mainContainer.borderBottomWidth,
     },
     dateTextContainer: {
-        flex: 1,
-        borderRightWidth: 1,
+        width: VisualSettings.DayRow.dateTextContainer.width,
+        borderRightWidth: VisualSettings.DayRow.dateTextContainer.borderRightWidth,
         justifyContent: 'center',
         alignItems: 'center'
     },
     flatListContainer: {
-        flex: 4,
-        paddingLeft: 5,
-        paddingTop: 5,
+        flex: 1,
+        paddingLeft: VisualSettings.DayRow.flatListContainer.paddingLeft,
+        paddingTop: VisualSettings.DayRow.flatListContainer.paddingTop,
     },
 });
