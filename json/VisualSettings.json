@@ -1,8 +1,10 @@
 {
+    "App": {
+        "dayRowSeparater": {
+            "height": 1
+        }
+    },
     "DayRow": {
-        "mainContainer": {
-            "borderBottomWidth": 1
-        },
         "dateTextContainer": {
             "width": 80,
             "borderRightWidth": 1

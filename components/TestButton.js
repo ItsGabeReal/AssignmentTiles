@@ -23,11 +23,4 @@ const styles = StyleSheet.create({
         right: 0,
         alignItems: 'center'
     },
-    testButton: {
-        backgroundColor: '#d0d0d0',
-        padding: 10,
-        borderRadius: 5,
-        width: 70,
-        alignItems: 'center'
-    }
 });

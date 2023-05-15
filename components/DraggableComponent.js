@@ -38,7 +38,7 @@ export default function DraggableComponent({ children, onStartDrag, onDrag, onDr
             style={{ transform: [{ translateX: pan.x }, { translateY: pan.y }], opacity: tileOpacity }}
             {...panResponder.panHandlers}
         >
-            <TouchableWithoutFeedback onLongPress={onLongPress}>
+            <TouchableWithoutFeedback onLongPress={onLongPress} delayLongPress={150}>
                 {children}
             </TouchableWithoutFeedback>
         </Animated.View>

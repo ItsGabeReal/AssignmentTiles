@@ -3,11 +3,13 @@ import {
     StyleSheet,
     View,
     FlatList,
+    Modal,
 } from "react-native";
 import VisualSettings from "./json/VisualSettings.json";
 import GlobalContext from "./context/GlobalContext";
 import TestButton from "./components/TestButton";
 import DayRow from "./components/DayRow";
+import EventCreationScreen from "./components/EventCreationScreen";
 
 const testEvents = [
     {
@@ -54,9 +56,13 @@ export default function App() {
 
     const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
+    const [showEventCreationModal, setShowEventCreationModal] = useState(false);
+
     const scrollYOffset = useRef(0);
 
     const dayRowDimensions = useRef([]).current;
+
+    const eventCreationScreenInitialDate = useRef(null);
 
     function TEST_createInitialRowData(numRows) {
         const output = [];
@@ -126,7 +132,8 @@ export default function App() {
             newRow.eventIDs.splice(eventInsertionIndex, 0, event.id);
             
             // Remove event from current row
-            currentRow.eventIDs = currentRow.eventIDs.filter((item, index) => !(index != eventInsertionIndex && item == event.id));
+            if (currentRow.id == newRow.id) currentRow.eventIDs = currentRow.eventIDs.filter((item, index) => !(index != eventInsertionIndex && item == event.id));
+            else currentRow.eventIDs = currentRow.eventIDs.filter((item) => !(item == event.id));
             
             changeEventDate(event, targetRow.date);
 
@@ -182,7 +189,7 @@ export default function App() {
             
             const yPosition = (dayRowScreenYPosition +
                 VisualSettings.DayRow.flatListContainer.paddingTop + 
-                tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.EventTile.mainContainer.marginBottom));
+                tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.App.dayRowSeparater.height));
             
             outputDimensions[i] = {
                 eventID: row.eventIDs[i],
@@ -206,12 +213,45 @@ export default function App() {
         return (sumOfDayRowHeights - scrollYOffset.current)
     }
 
+    function onEventCreationScreenSubmitted(eventDetails) {
+        createEvent(eventDetails);
+        setShowEventCreationModal(false);
+    }
+
+    function createEvent(eventDetails) {
+        const newEvent = {
+            date: eventDetails.date ? eventDetails.date : new Date(),
+            name: eventDetails.name ? eventDetails.name : "NO NAME",
+            id: Math.random(),
+        };
+        
+        // Insert it into event data
+        setEventData(prevItems => [...prevItems, newEvent]);
+
+        // Insert into the row with the same date
+        const targetRowIndex = rowData.findIndex(item => datesMatch(item.date, newEvent.date));
+        if (targetRowIndex != -1) {
+            setRowData(prevItems => {
+                const output = [...prevItems];
+                output[targetRowIndex].eventIDs.push(newEvent.id);
+                return output;
+            });
+        }
+    }
+
+    function openEventCreationScreen(initialDate) {
+        if (initialDate) eventCreationScreenInitialDate.current = initialDate;
+        else eventCreationScreenInitialDate.current = null;
+
+        setShowEventCreationModal(true);
+    }
+
     function onTileDragStart() {
         setIsScrollEnabled(false);
     }
 
     function onTestButtonPressed() {
-        console.log(rowData);
+        console.log(eventData);
     }
 
     return (
@@ -226,14 +266,23 @@ export default function App() {
                                     dayRowDimensions[index] = event.nativeEvent.layout;
                                 }}
                             >
-                                <DayRow date={item.date} eventIDs={item.eventIDs} />
+                                <DayRow date={item.date} eventIDs={item.eventIDs} onPress={openEventCreationScreen} />
                             </View>
                         );
                     }}
+                    ItemSeparatorComponent={<View style={styles.dayRowSeparater} />}
                     scrollEnabled={isScrollEnabled}
                     onScroll={(event) => { scrollYOffset.current = event.nativeEvent.contentOffset.y; }}
                 />
             </GlobalContext.Provider>
+            <Modal
+                animationType="slide"
+                visible={showEventCreationModal}
+                onRequestClose={() => setShowEventCreationModal(false)}
+                presentationStyle="pageSheet"
+            >
+                <EventCreationScreen initialDate={eventCreationScreenInitialDate.current} onEventCreated={onEventCreationScreenSubmitted} />
+            </Modal>
             <TestButton onPress={onTestButtonPressed}/>
         </View>
     );
@@ -244,21 +293,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         flex: 1
     },
-    rowContainer: {
-        flex: 1,
-        minHeight: 90,
-        borderColor: 'black',
-        borderWidth: 1,
-        flexDirection: 'row'
-    },
-    dateContainer: {
-        flex: 1,
-        borderWidth: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    entryContainer: {
-        flex: 4,
-        borderWidth: 1
-    },
+    dayRowSeparater: {
+        backgroundColor: '#000',
+        height: VisualSettings.App.dayRowSeparater.height,
+    }
 });
