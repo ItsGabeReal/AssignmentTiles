@@ -6,11 +6,12 @@ import {
     TextInput,
     Button,
 } from "react-native";
+import DatePicker from "react-native-date-picker";
 
 export default function EventCreationScreen({ initialDate, onEventCreated }) {
     const eventNameInput = useRef("");
 
-    const [dateInput, setDateInput] = useState(initializeDate());
+    const dateInput = useRef(initializeDate());
 
     function initializeDate() {
         if (initialDate) return (initialDate);
@@ -24,7 +25,7 @@ export default function EventCreationScreen({ initialDate, onEventCreated }) {
     function onSubmit() {
         if (readyToSubmit()) {
             const eventDetails = {
-                date: dateInput,
+                date: dateInput.current,
                 name: eventNameInput.current
             };
 
@@ -42,7 +43,12 @@ export default function EventCreationScreen({ initialDate, onEventCreated }) {
                     style={styles.eventNameTextInput}
                 />
                 <Text>Due Date:</Text>
-                <Text>{dateInput.getMonth() + 1}/{dateInput.getDate()}/{dateInput.getFullYear()}</Text>
+                <DatePicker
+                    mode="date"
+                    date={initializeDate()}
+                    androidVariant="nativeAndroid"
+                    onDateChange={newDate => { dateInput.current = newDate; }}
+                />
             </View>
             <View style={styles.createEventButtonContainer}>
                 <Button title="Create Event" onPress={onSubmit} />

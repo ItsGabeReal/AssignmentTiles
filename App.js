@@ -2,9 +2,10 @@ import React, { useRef, useState } from "react";
 import {
     StyleSheet,
     View,
-    FlatList,
+    //FlatList,
     Modal,
 } from "react-native";
+import { FlatList } from "react-native-bidirectional-infinite-scroll";
 import VisualSettings from "./json/VisualSettings.json";
 import GlobalContext from "./context/GlobalContext";
 import TestButton from "./components/TestButton";
@@ -12,6 +13,11 @@ import DayRow from "./components/DayRow";
 import EventCreationScreen from "./components/EventCreationScreen";
 
 const testEvents = [
+    {
+        name: 'Past Event',
+        date: new Date(2023, 4, 10),
+        id: Math.random(),
+    },
     {
         name: 'Event 1',
         date: new Date(),
@@ -52,7 +58,7 @@ const testEvents = [
 export default function App() {
     const [eventData, setEventData] = useState(testEvents);
 
-    const [rowData, setRowData] = useState(TEST_createInitialRowData(10));
+    const [rowData, setRowData] = useState(createInitialRowData());
 
     const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
@@ -60,27 +66,52 @@ export default function App() {
 
     const scrollYOffset = useRef(0);
 
-    const dayRowDimensions = useRef([]).current;
-
     const eventCreationScreenInitialDate = useRef(null);
 
-    function TEST_createInitialRowData(numRows) {
-        const output = [];
-        const dates = createArrayOfDays(numRows);
-        for (let i = 0; i < dates.length; i++) {
-            output.push({
-                date: dates[i],
-                eventIDs: getEventIDsMatchingDate(dates[i]),
+    function createInitialRowData() {
+        const ONE_DAY_IN_MILLISECONDS = 86400000;
+        const startDate = new Date(today().getTime() - ONE_DAY_IN_MILLISECONDS * 7);
+        return createRowData(startDate, 21);
+    }
+
+    function addDayRowsToTop(numRows) {
+        const ONE_DAY_IN_MILLISECONDS = 86400000;
+
+        const currentOldestDate = rowData[0].date;
+        const startDate = new Date(currentOldestDate.getTime() - ONE_DAY_IN_MILLISECONDS * numRows);
+        const newRowData = createRowData(startDate, numRows);
+        
+        setRowData(prevData => {
+            return [...newRowData, ...prevData];
+        });
+    }
+
+    function addDayRowsToBottom(numRows) {
+        const ONE_DAY_IN_MILLISECONDS = 86400000;
+
+        const currentLastDate = rowData[rowData.length - 1].date;
+        const startDate = currentLastDate;
+        const newRowData = createRowData(startDate, numRows);
+
+        setRowData(prevData => {
+            return [...prevData, ...newRowData];
+        });
+    }
+
+    function createRowData(startDate, numDays) {
+        const ONE_DAY_IN_MILLISECONDS = 86400000;
+
+        const newRowData = [];
+        for (let i = 0; i < numDays; i++) {
+            const rowDate = new Date(startDate.getTime() + ONE_DAY_IN_MILLISECONDS * i);
+            newRowData.push({
+                date: rowDate,
+                eventIDs: getEventIDsMatchingDate(rowDate),
                 id: Math.random(),
             });
         }
-        return output;
-    }
-
-    function createArrayOfDays(numDays) {
-        const ONE_DAY_IN_MILLISECONDS = 86400000;
-        let today = new Date();
-        return Array.from({ length: numDays }, (e, i) => new Date(today.getTime() + ONE_DAY_IN_MILLISECONDS * i));
+        
+        return (newRowData);
     }
 
     function getEventIDsMatchingDate(date) {
@@ -99,7 +130,8 @@ export default function App() {
     }
 
     function onTileDropped(gesture, event) {
-        setIsScrollEnabled(true);
+        console.log('on drop')
+        setIsScrollEnabled(true); // Rerender 1
         const dropScreenPosition = { x: gesture.moveX, y: gesture.moveY };
         let overlappingRow = getRowOverlappingScreenPosition(dropScreenPosition);
         dropEventOntoRow(gesture, event, overlappingRow);
@@ -107,10 +139,10 @@ export default function App() {
 
     function getRowOverlappingScreenPosition(screenPosition) {
         for (let i = 0; i < rowData.length; i++) {
-            let dayRowScreenYPosition = getDayRowScreenYPosition(rowData[i]);
+            const dayRowScreenYPosition = getDayRowScreenYPosition(rowData[i]);
 
-            if (screenPosition.y > dayRowScreenYPosition && screenPosition.y < dayRowScreenYPosition + dayRowDimensions[i].height) {
-                return rowData[i]; // <- 'i' should line up with the visibleDates index
+            if (screenPosition.y > dayRowScreenYPosition && screenPosition.y < dayRowScreenYPosition + getDayRowHeight(rowData[i])) {
+                return rowData[i];
             }
         }
         
@@ -121,7 +153,7 @@ export default function App() {
     function dropEventOntoRow(gesture, event, targetRow) {
         const copyOf_gesture = { ...gesture }; // Copy data from gesture so that it doesn't get reset before we can use it
 
-        setRowData(prevData => {
+        setRowData(prevData => { // Rerender 2
             const outputRowData = [...prevData];
             
             const currentRow = outputRowData.find(row => datesMatch(row.date, event.date));
@@ -135,7 +167,7 @@ export default function App() {
             if (currentRow.id == newRow.id) currentRow.eventIDs = currentRow.eventIDs.filter((item, index) => !(index != eventInsertionIndex && item == event.id));
             else currentRow.eventIDs = currentRow.eventIDs.filter((item) => !(item == event.id));
             
-            changeEventDate(event, targetRow.date);
+            changeEventDate(event, targetRow.date); // Rerender 3
 
             return outputRowData;
         });
@@ -205,12 +237,39 @@ export default function App() {
 
     function getDayRowScreenYPosition(row) {
         const rowIndex = rowData.findIndex(item => (item.id == row.id));
+        const dayRowYOffset = getDayRowYOffset(rowIndex);
+        
+        return (dayRowYOffset - scrollYOffset.current)
+    }
 
+    function getDayRowYOffset(rowIndex) {
+        const rowsAbove = rowIndex;
+        const spaceBetweenRows = VisualSettings.App.dayRowSeparater.height;
         let sumOfDayRowHeights = 0;
-        for (let i = 0; i < rowIndex; i++) {
-            sumOfDayRowHeights += dayRowDimensions[i].height;
+        for (let i = 0; i < rowsAbove; i++) {
+            //sumOfDayRowHeights += dayRowDimensions[i].height;
+            sumOfDayRowHeights += getDayRowHeight(rowData[i]);
         }
-        return (sumOfDayRowHeights - scrollYOffset.current)
+
+        return (sumOfDayRowHeights + spaceBetweenRows * rowsAbove);
+    }
+
+    function getDayRowHeight(row) {
+        const eventTileHeight = VisualSettings.EventTile.mainContainer.height;
+        let eventContainerHeight;
+        const hasAnyEventTiles = row.eventIDs.length > 0;
+        if (hasAnyEventTiles) {
+            const spaceBetweenEventTiles = VisualSettings.EventTile.mainContainer.marginBottom;
+            const rowsOfEventTiles = Math.ceil(row.eventIDs.length / VisualSettings.DayRow.numEventTileColumns);
+            eventContainerHeight = eventTileHeight * rowsOfEventTiles + spaceBetweenEventTiles * (rowsOfEventTiles - 1);
+        }
+        else {
+            eventContainerHeight = eventTileHeight;
+        }
+
+        const topAndBottomMargin = VisualSettings.DayRow.flatListContainer.paddingTop + VisualSettings.EventTile.mainContainer.marginBottom;
+
+        return (eventContainerHeight + topAndBottomMargin);
     }
 
     function onEventCreationScreenSubmitted(eventDetails) {
@@ -220,7 +279,7 @@ export default function App() {
 
     function createEvent(eventDetails) {
         const newEvent = {
-            date: eventDetails.date ? eventDetails.date : new Date(),
+            date: eventDetails.date ? eventDetails.date : today(),
             name: eventDetails.name ? eventDetails.name : "NO NAME",
             id: Math.random(),
         };
@@ -239,6 +298,26 @@ export default function App() {
         }
     }
 
+    function deleteEvent(event) {
+        // Remove from day row
+        const targetRowIndex = rowData.findIndex(item => datesMatch(item.date, event.date));
+        setRowData(prevItems => {
+            const output = [...prevItems];
+            const targetRow = output[targetRowIndex];
+            const eventIDIndex = targetRow.eventIDs.findIndex(id => id == event.id);
+            targetRow.eventIDs.splice(eventIDIndex, 1);
+            return output;
+        });
+
+        // Remove from event data
+        setEventData(prevItems => {
+            const output = [...prevItems];
+            const eventIndex = output.findIndex(item => (item.id == event.id));
+            output.splice(eventIndex, 1);
+            return output;
+        });
+    }
+
     function openEventCreationScreen(initialDate) {
         if (initialDate) eventCreationScreenInitialDate.current = initialDate;
         else eventCreationScreenInitialDate.current = null;
@@ -250,29 +329,66 @@ export default function App() {
         setIsScrollEnabled(false);
     }
 
+    function tileDeletionTest(eventToBeDeleted) {
+        deleteEvent(eventToBeDeleted);
+    }
+
+    function getDayRowIndexFromDate(date) {
+        return rowData.findIndex(row => datesMatch(row.date, date));
+    }
+
+    function today() {
+        return new Date();
+    } 
+
     function onTestButtonPressed() {
-        console.log(eventData);
+        addDayRowsToTop(5);
+    }
+
+    function renderDayRow({ item }) {
+        return <DayRow date={item.date} eventIDs={item.eventIDs} onPress={openEventCreationScreen} />;
+    }
+
+    function DayRowSeparater() {
+        return <View style={styles.dayRowSeparater} />;
+    }
+
+    function getItemLayout(referenceToRowData, index) {
+        const dayRowHeight = getDayRowHeight(referenceToRowData[index]);
+        const itemSeparatorHeight = VisualSettings.App.dayRowSeparater.height;
+
+        return ({
+            length: dayRowHeight,
+            offset: getDayRowYOffset(index),
+            index
+        });
+    }
+
+    async function onStartReached() {
+        console.log('start reached');
+        addDayRowsToTop(7)
+    }
+
+    async function onEndReached() {
+        console.log('end reached');
+        addDayRowsToBottom(7);
     }
 
     return (
         <View style={styles.container}>
-            <GlobalContext.Provider value={{ events: eventData, onTileDragStart: onTileDragStart, onTileDropped: onTileDropped }}>
+            <GlobalContext.Provider value={{ events: eventData, onTileDragStart: onTileDragStart, onTileDropped: onTileDropped, tileDeletionTest: tileDeletionTest }}>
                 <FlatList
                     data={rowData}
-                    renderItem={({ item, index }) => {
-                        return (
-                            <View
-                                onLayout={(event) => {
-                                    dayRowDimensions[index] = event.nativeEvent.layout;
-                                }}
-                            >
-                                <DayRow date={item.date} eventIDs={item.eventIDs} onPress={openEventCreationScreen} />
-                            </View>
-                        );
-                    }}
-                    ItemSeparatorComponent={<View style={styles.dayRowSeparater} />}
+                    renderItem={renderDayRow}
+                    ItemSeparatorComponent={DayRowSeparater}
+                    getItemLayout={getItemLayout}
+                    initialScrollIndex={getDayRowIndexFromDate(today())}
                     scrollEnabled={isScrollEnabled}
-                    onScroll={(event) => { scrollYOffset.current = event.nativeEvent.contentOffset.y; }}
+                    onScroll={(event) => {scrollYOffset.current = event.nativeEvent.contentOffset.y; }}
+                    onStartReached={onStartReached}
+                    onStartReachedThreshold={3}
+                    onEndReachedThreshold={1}
+                    onEndReached={onEndReached}
                 />
             </GlobalContext.Provider>
             <Modal

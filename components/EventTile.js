@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { memo, useContext } from 'react';
 import {
     StyleSheet,
     Text,
@@ -16,7 +16,11 @@ export default function EventTile({ event }) {
     }
     
     return (
-        <DraggableComponent onDrop={onDrop} onStartDrag={() => globalContext.onTileDragStart()}>
+        <DraggableComponent
+            onPress={() => globalContext.tileDeletionTest(event)}
+            onStartDrag={() => globalContext.onTileDragStart()}
+            onDrop={onDrop}
+        >
             <View style={styles.mainContainer}>
                 <Text style={styles.eventNameText}>{event.name}</Text>
             </View>

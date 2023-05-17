@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { PanResponder, Animated, TouchableWithoutFeedback } from 'react-native';
 
-export default function DraggableComponent({ children, onStartDrag, onDrag, onDrop }) {
+export default function DraggableComponent({ children, onPress, onStartDrag, onDrag, onDrop }) {
     const draggingEnabled = useRef(false);
 
     const pan = useRef(new Animated.ValueXY()).current; // Animatable values for the pan position
@@ -38,7 +38,7 @@ export default function DraggableComponent({ children, onStartDrag, onDrag, onDr
             style={{ transform: [{ translateX: pan.x }, { translateY: pan.y }], opacity: tileOpacity }}
             {...panResponder.panHandlers}
         >
-            <TouchableWithoutFeedback onLongPress={onLongPress} delayLongPress={150}>
+            <TouchableWithoutFeedback onPress={onPress} onLongPress={onLongPress} delayLongPress={150}>
                 {children}
             </TouchableWithoutFeedback>
         </Animated.View>

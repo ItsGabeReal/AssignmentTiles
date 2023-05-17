@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { memo, useContext } from "react";
 import {
     StyleSheet,
     Text,
@@ -10,10 +10,20 @@ import EventTile from './EventTile';
 import GlobalContext from "../context/GlobalContext";
 import VisualSettings from "../json/VisualSettings.json"
 
-const DAY_NAMES_ABREV = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function DayRow({ date, eventIDs, onPress }) {
     const globalContext = useContext(GlobalContext);
+
+    function isToday() {
+        const today = new Date();
+        return datesMatch(today, date)
+    }
+
+    function datesMatch(date1, date2) {
+        const ONE_DAY_IN_MILLISECONDS = 86400000;
+        return Math.floor(date1.valueOf() / ONE_DAY_IN_MILLISECONDS) == Math.floor(date2.valueOf() / ONE_DAY_IN_MILLISECONDS);
+    }
     
     function getEventFromID(events, id) {
         return events.find(item => (item.id == id));
@@ -26,7 +36,7 @@ export default function DayRow({ date, eventIDs, onPress }) {
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
-                <View style={styles.dateTextContainer}>
+                <View style={{...styles.dateTextContainer, backgroundColor: (isToday() ? "#ddf" : "#fff") }}>
                     <Text>{DAY_NAMES_ABREV[date.getDay()]}, {date.getMonth() + 1}/{date.getDate()}</Text>
                 </View>
                 <View style={styles.flatListContainer}>
