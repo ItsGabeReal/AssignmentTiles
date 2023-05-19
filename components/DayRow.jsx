@@ -1,4 +1,4 @@
-import { memo, useContext } from "react";
+import { useContext } from "react";
 import {
     StyleSheet,
     Text,
@@ -6,27 +6,22 @@ import {
     FlatList,
     TouchableOpacity,
 } from "react-native";
-import EventTile from './EventTile';
-import GlobalContext from "../context/GlobalContext";
+import { getItemFromID, datesMatch, today } from "../src/helpers";
+import EventContext from "../context/EventContext";
 import VisualSettings from "../json/VisualSettings.json"
+import EventTile from './EventTile';
 
 const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export default function DayRow({ date, eventIDs, onPress }) {
-    const globalContext = useContext(GlobalContext);
+export default function DayRow({ date, eventIDs, onPress, rowData }) {
+    const eventContext = useContext(EventContext);
 
     function isToday() {
-        const today = new Date();
-        return datesMatch(today, date)
-    }
-
-    function datesMatch(date1, date2) {
-        const ONE_DAY_IN_MILLISECONDS = 86400000;
-        return Math.floor(date1.valueOf() / ONE_DAY_IN_MILLISECONDS) == Math.floor(date2.valueOf() / ONE_DAY_IN_MILLISECONDS);
+        return datesMatch(today(), date)
     }
     
     function getEventFromID(events, id) {
-        return events.find(item => (item.id == id));
+        return getItemFromID(events, id);
     }
     
     function handlePress() {
@@ -44,7 +39,7 @@ export default function DayRow({ date, eventIDs, onPress }) {
                         data={eventIDs}
                         numColumns={VisualSettings.DayRow.numEventTileColumns}
                         keyExtractor={item => item}
-                        renderItem={({ item }) => <EventTile event={getEventFromID(globalContext.events, item)} />}
+                        renderItem={({ item }) => <EventTile key={rowData} event={getEventFromID(eventContext.events, item)} />}
                     />
                 </View>
             </View>

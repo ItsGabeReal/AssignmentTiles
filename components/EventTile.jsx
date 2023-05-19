@@ -1,31 +1,28 @@
-import { memo, useContext } from 'react';
+import { useContext } from 'react';
 import {
     StyleSheet,
     Text,
     View,
 } from "react-native";
-import GlobalContext from '../context/GlobalContext';
+import EventContext from '../context/EventContext';
 import DraggableComponent from './DraggableComponent';
 import VisualSettings from '../json/VisualSettings.json';
 
 export default function EventTile({ event }) {
-    const globalContext = useContext(GlobalContext);
-
-    function onDrop(gesture) {
-        globalContext.onTileDropped(gesture, event);
-    }
+    const eventContext = useContext(EventContext);
     
     return (
         <DraggableComponent
-            onPress={() => globalContext.tileDeletionTest(event)}
-            onStartDrag={() => globalContext.onTileDragStart()}
-            onDrop={onDrop}
+            onPress={() => eventContext.tileDeletionTest(event)}
+            onStartDrag={() => eventContext.onTileDragStart()}
+            onDrop={gesture => eventContext.onTileDropped(gesture, event)}
         >
             <View style={styles.mainContainer}>
                 <Text style={styles.eventNameText}>{event.name}</Text>
             </View>
         </DraggableComponent>
-    )
+        
+    );
 };
 
 const styles = StyleSheet.create({
