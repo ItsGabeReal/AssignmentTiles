@@ -16,7 +16,6 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.71.7",
-    "react-native-bidirectional-infinite-scroll": "^0.3.3",
     "react-native-date-picker": "^4.2.13",
     "react-native-event-listeners": "^1.0.7",
     "react-native-web": "~0.18.9"

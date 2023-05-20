@@ -3,11 +3,12 @@ import {
     StyleSheet,
     View,
     Modal,
+    Dimensions,
 } from "react-native";
-import { FlatList } from "react-native-bidirectional-infinite-scroll";
 import { datesMatch, today, getItemFromID } from "./src/helpers";
-import VisualSettings from "./json/VisualSettings.json";
+import VisualSettings from "./src/VisualSettings";
 import EventContext from "./context/EventContext";
+import InfiniteScrollFlatList from "./components/InfiniteScrollFlatList";
 import TestButton from "./components/TestButton";
 import DayRow from "./components/DayRow";
 import EventCreationScreen from "./components/EventCreationScreen";
@@ -58,7 +59,21 @@ const testEvents = [
 export default function App() {
     const [eventData, setEventData] = useState(testEvents);
     
-    const [rowData, setRowData] = useState(createInitialRowData());
+    /**
+     * rowData is a ref and should be accessed with .current. This fixes stale closure issues.
+     * setRowData works like any other state setter.
+     * 
+     * One of the reasons rowData can't be a state is because it's supposed to
+     * always have a set number of rows, meaning hooks that check if rowData has
+     * changed won't notice any changes. Instead, use rowDataUpdateCount to
+     * check if the state has changed.
+     */
+    const rowData = useRef(createInitialRowData());
+    const [rowDataUpdateCount, setRowDataUpdateCount] = useState(0);
+    function setRowData(callback) {
+        rowData.current = callback(rowData.current);
+        setRowDataUpdateCount(prevCount => prevCount + 1);
+    }
 
     const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
@@ -90,7 +105,7 @@ export default function App() {
         setEventData(prevItems => [...prevItems, newEvent]);
 
         // Insert into the row with the same date
-        const targetRowIndex = rowData.findIndex(item => datesMatch(item.date, newEvent.date));
+        const targetRowIndex = rowData.current.findIndex(item => datesMatch(item.date, newEvent.date));
         if (targetRowIndex != -1) {
             setRowData(prevItems => {
                 const output = [...prevItems];
@@ -102,7 +117,7 @@ export default function App() {
 
     function deleteEvent(event) {
         // Remove from day row
-        const targetRowIndex = rowData.findIndex(item => datesMatch(item.date, event.date));
+        const targetRowIndex = rowData.current.findIndex(item => datesMatch(item.date, event.date));
         setRowData(prevItems => {
             const output = [...prevItems];
             const targetRow = output[targetRowIndex];
@@ -150,17 +165,20 @@ export default function App() {
     function addDayRowsToTopAndRemoveFromBottom(numRows) {
         const ONE_DAY_IN_MILLISECONDS = 86400000;
 
-        const currentOldestDate = rowData[0].date;
+        const currentOldestDate = rowData.current[0].date;
         const startDate = new Date(currentOldestDate.getTime() - ONE_DAY_IN_MILLISECONDS * numRows);
         const newRowData = createRowData(startDate, numRows);
 
-        // Keep view in place by offsetting by the height of the new rows
-        const sumNewRowHeights = getDayRowYOffset(newRowData, newRowData.length);
-        flatListRef.current.scrollToOffset({
-            offset: sumNewRowHeights + scrollYOffset.current,
-            animated: false,
-        });
+        // Keep view in place by preventing
+        const sumHeightOfNewRows = getDayRowYOffset(newRowData, newRowData.length);
         
+        setTimeout(() => {
+            flatListRef.current.scrollToOffset({
+                offset: sumHeightOfNewRows,
+                animated: false,
+            });
+        }, 1000);
+
         setRowData(prevData => {
             const output = [...newRowData, ...prevData];
             output.length = output.length - numRows;
@@ -169,8 +187,21 @@ export default function App() {
     }
 
     function addDayRowsToBottomAndRemoveFromTop(numRows) {
-        const currentLastDate = rowData[rowData.length - 1].date;
-        const newRowData = createRowData(currentLastDate, numRows);
+        const ONE_DAY_IN_MILLISECONDS = 86400000;
+
+        const currentLastDate = rowData.current[rowData.current.length - 1].date;
+        const startDate = new Date(currentLastDate.getTime() + ONE_DAY_IN_MILLISECONDS);
+        const newRowData = createRowData(startDate, numRows);
+
+        const currentFlatListHeight = getDayRowYOffset(rowData.current, rowData.current.length);
+        const sumHeightOfDeletedRows = getDayRowYOffset(rowData.current, numRows);
+        const windowHeight = Dimensions.get('window').height;
+        const bottomOfContentYOffset = currentFlatListHeight - sumHeightOfDeletedRows - windowHeight;
+
+        flatListRef.current.scrollToOffset({
+            offset: bottomOfContentYOffset,
+            animated: false,
+        });
 
         setRowData(prevData => {
             let output = [...prevData, ...newRowData];
@@ -198,11 +229,11 @@ export default function App() {
     }
 
     function getRowOverlappingScreenPosition(screenPosition) {
-        for (let i = 0; i < rowData.length; i++) {
-            const dayRowScreenYPosition = getDayRowScreenYPosition(rowData[i]);
+        for (let i = 0; i < rowData.current.length; i++) {
+            const dayRowScreenYPosition = getDayRowScreenYPosition(rowData.current[i]);
 
-            if (screenPosition.y > dayRowScreenYPosition && screenPosition.y < dayRowScreenYPosition + getDayRowHeight(rowData[i])) {
-                return rowData[i];
+            if (screenPosition.y > dayRowScreenYPosition && screenPosition.y < dayRowScreenYPosition + getDayRowHeight(rowData.current[i])) {
+                return rowData.current[i];
             }
         }
         
@@ -211,8 +242,8 @@ export default function App() {
     }
 
     function getDayRowScreenYPosition(row) {
-        const rowIndex = rowData.findIndex(item => (item.id == row.id));
-        const dayRowYOffset = getDayRowYOffset(rowData, rowIndex);
+        const rowIndex = rowData.current.findIndex(item => (item.id == row.id));
+        const dayRowYOffset = getDayRowYOffset(rowData.current, rowIndex);
         
         return (dayRowYOffset - scrollYOffset.current)
     }
@@ -355,22 +386,15 @@ export default function App() {
     }
 
     function getDayRowIndexFromDate(date) {
-        return rowData.findIndex(row => datesMatch(row.date, date));
+        return rowData.current.findIndex(row => datesMatch(row.date, date));
     }
 
-    async function onStartReached() {
-        console.log('start reached');
+    function onStartReached() {
         addDayRowsToTopAndRemoveFromBottom(7);
-        /*return new Promise(resolve => {
-            setTimeout(resolve, 1000);
-        });*/
     }
 
-    async function onEndReached() {
-        console.log('end reached');
+    function onEndReached() {
         addDayRowsToBottomAndRemoveFromTop(7);
-        /*return new Promise(resolve => {
-        });*/
     }
 
     function onEventCreationModalSubmitted(eventDetails) {
@@ -379,18 +403,18 @@ export default function App() {
     }
 
     function onTestButtonPressed() {
-        for (let i = 0; i < rowData.length; i++) {
-            console.log(`rowData[${i}]: ${rowData[i].date.getMonth() + 1}/${rowData[i].date.getDate()} | ${rowData[i].id}`)
+        for (let i = 0; i < rowData.current.length; i++) {
+            console.log(`rowData.current[${i}]: ${rowData.current[i].date.getMonth() + 1}/${rowData.current[i].date.getDate()} | ${rowData.current[i].id}`)
         }
     }
 
     return (
         <View style={styles.container}>
             <EventContext.Provider value={{ events: eventData, onTileDragStart: onTileDragStart, onTileDropped: onTileDropped, tileDeletionTest: tileDeletionTest }}>
-                <FlatList
+                <InfiniteScrollFlatList
                     ref={flatListRef}
-                    data={rowData}
-                    renderItem={({ item }) => <DayRow date={item.date} eventIDs={item.eventIDs} onPress={openEventCreationModal} rowData={rowData} />}
+                    data={rowData.current}
+                    renderItem={({ item }) => <DayRow date={item.date} eventIDs={item.eventIDs} onPress={openEventCreationModal} />}
                     ItemSeparatorComponent={DayRowSeparater}
                     getItemLayout={getItemLayout}
                     initialScrollIndex={getDayRowIndexFromDate(today())}
@@ -398,8 +422,9 @@ export default function App() {
                     onScroll={(event) => { scrollYOffset.current = event.nativeEvent.contentOffset.y; }}
                     onStartReached={onStartReached}
                     onEndReached={onEndReached}
-                    onStartReachedThreshold={0.1}
-                    onEndReachedThreshold={0.1}
+                    onStartReachedThreshold={10}
+                    onEndReachedThreshold={10}
+                    //showsVerticalScrollIndicator={false}
                 />
             </EventContext.Provider>
             <Modal
@@ -423,5 +448,6 @@ const styles = StyleSheet.create({
     dayRowSeparater: {
         backgroundColor: '#000',
         height: VisualSettings.App.dayRowSeparater.height,
+        zIndex: 1,
     }
 });

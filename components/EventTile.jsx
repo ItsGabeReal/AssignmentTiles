@@ -6,7 +6,7 @@ import {
 } from "react-native";
 import EventContext from '../context/EventContext';
 import DraggableComponent from './DraggableComponent';
-import VisualSettings from '../json/VisualSettings.json';
+import VisualSettings from '../src/VisualSettings';
 
 export default function EventTile({ event }) {
     const eventContext = useContext(EventContext);
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
         marginBottom: VisualSettings.EventTile.mainContainer.marginBottom,
         borderRadius: 5,
         justifyContent: 'center',
-        zIndex: 1,
+        zIndex: 1000,
     },
     eventNameText: {
         textAlign: 'center',

@@ -8,12 +8,12 @@ import {
 } from "react-native";
 import { getItemFromID, datesMatch, today } from "../src/helpers";
 import EventContext from "../context/EventContext";
-import VisualSettings from "../json/VisualSettings.json"
+import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
 
 const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export default function DayRow({ date, eventIDs, onPress, rowData }) {
+export default function DayRow({ date, eventIDs, onPress }) {
     const eventContext = useContext(EventContext);
 
     function isToday() {
@@ -31,7 +31,7 @@ export default function DayRow({ date, eventIDs, onPress, rowData }) {
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
-                <View style={{...styles.dateTextContainer, backgroundColor: (isToday() ? "#ddf" : "#fff") }}>
+                <View style={{...styles.dateTextContainer, backgroundColor: (isToday() ? "#ddf" : "#fff0") }}>
                     <Text>{DAY_NAMES_ABREV[date.getDay()]}, {date.getMonth() + 1}/{date.getDate()}</Text>
                 </View>
                 <View style={styles.flatListContainer}>
@@ -39,7 +39,7 @@ export default function DayRow({ date, eventIDs, onPress, rowData }) {
                         data={eventIDs}
                         numColumns={VisualSettings.DayRow.numEventTileColumns}
                         keyExtractor={item => item}
-                        renderItem={({ item }) => <EventTile key={rowData} event={getEventFromID(eventContext.events, item)} />}
+                        renderItem={({ item }) => <EventTile event={getEventFromID(eventContext.events, item)} />}
                     />
                 </View>
             </View>
@@ -52,7 +52,6 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         minHeight: VisualSettings.DayRow.flatListContainer.paddingTop + VisualSettings.EventTile.mainContainer.height + VisualSettings.EventTile.mainContainer.marginBottom,
-        borderColor: 'black',
     },
     dateTextContainer: {
         width: VisualSettings.DayRow.dateTextContainer.width,
