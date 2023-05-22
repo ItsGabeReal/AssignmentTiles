@@ -1,4 +1,3 @@
-import { useContext } from "react";
 import {
     StyleSheet,
     Text,
@@ -7,14 +6,12 @@ import {
     TouchableOpacity,
 } from "react-native";
 import { getItemFromID, datesMatch, today } from "../src/helpers";
-import EventContext from "../context/EventContext";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
 
 const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export default function DayRow({ date, eventIDs, onPress }) {
-    const eventContext = useContext(EventContext);
+export default function DayRow({ date, eventIDs, eventData, onPress }) {
 
     function isToday() {
         return datesMatch(today(), date)
@@ -28,6 +25,10 @@ export default function DayRow({ date, eventIDs, onPress }) {
         if (onPress) onPress(date);
     }
 
+    function renderEventTile({ item }) {
+        return <EventTile event={getEventFromID(eventData, item)} />;
+    }
+
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
@@ -39,13 +40,13 @@ export default function DayRow({ date, eventIDs, onPress }) {
                         data={eventIDs}
                         numColumns={VisualSettings.DayRow.numEventTileColumns}
                         keyExtractor={item => item}
-                        renderItem={({ item }) => <EventTile event={getEventFromID(eventContext.events, item)} />}
+                        renderItem={renderEventTile}
                     />
                 </View>
             </View>
         </TouchableOpacity>
     );
-};
+}
 
 const styles = StyleSheet.create({
     mainContainer: {

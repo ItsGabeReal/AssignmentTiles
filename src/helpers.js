@@ -10,3 +10,20 @@ export function today() {
 export function getItemFromID(items, id) {
     return items.find(item => item.id == id);
 }
+
+export function propProvided(prop) {
+    if (prop) return true;
+    else return false;
+}
+
+export function arraysEqual(array1, array2) {
+    // length check
+    if (array1.length != array2.length) return false;
+
+    // content check
+    for (let i = 0; i < array1.length; i++) {
+        if (array1[i] != array2[i]) return false;
+    }
+
+    return true;
+}

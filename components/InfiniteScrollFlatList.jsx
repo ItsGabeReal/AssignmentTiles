@@ -1,5 +1,5 @@
 import { forwardRef, useRef } from "react";
-import { FlatList, ActivityIndicator } from "react-native";
+import { FlatList } from "react-native";
 
 const InfiniteScrollFlatList = forwardRef(function InfiniteScrollFlatList(props, ref) {
     const {
@@ -21,11 +21,16 @@ const InfiniteScrollFlatList = forwardRef(function InfiniteScrollFlatList(props,
 
     const postLoadDelayComplete = useRef(true);
 
+    function propProvided(prop) {
+        if (prop) return true;
+        else return false;
+    }
+
     function hasReachedStart(event) {
-        const contentYOffset = event.nativeEvent.contentOffset.y;const distanceFromTop = contentYOffset;
+        const distanceFromTop = event.nativeEvent.contentOffset.y;
 
         let requiredDistFromTop;
-        if (onStartReachedThreshold) requiredDistFromTop = onStartReachedThreshold;
+        if (propProvided(onStartReachedThreshold)) requiredDistFromTop = onStartReachedThreshold;
         else requiredDistFromTop = 1;
 
         return distanceFromTop <= requiredDistFromTop;
@@ -38,25 +43,25 @@ const InfiniteScrollFlatList = forwardRef(function InfiniteScrollFlatList(props,
         const distanceFromEnd = contentHeight - contentYOffset - screenHeight;
 
         let requiredDistFromBottom;
-        if (onEndReachedThreshold) requiredDistFromBottom = onEndReachedThreshold;
+        if (propProvided(onEndReachedThreshold)) requiredDistFromBottom = onEndReachedThreshold;
         else requiredDistFromBottom = 1;
 
         return distanceFromEnd <= requiredDistFromBottom;
     }
 
     function handleScroll(event) {
-        if (postLoadDelayComplete.current) {
-            if (onStartReached && hasReachedStart(event)) {
+        if (postLoadDelayComplete.current == true) {
+            if (propProvided(onStartReached) && hasReachedStart(event)) {
                 onStartReached();
                 startPostLoadDelay();
             }
-            if (onEndReached && hasReachedEnd(event)) {
+            if (propProvided(onEndReached) && hasReachedEnd(event)) {
                 onEndReached();
                 startPostLoadDelay();
             }
         }
-        
-        if (onScroll) onScroll(event);
+
+        if (propProvided(onScroll)) onScroll(event);
     }
 
     function startPostLoadDelay() {

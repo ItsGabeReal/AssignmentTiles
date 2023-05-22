@@ -4,18 +4,18 @@ import {
     Text,
     View,
 } from "react-native";
-import EventContext from '../context/EventContext';
+import CallbackContext from '../context/CallbackContext';
 import DraggableComponent from './DraggableComponent';
 import VisualSettings from '../src/VisualSettings';
 
 export default function EventTile({ event }) {
-    const eventContext = useContext(EventContext);
+    const callbackContext = useContext(CallbackContext);
     
     return (
         <DraggableComponent
-            onPress={() => eventContext.tileDeletionTest(event)}
-            onStartDrag={() => eventContext.onTileDragStart()}
-            onDrop={gesture => eventContext.onTileDropped(gesture, event)}
+            onPress={() => callbackContext.tileDeletionTest(event)}
+            onStartDrag={() => callbackContext.onTileDragStart()}
+            onDrop={gesture => callbackContext.onTileDropped(gesture, event)}
         >
             <View style={styles.mainContainer}>
                 <Text style={styles.eventNameText}>{event.name}</Text>
@@ -23,7 +23,7 @@ export default function EventTile({ event }) {
         </DraggableComponent>
         
     );
-};
+}
 
 const styles = StyleSheet.create({
     mainContainer: {
