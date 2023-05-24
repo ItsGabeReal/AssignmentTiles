@@ -1,7 +1,20 @@
 import React, { useRef } from 'react';
-import { PanResponder, Animated, TouchableWithoutFeedback } from 'react-native';
+import {
+    TouchableWithoutFeedbackProps,
+    PanResponder,
+    Animated,
+    TouchableWithoutFeedback,
+    GestureResponderEvent,
+    PanResponderGestureState,
+} from 'react-native';
 
-export default function DraggableComponent({ children, onPress, onStartDrag, onDrag, onDrop }) {
+type DraggableComponentProps = Omit<TouchableWithoutFeedbackProps, 'onLongPress'> & {
+    onStartDrag?: ((gesture: GestureResponderEvent) => void);
+    onDrag?: ((gesture: PanResponderGestureState) => void);
+    onDrop?: ((gesture: PanResponderGestureState) => void);
+}
+
+const DraggableComponent: React.FC<DraggableComponentProps> = (props) => {
     const draggingEnabled = useRef(false);
 
     const pan = useRef(new Animated.ValueXY()).current; // Animatable values for the pan position
@@ -15,22 +28,22 @@ export default function DraggableComponent({ children, onPress, onStartDrag, onD
                 pan.x.setValue(gesture.dx);
                 pan.y.setValue(gesture.dy);
 
-                if (onDrag) onDrag(gesture);
+                props.onDrag?.(gesture);
             },
             onPanResponderRelease: (event, gesture) => { // When drag is released
                 Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false, }).start(); // Return to base position with spring animation
                 draggingEnabled.current = false;
                 tileOpacity.setValue(1);
 
-                if (onDrop) onDrop(gesture);
+                props.onDrop?.(gesture);
             },
         })
     ).current;
 
-    function onLongPress() {
+    function onLongPress(gesture: GestureResponderEvent) {
         draggingEnabled.current = true;
         tileOpacity.setValue(0.75);
-        if (onStartDrag) onStartDrag();
+        props.onStartDrag?.(gesture);
     }
 
     return (
@@ -38,9 +51,11 @@ export default function DraggableComponent({ children, onPress, onStartDrag, onD
             style={{ transform: [{ translateX: pan.x }, { translateY: pan.y }], opacity: tileOpacity }}
             {...panResponder.panHandlers}
         >
-            <TouchableWithoutFeedback onPress={onPress} onLongPress={onLongPress} delayLongPress={150}>
-                {children}
+            <TouchableWithoutFeedback onLongPress={onLongPress} delayLongPress={150} {...props}>
+                {props.children}
             </TouchableWithoutFeedback>
         </Animated.View>
     );
 };
+
+export default DraggableComponent;

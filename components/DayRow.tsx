@@ -1,45 +1,54 @@
+import React from "react";
 import {
     StyleSheet,
     Text,
     View,
     FlatList,
     TouchableOpacity,
+    GestureResponderEvent,
 } from "react-native";
+import { Row } from "../types/RowTypes";
+import { Event, EventID } from "../types/EventTypes";
 import { getItemFromID, datesMatch, today } from "../src/helpers";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
 
 const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export default function DayRow({ date, eventIDs, eventData, onPress }) {
+type DayRowProps = {
+    row: Row;
+    eventData: Event[];
+    onPress?: ((gesture: GestureResponderEvent, row: Row) => void);
+}
 
-    function isToday() {
-        return datesMatch(today(), date)
+const DayRow: React.FC<DayRowProps> = (props) => {
+    function isToday(): boolean {
+        return datesMatch(today(), props.row.date);
     }
     
-    function getEventFromID(events, id) {
+    function getEventFromID(events: Event[], id: EventID): Event {
         return getItemFromID(events, id);
     }
     
-    function handlePress() {
-        if (onPress) onPress(date);
+    function handlePress(gesture: GestureResponderEvent) {
+        props.onPress?.(gesture, props.row);
     }
 
-    function renderEventTile({ item }) {
-        return <EventTile event={getEventFromID(eventData, item)} />;
+    function renderEventTile({ item }: {item: EventID}) {
+        return <EventTile event={getEventFromID(props.eventData, item)} />;
     }
 
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
                 <View style={{...styles.dateTextContainer, backgroundColor: (isToday() ? "#ddf" : "#fff0") }}>
-                    <Text>{DAY_NAMES_ABREV[date.getDay()]}, {date.getMonth() + 1}/{date.getDate()}</Text>
+                    <Text>{DAY_NAMES_ABREV[props.row.date.getDay()]}, {props.row.date.getMonth() + 1}/{props.row.date.getDate()}</Text>
                 </View>
                 <View style={styles.flatListContainer}>
                     <FlatList
-                        data={eventIDs}
+                        data={props.row.eventIDs}
                         numColumns={VisualSettings.DayRow.numEventTileColumns}
-                        keyExtractor={item => item}
+                        keyExtractor={item => item.toString()}
                         renderItem={renderEventTile}
                     />
                 </View>
@@ -66,3 +75,5 @@ const styles = StyleSheet.create({
         paddingTop: VisualSettings.DayRow.flatListContainer.paddingTop,
     },
 });
+
+export default DayRow;

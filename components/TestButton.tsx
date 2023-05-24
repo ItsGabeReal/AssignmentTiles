@@ -1,10 +1,16 @@
+import React from "react";
 import {
     StyleSheet,
     View,
     Button,
+    GestureResponderEvent,
 } from "react-native";
 
-export default function TestButton({ onPress }) {
+interface Props {
+    onPress: (event: GestureResponderEvent) => void;
+}
+
+const TestButton: React.FC<Props> = ({ onPress }) => {
     return (
         <View style={styles.testButtonContainer}>
             <Button
@@ -21,6 +27,8 @@ const styles = StyleSheet.create({
         bottom: 20,
         left: 0,
         right: 0,
-        alignItems: 'center'
+        alignItems: 'center',
     },
 });
+
+export default TestButton;

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import React, { useRef } from "react";
 import {
     StyleSheet,
     View,
@@ -6,30 +6,41 @@ import {
     TextInput,
     Button,
 } from "react-native";
+import { today } from "../src/helpers";
+
 import DatePicker from "react-native-date-picker";
 
-export default function EventCreationScreen({ initialDate, onEventCreated }) {
+export interface EventCreatorOutput {
+    name: string;
+    date: Date;
+}
+
+type EventCreatorProps = {
+    /**
+     * The default date shown on the date picker.
+     */
+    initialDate?: Date;
+
+    onEventCreated: ((eventDetails: EventCreatorOutput) => void);
+}
+
+const EventCreator: React.FC<EventCreatorProps> = (props) => {
     const eventNameInput = useRef("");
 
-    const dateInput = useRef(initializeDate());
+    const dateInput = useRef(props.initialDate || today());
 
-    function initializeDate() {
-        if (initialDate) return (initialDate);
-        else return (new Date());
-    }
-
-    function readyToSubmit() {
+    function readyToSubmit(): boolean {
         return (eventNameInput.current.length > 0);
     }
 
     function onSubmit() {
         if (readyToSubmit()) {
-            const eventDetails = {
+            const eventDetails: EventCreatorOutput = {
                 date: dateInput.current,
                 name: eventNameInput.current
             };
 
-            if (onEventCreated) onEventCreated(eventDetails);
+            props.onEventCreated(eventDetails);
         }
     }
 
@@ -45,7 +56,7 @@ export default function EventCreationScreen({ initialDate, onEventCreated }) {
                 <Text>Due Date:</Text>
                 <DatePicker
                     mode="date"
-                    date={initializeDate()}
+                    date={dateInput.current} // <- TEST TO MAKE SURE IT WORKS IF initialDate IS NOT PROVIDED
                     androidVariant="nativeAndroid"
                     onDateChange={newDate => { dateInput.current = newDate; }}
                 />
@@ -77,3 +88,5 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 });
+
+export default EventCreator;
