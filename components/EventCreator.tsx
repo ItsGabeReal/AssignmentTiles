@@ -47,19 +47,23 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
     return (
         <View style={styles.mainContainer}>
             <View style={styles.inputContainer}>
-                <Text>Event Name:</Text>
-                <TextInput
-                    autoFocus={true}
-                    onChangeText={changedText => {eventNameInput.current = changedText;}}
-                    style={styles.eventNameTextInput}
-                />
-                <Text>Due Date:</Text>
-                <DatePicker
-                    mode="date"
-                    date={dateInput.current} // <- TEST TO MAKE SURE IT WORKS IF initialDate IS NOT PROVIDED
-                    androidVariant="nativeAndroid"
-                    onDateChange={newDate => { dateInput.current = newDate; }}
-                />
+                <View style={styles.parameterContainer}>
+                    <TextInput
+                        placeholder="Name"
+                        autoFocus={true}
+                        onChangeText={changedText => { eventNameInput.current = changedText; }}
+                    />
+                </View>
+                <View style={styles.parameterContainer}>
+                    <Text>Due Date:</Text>
+                    <DatePicker
+                        mode="date"
+                        date={dateInput.current} // <- TEST TO MAKE SURE IT WORKS IF initialDate IS NOT PROVIDED
+                        androidVariant="nativeAndroid"
+                        onDateChange={newDate => { dateInput.current = newDate; }}
+                    />
+                </View>
+                
             </View>
             <View style={styles.createEventButtonContainer}>
                 <Button title="Create Event" onPress={onSubmit} />
@@ -71,18 +75,19 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
 const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
-        padding: 30,
+        padding: 20,
+        backgroundColor: '#ddd',
     },
     inputContainer: {
         flex: 1,
     },
-    eventNameTextInput: {
-        backgroundColor: '#f8f8f8',
-        marginTop: 5,
-        padding: 8,
+    parameterContainer: {
+        padding: 15,
+        backgroundColor: '#fff',
         borderRadius: 10,
-        borderWidth: 1,
         borderColor: '#bbb',
+        borderWidth: StyleSheet.hairlineWidth,
+        marginBottom: 10,
     },
     createEventButtonContainer: {
         alignItems: 'center',

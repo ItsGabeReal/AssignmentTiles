@@ -6,6 +6,7 @@ import {
     FlatList,
     PanResponderGestureState,
     GestureResponderEvent,
+    StatusBar,
 } from "react-native";
 import { Event, EventID } from "./types/EventTypes";
 import { Row } from "./types/RowTypes";
@@ -122,6 +123,28 @@ export default function App() {
                 output[targetRowIndex].eventIDs.push(newEvent.id);
                 return output;
             });
+    function getPlannedDateFromEventDetails(eventDetails: EventDetails) {
+        if (eventDetails.dueDate) {
+            return eventDetails.dueDate;
+        }
+        else if (eventDetails.beforeEventID) {
+            const beforeEvent = getEventFromID(eventData, eventDetails.beforeEventID);
+            if (!beforeEvent) {
+                console.error(`could not find event with id = ${eventDetails.beforeEventID}`);
+                return today();
+            }
+            return beforeEvent.layout.plannedDate;
+        }
+        else if (eventDetails.afterEventID) {
+            const afterEvent = getEventFromID(eventData, eventDetails.afterEventID);
+            if (!afterEvent) {
+                console.error(`could not find event with id = ${eventDetails.beforeEventID}`);
+                return today();
+            }
+            return afterEvent.layout.plannedDate;
+        }
+        else {
+            return today();
         }
     }
 
@@ -418,6 +441,7 @@ export default function App() {
 
     return (
         <View style={styles.container}>
+            <StatusBar backgroundColor={'#fff'} barStyle={"dark-content"} />
             <CallbackContext.Provider value={{ onTileDragStart: onTileDragStart, onTileDropped: onTileDropped }}>
                 <InfiniteScrollFlatList
                     ref={flatListRef}
