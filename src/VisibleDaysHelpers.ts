@@ -1,7 +1,7 @@
 import { PanResponderGestureState } from "react-native/types";
+import DateYMD from "./DateMDY";
 import { RowEvents } from "../types/EventTypes";
 import { getRowEventsFromDate } from "./EventDataHelpers";
-import { today, ONE_DAY_IN_MILLISECONDS } from "./GeneralHelpers";
 import VisualSettings from "./VisualSettings";
 
 export type EventTileDimensions = {
@@ -16,22 +16,12 @@ export type VisibleDaysReducerAction =
     | { type: 'add-to-bottom', numNewDays: number, removeFromTop?: boolean }
     | { type: 'add-to-top', numNewDays: number, removeFromBottom?: boolean };
 
-export function visibleDaysReducer(state: Date[], action: VisibleDaysReducerAction) {
-    const createArrayOfSequentialDates = (startDate: Date, numDays: number) => {
-        const outputDates: Date[] = [];
-
-        for (let i = 0; i < numDays; i++) {
-            outputDates.push(new Date(startDate.getTime() + ONE_DAY_IN_MILLISECONDS * i));
-        }
-
-        return outputDates;
-    }
-
-    if (action.type == 'add-to-bottom') {
+export function visibleDaysReducer(state: DateYMD[], action: VisibleDaysReducerAction) {
+    if (action.type == 'add-to-bottom') { // TESTING REQUIRED
         const { numNewDays, removeFromTop = false } = action;
 
         const currentLastDate = state[state.length - 1];
-        const startDate = new Date(currentLastDate.getTime() + ONE_DAY_IN_MILLISECONDS);
+        const startDate = currentLastDate.addDays(1);
         const newDates = createArrayOfSequentialDates(startDate, numNewDays);
 
         const outputDates = [...state, ...newDates];
@@ -42,11 +32,11 @@ export function visibleDaysReducer(state: Date[], action: VisibleDaysReducerActi
 
         return outputDates;
     }
-    else if (action.type == 'add-to-top') {
+    else if (action.type == 'add-to-top') { // TESTING REQUIRED
         const { numNewDays, removeFromBottom = false } = action;
 
         const currentFirstDate = state[0];
-        const startDate = new Date(currentFirstDate.getTime() - ONE_DAY_IN_MILLISECONDS * numNewDays);
+        const startDate = currentFirstDate.subtractDays(numNewDays);
         const newDates = createArrayOfSequentialDates(startDate, numNewDays);
 
         const outputDates = [...newDates, ...state];
@@ -60,22 +50,27 @@ export function visibleDaysReducer(state: Date[], action: VisibleDaysReducerActi
     else return state;
 }
 
-export function initializeVisibleDays() {
-    const numDaysAboveToday = 7;
-    const numDaysBelowToday = 13;
+const createArrayOfSequentialDates = (startDate: DateYMD, numDays: number) => {
+    const outputDates: DateYMD[] = [];
 
-    const totalDays = numDaysAboveToday + 1 + numDaysBelowToday;
-    const startDate = new Date(today().getTime() - ONE_DAY_IN_MILLISECONDS * numDaysAboveToday);
-
-    const outputDates: Date[] = [];
-    for (let i = 0; i < totalDays; i++) {
-        outputDates.push(new Date(startDate.getTime() + ONE_DAY_IN_MILLISECONDS * i));
+    for (let i = 0; i < numDays; i++) {
+        outputDates.push(startDate.addDays(i));
     }
 
     return outputDates;
 }
 
-export function getDayRowHeight(eventData: RowEvents[], date: Date) {
+export function initializeVisibleDays() {
+    const numDaysAboveToday = 7;
+    const numDaysBelowToday = 13;
+
+    const totalDays = numDaysAboveToday + 1 + numDaysBelowToday;
+    const startDate = DateYMD.today().subtractDays(numDaysAboveToday);
+
+    return createArrayOfSequentialDates(startDate, totalDays);
+}
+
+export function getDayRowHeight(eventData: RowEvents[], date: DateYMD) {
     const eventTileHeight = VisualSettings.EventTile.mainContainer.height;
     
     const rowEvents = getRowEventsFromDate(eventData, date);
@@ -95,7 +90,7 @@ export function getDayRowHeight(eventData: RowEvents[], date: Date) {
     return (eventContainerHeight + topAndBottomMargin);
 }
 
-export function getDayRowYOffset(visibleDays: Date[], eventData: RowEvents[], visibleDaysIndex: number) {
+export function getDayRowYOffset(visibleDays: DateYMD[], eventData: RowEvents[], visibleDaysIndex: number) {
     const rowsAbove = visibleDaysIndex;
     const spaceBetweenRows = VisualSettings.App.dayRowSeparater.height;
     let sumOfDayRowHeights = 0;
@@ -106,11 +101,11 @@ export function getDayRowYOffset(visibleDays: Date[], eventData: RowEvents[], vi
     return (sumOfDayRowHeights + spaceBetweenRows * rowsAbove);
 }
 
-export function getDayRowScreenYOffset(visibleDays: Date[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
+export function getDayRowScreenYOffset(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
     return getDayRowYOffset(visibleDays, eventData, visibleDaysIndex) - scrollYOffset;
 }
 
-export function getDayRowAtScreenPosition(visibleDays: Date[], eventData: RowEvents[], scrollYOffset: number, screenPosition: { x: number, y: number }) {
+export function getDayRowAtScreenPosition(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, screenPosition: { x: number, y: number }) {
     for (let i = 0; i < visibleDays.length; i++) {
         const rowScreenYOffset = getDayRowScreenYOffset(visibleDays, eventData, scrollYOffset, i);
         const rowHeight = getDayRowHeight(eventData, visibleDays[i]);
@@ -122,7 +117,7 @@ export function getDayRowAtScreenPosition(visibleDays: Date[], eventData: RowEve
     return null;
 }
 
-export function getDimensionsForTileInRow(visibleDays: Date[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
+export function getDimensionsForTileInRow(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
     const rowYOffset = getDayRowScreenYOffset(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
 
     const rowEvents = getRowEventsFromDate(eventData, visibleDays[visibleDaysIndex]);
@@ -156,7 +151,7 @@ export function getDimensionsForTileInRow(visibleDays: Date[], eventData: RowEve
     return outputDimensions;
 }
 
-export function getInsertionIndexFromGesture(visibleDays: Date[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number, gesture: PanResponderGestureState) {
+export function getInsertionIndexFromGesture(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number, gesture: PanResponderGestureState) {
     const dimensionsForAllTiles = getDimensionsForTileInRow(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
     
     for (let i = 0; i < dimensionsForAllTiles.length; i++) {

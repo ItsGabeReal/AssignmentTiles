@@ -6,8 +6,8 @@ import {
     TextInput,
     Button,
 } from "react-native";
+import DateYMD from "../src/DateMDY";
 import { EventDetails } from "../types/EventTypes";
-import { today } from "../src/GeneralHelpers";
 
 import DatePicker from "react-native-date-picker";
 
@@ -15,7 +15,7 @@ type EventCreatorProps = {
     /**
      * The default date shown on the date picker.
      */
-    initialDate?: Date;
+    initialDate?: DateYMD;
 
     onEventCreated: ((eventDetails: EventDetails) => void);
 }
@@ -23,7 +23,7 @@ type EventCreatorProps = {
 const EventCreator: React.FC<EventCreatorProps> = (props) => {
     const eventNameInput = useRef("");
 
-    const dateInput = useRef(props.initialDate || today());
+    const dateInput = useRef((props.initialDate || DateYMD.today()).toDate());
 
     function readyToSubmit(): boolean {
         return (eventNameInput.current.length > 0);
@@ -33,7 +33,7 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
         if (readyToSubmit()) {
             const newEvent: EventDetails = {
                 name: eventNameInput.current,
-                dueDate: dateInput.current,
+                dueDate: DateYMD.fromDate(dateInput.current),
                 id: Math.random().toString(),
             };
 

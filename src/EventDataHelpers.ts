@@ -1,10 +1,10 @@
 import { EventDetails, RowEvents } from "../types/EventTypes";
-import { datesMatch, today } from "./GeneralHelpers";
+import DateYMD from "./DateMDY";
 
 export type EventDataReducerAction =
     | { type: 'add', newEvent: EventDetails }
     | { type: 'remove', eventID: string }
-    | { type: 'change-planned-date', eventID: string, newPlannedDate: Date, insertionIndex?: number };
+    | { type: 'change-planned-date', eventID: string, newPlannedDate: DateYMD, insertionIndex?: number };
 
 export function eventDataReducer(state: RowEvents[], action: EventDataReducerAction) {
     const getInitialPlannedDateFromEventDetails = (eventDetails: EventDetails) => { // TESTING REQUIRED
@@ -12,15 +12,15 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
             return eventDetails.dueDate;
         }
         else {
-            return today();
+            return DateYMD.today();
         }
     }
 
     const sortEventDataByDate = (eventData: RowEvents[]) => {
-        eventData.sort((itemA, itemB) => itemA.date.getTime() - itemB.date.getTime());
+        eventData.sort((itemA, itemB) => itemA.date.toDate().valueOf() - itemB.date.toDate().valueOf());
     }
 
-    const addEvent = (eventData: RowEvents[], event: EventDetails, plannedDate: Date, insertionIndex?: number) => {
+    const addEvent = (eventData: RowEvents[], event: EventDetails, plannedDate: DateYMD, insertionIndex?: number) => {
         const outputEventData = [...eventData];
 
         const targetRowEvents = getRowEventsFromDate(outputEventData, plannedDate);
@@ -40,7 +40,7 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
         const outputEventData = [...eventData];
 
         let removedFromIndex = -1;
-        let removedFromDate: Date | null = null;
+        let removedFromDate: DateYMD | null = null;
         for (let i = 0; i < outputEventData.length; i++) {
             const rowEvents = outputEventData[i];
 
@@ -124,7 +124,7 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
         }
 
         // Decrement actual insertion index if necessary
-        const eventMovedToSameDate = datesMatch(removeEventOutput.removedFromDate, newPlannedDate);
+        const eventMovedToSameDate = removeEventOutput.removedFromDate.equals(newPlannedDate);
         if (eventMovedToSameDate) {
             const eventRemovedBeforeInsertionIndex = removeEventOutput.removedFromIndex < actualInsertionIndex;
             if (eventRemovedBeforeInsertionIndex) {
@@ -140,8 +140,8 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
     else return state;
 }
 
-export function getRowEventsFromDate(eventData: RowEvents[], date: Date) {
-    return eventData.find(item => datesMatch(item.date, date));
+export function getRowEventsFromDate(eventData: RowEvents[], date: DateYMD) {
+    return eventData.find(item => item.date.equals(date));
 }
 
 export function getEventFromID(eventData: RowEvents[], eventID: string) {
@@ -158,5 +158,19 @@ export function getEventFromID(eventData: RowEvents[], eventID: string) {
                 }
             }
         }
+    }
+}
+
+export function printEventData(eventData: RowEvents[]) {
+    for (let i = 0; i < eventData.length; i++) {
+        let eventArrayString = '[';
+        for (let j = 0; j < eventData[i].events.length; j++) {
+            if (j > 0) eventArrayString += ', ';
+            const event = eventData[i].events[j];
+            eventArrayString += event.name;
+        }
+        eventArrayString += ']';
+
+        console.log(`${eventData[i].date.toString()}: ${eventArrayString}`);
     }
 }

@@ -1,10 +1,12 @@
+import DateYMD from "../src/DateMDY";
+
 export interface EventDetails {
     name: string;
     id: string;
-    dueDate?: Date;
+    dueDate?: DateYMD;
 }
 
 export interface RowEvents {
-    date: Date;
+    date: DateYMD;
     events: EventDetails[];
 }

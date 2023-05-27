@@ -7,37 +7,31 @@ import {
     TouchableOpacity,
     GestureResponderEvent,
 } from "react-native";
+import DateYMD from "../src/DateMDY";
 import { EventDetails } from "../types/EventTypes";
-import { datesMatch, today } from "../src/GeneralHelpers";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
 
-const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
 type DayRowProps = {
-    date: Date;
+    date: DateYMD;
     events: EventDetails[];
-    onPress?: ((gesture: GestureResponderEvent, rowDate: Date) => void);
+    onPress?: ((gesture: GestureResponderEvent, rowDate: DateYMD) => void);
 }
 
 const DayRow: React.FC<DayRowProps> = (props) => {
-    function isToday() {
-        return datesMatch(today(), props.date);
-    }
-    
     function handlePress(gesture: GestureResponderEvent) {
         props.onPress?.(gesture, props.date);
     }
 
     function renderEventTile({ item }: {item: EventDetails}) {
-        return <EventTile event={item} />;
+        return <EventTile event={item} plannedDate={props.date} />;
     }
 
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
-                <View style={{...styles.dateTextContainer, backgroundColor: (isToday() ? "#ddf" : "#fff0") }}>
-                    <Text>{DAY_NAMES_ABREV[props.date.getDay()]}, {props.date.getMonth() + 1}/{props.date.getDate()}</Text>
+                <View style={{...styles.dateTextContainer, backgroundColor: (props.date.isToday() ? "#ddf" : "#fff0") }}>
+                    <Text>{props.date.dayNameAbrev()}, {props.date.month}/{props.date.date}</Text>
                 </View>
                 <View style={styles.flatListContainer}>
                     <FlatList
