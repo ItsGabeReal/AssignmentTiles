@@ -1,7 +1,10 @@
-export type EventID = number;
-
-export interface Event {
+export interface EventDetails {
     name: string;
+    id: string;
+    dueDate?: Date;
+}
+
+export interface RowEvents {
     date: Date;
-    id: EventID;
+    events: EventDetails[];
 }

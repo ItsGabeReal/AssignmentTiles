@@ -7,48 +7,42 @@ import {
     TouchableOpacity,
     GestureResponderEvent,
 } from "react-native";
-import { Row } from "../types/RowTypes";
-import { Event, EventID } from "../types/EventTypes";
-import { getItemFromID, datesMatch, today } from "../src/helpers";
+import { EventDetails } from "../types/EventTypes";
+import { datesMatch, today } from "../src/GeneralHelpers";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
 
 const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 type DayRowProps = {
-    row: Row;
-    eventData: Event[];
-    onPress?: ((gesture: GestureResponderEvent, row: Row) => void);
+    date: Date;
+    events: EventDetails[];
+    onPress?: ((gesture: GestureResponderEvent, rowDate: Date) => void);
 }
 
 const DayRow: React.FC<DayRowProps> = (props) => {
-    function isToday(): boolean {
-        return datesMatch(today(), props.row.date);
-    }
-    
-    function getEventFromID(events: Event[], id: EventID): Event {
-        return getItemFromID(events, id);
+    function isToday() {
+        return datesMatch(today(), props.date);
     }
     
     function handlePress(gesture: GestureResponderEvent) {
-        props.onPress?.(gesture, props.row);
+        props.onPress?.(gesture, props.date);
     }
 
-    function renderEventTile({ item }: {item: EventID}) {
-        return <EventTile event={getEventFromID(props.eventData, item)} />;
+    function renderEventTile({ item }: {item: EventDetails}) {
+        return <EventTile event={item} />;
     }
 
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
                 <View style={{...styles.dateTextContainer, backgroundColor: (isToday() ? "#ddf" : "#fff0") }}>
-                    <Text>{DAY_NAMES_ABREV[props.row.date.getDay()]}, {props.row.date.getMonth() + 1}/{props.row.date.getDate()}</Text>
+                    <Text>{DAY_NAMES_ABREV[props.date.getDay()]}, {props.date.getMonth() + 1}/{props.date.getDate()}</Text>
                 </View>
                 <View style={styles.flatListContainer}>
                     <FlatList
-                        data={props.row.eventIDs}
+                        data={props.events}
                         numColumns={VisualSettings.DayRow.numEventTileColumns}
-                        keyExtractor={item => item.toString()}
                         renderItem={renderEventTile}
                     />
                 </View>

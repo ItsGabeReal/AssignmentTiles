@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useReducer } from "react";
 import {
     StyleSheet,
     View,
@@ -8,459 +8,208 @@ import {
     GestureResponderEvent,
     StatusBar,
 } from "react-native";
-import { Event, EventID } from "./types/EventTypes";
-import { Row } from "./types/RowTypes";
-import { datesMatch, today, getItemFromID } from "./src/helpers";
+import { EventDetails, RowEvents } from "./types/EventTypes";
 import VisualSettings from "./src/VisualSettings";
 import CallbackContext from "./context/CallbackContext"
 import InfiniteScrollFlatList from "./components/InfiniteScrollFlatList";
 import TestButton from "./components/TestButton";
 import DayRow from "./components/DayRow";
-import EventCreator, { EventCreatorOutput } from "./components/EventCreator";
+import EventCreator from "./components/EventCreator";
+import { eventDataReducer, getRowEventsFromDate } from "./src/EventDataHelpers";
+import {
+    visibleDaysReducer,
+    initializeVisibleDays,
+    getDayRowHeight,
+    getDayRowYOffset,
+    getDayRowAtScreenPosition,
+    getInsertionIndexFromGesture
+} from "./src/VisibleDaysHelpers";
+import { datesMatch, today } from "./src/GeneralHelpers";
 
-const testEvents: Event[] = [
+const testEventData: RowEvents[] = [
     {
-        name: 'Past Event',
-        date: new Date(2023, 4, 10),
-        id: Math.random(),
+        date: new Date(2023, 4, 20),
+        events: [
+            {
+                name: 'Past Event',
+                id: Math.random().toString(),
+                dueDate: new Date(2023, 4, 20),
+            },
+        ]
     },
     {
-        name: 'Event 1',
         date: new Date(),
-        id: Math.random(),
-    },
-    {
-        name: 'Event 2',
-        date: new Date(),
-        id: Math.random(),
-    },
-    {
-        name: 'Event 3',
-        date: new Date(),
-        id: Math.random(),
-    },
-    {
-        name: 'Event 4',
-        date: new Date(),
-        id: Math.random(),
-    },
-    {
-        name: 'Event 5',
-        date: new Date(),
-        id: Math.random(),
-    },
-    {
-        name: 'Event 6',
-        date: new Date(),
-        id: Math.random(),
-    },
-    {
-        name: 'Event 7',
-        date: new Date(),
-        id: Math.random(),
+        events: [
+            {
+                name: 'Event 1',
+                id: Math.random().toString(),
+                dueDate: new Date(),
+            },
+            {
+                name: 'Event 2',
+                id: Math.random().toString(),
+                dueDate: new Date(),
+            },
+            {
+                name: 'Event 3',
+                id: Math.random().toString(),
+                dueDate: new Date(),
+            },
+            {
+                name: 'Event 4',
+                id: Math.random().toString(),
+                dueDate: new Date(),
+            },
+            {
+                name: 'Event 5',
+                id: Math.random().toString(),
+                dueDate: new Date(),
+            },
+            {
+                name: 'Event 6',
+                id: Math.random().toString(),
+                dueDate: new Date(),
+            },
+            {
+                name: 'Event 7',
+                id: Math.random().toString(),
+                dueDate: new Date(),
+            },
+        ],
     },
 ];
 
-type EventTileDimensions = {
-    eventID: EventID;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
 export default function App() {
-    const [eventData, setEventData] = useState<Event[]>(testEvents);
-    
-    /**
-     * rowData is a ref and should be accessed with .current. This fixes stale closure issues.
-     * setRowData works like any other state setter.
-     * 
-     * One of the reasons rowData can't be a state is because it's supposed to
-     * always have a set number of rows, meaning hooks that check if rowData has
-     * changed won't notice any changes. Instead, use rowDataUpdateCount to
-     * check if the state has changed.
-     */
-    const rowData = useRef<Row[]>(createInitialRowData());
-    const [rowDataUpdateCount, setRowDataUpdateCount] = useState(0);
+    const [eventData, eventDataDispatch] = useReducer(eventDataReducer, testEventData);
+    const [visibleDays, visibleDaysDispatch] = useReducer(visibleDaysReducer, initializeVisibleDays());
 
-    function setRowData(callback: (prevData: Row[]) => Row[]) {
-        rowData.current = callback(rowData.current);
-        setRowDataUpdateCount(prevCount => prevCount + 1);
-    }
-
-    const [isScrollEnabled, setIsScrollEnabled] = useState(true);
-    const [showEventCreator, setShowEventCreator] = useState(false);
+    const [scrollEnabled, setScrollEnabled] = useState(true);
+    const [eventCreatorModalVisible, setEventCreatorModalVisible] = useState(false);
 
     const scrollYOffset = useRef(0);
     const eventCreatorInitialDate = useRef<Date>();
     const flatListRef = useRef<FlatList<any> | null>(null);
 
-    // ----- EVENT DATA -----
-    function changeEventDate(event: Event, newDate: Date) {
-        setEventData(prevData => {
-            const output = [...prevData];
-            getEventFromID(prevData, event.id).date = newDate;
-            return output;
-        });
+
+    function onTileDragStart() {
+        setScrollEnabled(false);
     }
 
-    function createEvent(eventDetails: EventCreatorOutput) {
-        const newEvent: Event = {
-            date: eventDetails.date,
-            name: eventDetails.name,
-            id: Math.random(),
-        };
-        
-        // Insert it into event data
-        setEventData(prevItems => [...prevItems, newEvent]);
+    function onTileDropped(gesture: PanResponderGestureState, event: EventDetails) {
+        setScrollEnabled(true);
 
-        // Insert into the row with the same date
-        const targetRowIndex = rowData.current.findIndex(item => datesMatch(item.date, newEvent.date));
-        if (targetRowIndex != -1) {
-            setRowData(prevItems => {
-                const output = [...prevItems];
-                output[targetRowIndex].eventIDs.push(newEvent.id);
-                return output;
-            });
-    function getPlannedDateFromEventDetails(eventDetails: EventDetails) {
-        if (eventDetails.dueDate) {
-            return eventDetails.dueDate;
-        }
-        else if (eventDetails.beforeEventID) {
-            const beforeEvent = getEventFromID(eventData, eventDetails.beforeEventID);
-            if (!beforeEvent) {
-                console.error(`could not find event with id = ${eventDetails.beforeEventID}`);
-                return today();
-            }
-            return beforeEvent.layout.plannedDate;
-        }
-        else if (eventDetails.afterEventID) {
-            const afterEvent = getEventFromID(eventData, eventDetails.afterEventID);
-            if (!afterEvent) {
-                console.error(`could not find event with id = ${eventDetails.beforeEventID}`);
-                return today();
-            }
-            return afterEvent.layout.plannedDate;
-        }
-        else {
-            return today();
-        }
-    }
-
-    function deleteEvent(event: Event) {
-        // Remove from day row
-        const targetRowIndex = rowData.current.findIndex(item => datesMatch(item.date, event.date));
-        setRowData(prevItems => {
-            const output = [...prevItems];
-            const targetRow = output[targetRowIndex];
-            const eventIDIndex = targetRow.eventIDs.findIndex(id => id == event.id);
-            targetRow.eventIDs.splice(eventIDIndex, 1);
-            return output;
-        });
-
-        // Remove from event data
-        setEventData(prevItems => {
-            const output = [...prevItems];
-            const eventIndex = output.findIndex(item => (item.id == event.id));
-            output.splice(eventIndex, 1);
-            return output;
-        });
-    }
-
-    function getEventFromID(eventData: Event[], eventID: EventID) {
-        return getItemFromID(eventData, eventID);
-    }
-
-    // ----- ROW DATA -----
-    function createInitialRowData(): Row[] {
-        const ONE_DAY_IN_MILLISECONDS = 86400000;
-        const startDate = new Date(today().getTime() - ONE_DAY_IN_MILLISECONDS * 7);
-        return createRowData(startDate, 21);
-    }
-
-    function createRowData(startDate: Date, numDays: number): Row[] {
-        const ONE_DAY_IN_MILLISECONDS = 86400000;
-
-        const newRowData: Row[] = [];
-        for (let i = 0; i < numDays; i++) {
-            const rowDate = new Date(startDate.getTime() + ONE_DAY_IN_MILLISECONDS * i);
-            newRowData.push({
-                date: rowDate,
-                eventIDs: getEventIDsMatchingDate(rowDate),
-                id: Math.random(),
-            });
-        }
-        
-        return (newRowData);
-    }
-
-    function addDayRowsToTop(numRows: number) {
-        const ONE_DAY_IN_MILLISECONDS = 86400000;
-
-        const currentOldestDate = rowData.current[0].date;
-        const startDate = new Date(currentOldestDate.getTime() - ONE_DAY_IN_MILLISECONDS * numRows);
-        const newRowData = createRowData(startDate, numRows);
-
-        const sumHeightOfNewRows = getRowYOffset(newRowData, numRows);
-        flatListRef.current?.scrollToOffset({
-            offset: sumHeightOfNewRows,
-            animated: false,
-        });
-
-        setRowData(prevData => [...newRowData, ...prevData]);
-    }
-
-    function addDayRowsToBottom(numRows: number) {
-        const ONE_DAY_IN_MILLISECONDS = 86400000;
-
-        const currentLastDate = rowData.current[rowData.current.length - 1].date;
-        const startDate = new Date(currentLastDate.getTime() + ONE_DAY_IN_MILLISECONDS);
-        const newRowData = createRowData(startDate, numRows);
-
-        // Scroll offset correction if rows are removed from top
-        /*const currentFlatListHeight = getRowYOffset(rowData.current, rowData.current.length);
-        const sumHeightOfDeletedRows = getRowYOffset(rowData.current, numRows);
-        const windowHeight = Dimensions.get('window').height;
-        const bottomOfContentYOffset = currentFlatListHeight - sumHeightOfDeletedRows - windowHeight;*/
-
-        setRowData(prevData => [...prevData, ...newRowData]);
-    }
-
-    function getEventIDsMatchingDate(date: Date) {
-        let eventIDsMatchingDate = [];
-        for (let i = 0; i < eventData.length; i++) {
-            if (datesMatch(eventData[i].date, date)) {
-                eventIDsMatchingDate.push(eventData[i].id);
-            }
-        }
-        return eventIDsMatchingDate;
-    }
-    
-    // ----- TILE DROP -----
-    function onTileDropped(gesture: PanResponderGestureState, event: Event) {
-        setIsScrollEnabled(true);
-
-        const dropScreenPosition = { x: gesture.moveX, y: gesture.moveY };
-        let overlappingRow = getRowOverlappingScreenPosition(dropScreenPosition);
-        if (!overlappingRow) {
-            console.error(`Could not find row overlapping screen y position ${dropScreenPosition}`);
+        const overlappingRowDate = getDayRowAtScreenPosition(visibleDays, eventData, scrollYOffset.current, { x: gesture.moveX, y: gesture.moveY });
+        if (!overlappingRowDate) {
+            console.error('Could not find row overlapping drop position');
             return;
         }
 
-        dropEventOntoRow(gesture, event, overlappingRow);
-    }
-
-    function getRowOverlappingScreenPosition(screenPosition: {x: number, y: number}) {
-        for (let i = 0; i < rowData.current.length; i++) {
-            const dayRowScreenYPosition = getDayRowScreenYPosition(rowData.current[i]);
-
-            if (screenPosition.y > dayRowScreenYPosition && screenPosition.y < dayRowScreenYPosition + getRowHeight(rowData.current[i])) {
-                return rowData.current[i];
-            }
-        }
-        
-        console.error('getRowOverlappingPagePosition: could not find a row overlapping screen position', screenPosition);
-        return null;
-    }
-
-    function getDayRowScreenYPosition(row: Row) {
-        const rowIndex = rowData.current.findIndex(item => (item.id == row.id));
-        const dayRowYOffset = getRowYOffset(rowData.current, rowIndex);
-        
-        return (dayRowYOffset - scrollYOffset.current);
-    }
-    
-    function dropEventOntoRow(gesture: PanResponderGestureState, event: Event, targetRow: Row) {
-        const copyOf_gesture: PanResponderGestureState = { ...gesture }; // Copy data from gesture so that it doesn't get reset before we can use it
-
-        setRowData(prevData => {
-            const outputRowData = [...prevData];
-            
-            const currentRow = outputRowData.find(row => datesMatch(row.date, event.date));
-            if (!currentRow) {
-                console.error(`Failed to find row with date matching ${event.date}`);
-                return prevData;
-            }
-
-            const newRow = outputRowData.find(row => row.id == targetRow.id);
-            if (!newRow) {
-                console.error(`dropEventOntoRow -> setRowData: Failed to find row with id = ${targetRow.id}`);
-                return prevData;
-            }
-            
-            // Insert event into new row
-            const eventInsertionIndex = getEventInsertionIndexBasedOnGesture(newRow, copyOf_gesture);
-            newRow.eventIDs.splice(eventInsertionIndex, 0, event.id);
-            
-            // Remove event from current row
-            if (currentRow.id == newRow.id) currentRow.eventIDs = currentRow.eventIDs.filter((item, index) => !(index != eventInsertionIndex && item == event.id));
-            else currentRow.eventIDs = currentRow.eventIDs.filter((item) => !(item == event.id));
-            
-            changeEventDate(event, targetRow.date);
-            
-            return outputRowData;
-        });
-
-    }
-
-    function getEventInsertionIndexBasedOnGesture(targetRow: Row, gesture: PanResponderGestureState) {
-        const dimensionsForEventTilesInRow = getDimensionsForEventTilesInRow(targetRow);
-        for (let i = 0; i < dimensionsForEventTilesInRow.length; i++) {
-            const tileDimeions = dimensionsForEventTilesInRow[i];
-
-            // Intermediate variables
-            const tileXMidpoint = tileDimeions.x + tileDimeions.width / 2;
-            const eventTileRightEdgePlusMargin = tileDimeions.x + tileDimeions.width + VisualSettings.EventTile.mainContainer.marginRight;
-
-            // Overlap checks
-            const gestureYOverlapsTile = gesture.moveY > tileDimeions.y && gesture.moveY < tileDimeions.y + tileDimeions.width;
-            const gestureXOverlapsLeftHalf = gesture.moveX > tileDimeions.x && gesture.moveX < tileXMidpoint;
-            const gestureXOverlapsRightHalf = gesture.moveX > tileXMidpoint && gesture.moveX < eventTileRightEdgePlusMargin;
-
-            // If gesture overlaps with left side, insert to the left
-            if (gestureXOverlapsLeftHalf && gestureYOverlapsTile) return i;
-
-            // If gesture overlaps with right side, insert to the right
-            if (gestureXOverlapsRightHalf && gestureYOverlapsTile) return(i + 1);
+        const targetVisibleDaysIndex = visibleDays.findIndex(item => datesMatch(item, overlappingRowDate));
+        if (!targetVisibleDaysIndex) {
+            console.error('Could not find visible day with date matching', overlappingRowDate);
+            return;
         }
 
-        // Default return case
-        return targetRow.eventIDs.length;
+        const insertionIndex = getInsertionIndexFromGesture(visibleDays, eventData, scrollYOffset.current, targetVisibleDaysIndex, gesture);
+
+        eventDataDispatch({ type: 'change-planned-date', eventID: event.id, newPlannedDate: overlappingRowDate, insertionIndex: insertionIndex })
     }
 
-    function getDimensionsForEventTilesInRow(row: Row) {
-        const outputDimensions: EventTileDimensions[] = [];
-
-        const dayRowScreenYPosition = getDayRowScreenYPosition(row);
-        for (let i = 0; i < row.eventIDs.length; i++) {
-            const tilesToTheLeft = i % VisualSettings.DayRow.numEventTileColumns;
-            const tilesAbove = Math.floor(i / VisualSettings.DayRow.numEventTileColumns);
-            
-            const xPosition = (VisualSettings.DayRow.dateTextContainer.width + 
-                VisualSettings.DayRow.dateTextContainer.borderRightWidth +
-                VisualSettings.DayRow.flatListContainer.paddingLeft +
-                tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight));
-            
-            const yPosition = (dayRowScreenYPosition +
-                VisualSettings.DayRow.flatListContainer.paddingTop + 
-                tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.App.dayRowSeparater.height));
-            
-            outputDimensions[i] = {
-                eventID: row.eventIDs[i],
-                x: xPosition,
-                y: yPosition,
-                width: VisualSettings.EventTile.mainContainer.width,
-                height: VisualSettings.EventTile.mainContainer.height,
-            }
-        }
-
-        return outputDimensions;
+    function onTilePressed(gesture: GestureResponderEvent, event: EventDetails) {
+        console.log('removing', event.name);
+        eventDataDispatch({ type: 'remove', eventID: event.id });
     }
 
-    // ----- COMPONENT PARAMETERS -----
-    function onTileDragStart() {
-        setIsScrollEnabled(false);
-    }
+    function openEventCreator(gesture: GestureResponderEvent, initialDate?: Date) {
+        eventCreatorInitialDate.current = initialDate || undefined;
 
-    function openEventCreator(gesture: GestureResponderEvent, row: Row) {
-        eventCreatorInitialDate.current = row.date;
-
-        setShowEventCreator(true);
+        setEventCreatorModalVisible(true);
     }
 
     function DayRowSeparater() {
         return <View style={styles.dayRowSeparater} />;
     }
 
-    function getItemLayout(referenceToRowData: Row[] | null | undefined, index: number) {
-        const dayRowHeight = getRowHeight(rowData.current[index]);
-
+    function getItemLayout(data: Date[] | null | undefined, index: number) {
         return ({
-            length: dayRowHeight,
-            offset: getRowYOffset(rowData.current, index),
+            length: getDayRowHeight(eventData, visibleDays[index]),
+            offset: getDayRowYOffset(visibleDays, eventData, index),
             index
         });
     }
 
-    function getRowHeight(row: Row) {
-        const eventTileHeight = VisualSettings.EventTile.mainContainer.height;
-        let eventContainerHeight;
-        const hasAnyEventTiles = row.eventIDs.length > 0;
-        if (hasAnyEventTiles) {
-            const spaceBetweenEventTiles = VisualSettings.EventTile.mainContainer.marginBottom;
-            const rowsOfEventTiles = Math.ceil(row.eventIDs.length / VisualSettings.DayRow.numEventTileColumns);
-            eventContainerHeight = eventTileHeight * rowsOfEventTiles + spaceBetweenEventTiles * (rowsOfEventTiles - 1);
-        }
-        else {
-            eventContainerHeight = eventTileHeight;
-        }
-
-        const topAndBottomMargin = VisualSettings.DayRow.flatListContainer.paddingTop + VisualSettings.EventTile.mainContainer.marginBottom;
-
-        return (eventContainerHeight + topAndBottomMargin);
-    }
-
-    function getRowYOffset(rowData: Row[], rowIndex: number) {
-        const rowsAbove = rowIndex;
-        const spaceBetweenRows = VisualSettings.App.dayRowSeparater.height;
-        let sumOfDayRowHeights = 0;
-        for (let i = 0; i < rowsAbove; i++) {
-            sumOfDayRowHeights += getRowHeight(rowData[i]);
-        }
-
-        return (sumOfDayRowHeights + spaceBetweenRows * rowsAbove);
-    }
-
-    function getDayRowIndexFromDate(date: Date) {
-        return rowData.current.findIndex(row => datesMatch(row.date, date));
-    }
-
     function onStartReached() {
-        console.log('start reached');
-        addDayRowsToTop(7);
+        visibleDaysDispatch({
+            type: 'add-to-top',
+            numNewDays: 7,
+            removeFromBottom: true,
+        });
     }
 
     function onEndReached() {
-        console.log('end reached');
-        addDayRowsToBottom(7);
+        visibleDaysDispatch({
+            type: 'add-to-bottom',
+            numNewDays: 7,
+            removeFromTop: true,
+        })
     }
 
-    function onEventCreatorSubmitted(eventDetails: EventCreatorOutput) {
-        createEvent(eventDetails);
-        setShowEventCreator(false);
+    function onEventCreatorSubmitted(newEvent: EventDetails) {
+        setEventCreatorModalVisible(false);
+
+        eventDataDispatch({
+            type: 'add',
+            newEvent: newEvent,
+        });
     }
 
     function onTestButtonPressed() {
-        
+        console.log('eventData:');
+
+        for (let i = 0; i < eventData.length; i++) {
+            const dateString = `${eventData[i].date.getMonth() + 1}/${eventData[i].date.getDate()}`;
+            
+            let eventArrayString = '[';
+            for (let j = 0; j < eventData[i].events.length; j++) {
+                if (j > 0) eventArrayString += ', ';
+                const event = eventData[i].events[j];
+                eventArrayString += event.name;
+            }
+            eventArrayString += ']';
+
+            console.log(`${dateString}: ${eventArrayString}`);
+        }
     }
 
-    function renderDayRow({ item }: {item: Row}) {
-        return <DayRow row={item} eventData={eventData} onPress={openEventCreator} />;
+    function renderDayRow({ item }: {item: Date}) {
+        const events = getRowEventsFromDate(eventData, item)?.events || [];
+
+        return <DayRow date={item} events={events} onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)} />;
     }
 
     return (
         <View style={styles.container}>
             <StatusBar backgroundColor={'#fff'} barStyle={"dark-content"} />
-            <CallbackContext.Provider value={{ onTileDragStart: onTileDragStart, onTileDropped: onTileDropped }}>
+            <CallbackContext.Provider value={{ onTileDragStart: onTileDragStart, onTileDropped: onTileDropped, onTilePressed: onTilePressed }}>
                 <InfiniteScrollFlatList
                     ref={flatListRef}
-                    data={rowData.current}
+                    data={visibleDays}
+                    keyExtractor={item => item.getTime().toString()}
                     renderItem={renderDayRow}
                     ItemSeparatorComponent={DayRowSeparater}
                     getItemLayout={getItemLayout}
-                    initialScrollIndex={getDayRowIndexFromDate(today())}
-                    scrollEnabled={isScrollEnabled}
-                    onScroll={(event) => { scrollYOffset.current = event.nativeEvent.contentOffset.y; }}
+                    initialScrollIndex={visibleDays.findIndex(item => datesMatch(item, today()))}
+                    scrollEnabled={scrollEnabled}
+                    onScroll={event => scrollYOffset.current = event.nativeEvent.contentOffset.y}
                     onStartReached={onStartReached}
                     onEndReached={onEndReached}
-                    showsVerticalScrollIndicator={false}
+                    //showsVerticalScrollIndicator={false}
                 />
             </CallbackContext.Provider>
             <Modal
                 animationType="slide"
-                visible={showEventCreator}
-                onRequestClose={() => setShowEventCreator(false)}
+                visible={eventCreatorModalVisible}
+                onRequestClose={() => setEventCreatorModalVisible(false)}
                 presentationStyle="pageSheet"
             >
                 <EventCreator initialDate={eventCreatorInitialDate.current} onEventCreated={onEventCreatorSubmitted} />

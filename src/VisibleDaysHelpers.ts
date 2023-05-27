@@ -1,0 +1,184 @@
+import { PanResponderGestureState } from "react-native/types";
+import { RowEvents } from "../types/EventTypes";
+import { getRowEventsFromDate } from "./EventDataHelpers";
+import { today, ONE_DAY_IN_MILLISECONDS } from "./GeneralHelpers";
+import VisualSettings from "./VisualSettings";
+
+export type EventTileDimensions = {
+    eventID: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export type VisibleDaysReducerAction =
+    | { type: 'add-to-bottom', numNewDays: number, removeFromTop?: boolean }
+    | { type: 'add-to-top', numNewDays: number, removeFromBottom?: boolean };
+
+export function visibleDaysReducer(state: Date[], action: VisibleDaysReducerAction) {
+    const createArrayOfSequentialDates = (startDate: Date, numDays: number) => {
+        const outputDates: Date[] = [];
+
+        for (let i = 0; i < numDays; i++) {
+            outputDates.push(new Date(startDate.getTime() + ONE_DAY_IN_MILLISECONDS * i));
+        }
+
+        return outputDates;
+    }
+
+    if (action.type == 'add-to-bottom') {
+        const { numNewDays, removeFromTop = false } = action;
+
+        const currentLastDate = state[state.length - 1];
+        const startDate = new Date(currentLastDate.getTime() + ONE_DAY_IN_MILLISECONDS);
+        const newDates = createArrayOfSequentialDates(startDate, numNewDays);
+
+        const outputDates = [...state, ...newDates];
+
+        if (removeFromTop) {
+            outputDates.splice(0, numNewDays);
+        }
+
+        return outputDates;
+    }
+    else if (action.type == 'add-to-top') {
+        const { numNewDays, removeFromBottom = false } = action;
+
+        const currentFirstDate = state[0];
+        const startDate = new Date(currentFirstDate.getTime() - ONE_DAY_IN_MILLISECONDS * numNewDays);
+        const newDates = createArrayOfSequentialDates(startDate, numNewDays);
+
+        const outputDates = [...newDates, ...state];
+
+        if (removeFromBottom) {
+            outputDates.length = outputDates.length - numNewDays;
+        }
+
+        return outputDates;
+    }
+    else return state;
+}
+
+export function initializeVisibleDays() {
+    const numDaysAboveToday = 7;
+    const numDaysBelowToday = 13;
+
+    const totalDays = numDaysAboveToday + 1 + numDaysBelowToday;
+    const startDate = new Date(today().getTime() - ONE_DAY_IN_MILLISECONDS * numDaysAboveToday);
+
+    const outputDates: Date[] = [];
+    for (let i = 0; i < totalDays; i++) {
+        outputDates.push(new Date(startDate.getTime() + ONE_DAY_IN_MILLISECONDS * i));
+    }
+
+    return outputDates;
+}
+
+export function getDayRowHeight(eventData: RowEvents[], date: Date) {
+    const eventTileHeight = VisualSettings.EventTile.mainContainer.height;
+    
+    const rowEvents = getRowEventsFromDate(eventData, date);
+
+    let eventContainerHeight;
+    if (!rowEvents || rowEvents.events.length == 0) {
+        eventContainerHeight = eventTileHeight;
+    }
+    else {
+        const verticalSpaceBetweenTiles = VisualSettings.EventTile.mainContainer.marginBottom;
+        const numTileRows = Math.ceil(rowEvents.events.length / VisualSettings.DayRow.numEventTileColumns);
+        eventContainerHeight = eventTileHeight * numTileRows + verticalSpaceBetweenTiles * (numTileRows - 1);
+    }
+
+    const topAndBottomMargin = VisualSettings.DayRow.flatListContainer.paddingTop + VisualSettings.EventTile.mainContainer.marginBottom;
+
+    return (eventContainerHeight + topAndBottomMargin);
+}
+
+export function getDayRowYOffset(visibleDays: Date[], eventData: RowEvents[], visibleDaysIndex: number) {
+    const rowsAbove = visibleDaysIndex;
+    const spaceBetweenRows = VisualSettings.App.dayRowSeparater.height;
+    let sumOfDayRowHeights = 0;
+    for (let i = 0; i < rowsAbove; i++) {
+        sumOfDayRowHeights += getDayRowHeight(eventData, visibleDays[i]);
+    }
+
+    return (sumOfDayRowHeights + spaceBetweenRows * rowsAbove);
+}
+
+export function getDayRowScreenYOffset(visibleDays: Date[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
+    return getDayRowYOffset(visibleDays, eventData, visibleDaysIndex) - scrollYOffset;
+}
+
+export function getDayRowAtScreenPosition(visibleDays: Date[], eventData: RowEvents[], scrollYOffset: number, screenPosition: { x: number, y: number }) {
+    for (let i = 0; i < visibleDays.length; i++) {
+        const rowScreenYOffset = getDayRowScreenYOffset(visibleDays, eventData, scrollYOffset, i);
+        const rowHeight = getDayRowHeight(eventData, visibleDays[i]);
+        if (screenPosition.y > rowScreenYOffset && screenPosition.y < rowScreenYOffset + rowHeight) {
+            return visibleDays[i];
+        }
+    }
+
+    return null;
+}
+
+export function getDimensionsForTileInRow(visibleDays: Date[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
+    const rowYOffset = getDayRowScreenYOffset(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
+
+    const rowEvents = getRowEventsFromDate(eventData, visibleDays[visibleDaysIndex]);
+    if (!rowEvents) return [];
+    
+    const outputDimensions: EventTileDimensions[] = [];
+    for (let i = 0; i < rowEvents.events.length; i++) {
+        const event = rowEvents.events[i];
+
+        const tilesToTheLeft = i % VisualSettings.DayRow.numEventTileColumns;
+        const tilesAbove = Math.floor(i / VisualSettings.DayRow.numEventTileColumns);
+
+        const xPosition = (VisualSettings.DayRow.dateTextContainer.width +
+            VisualSettings.DayRow.dateTextContainer.borderRightWidth +
+            VisualSettings.DayRow.flatListContainer.paddingLeft +
+            tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight));
+
+        const yPosition = (rowYOffset +
+            VisualSettings.DayRow.flatListContainer.paddingTop +
+            tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.App.dayRowSeparater.height));
+
+        outputDimensions[i] = {
+            eventID: event.id,
+            x: xPosition,
+            y: yPosition,
+            width: VisualSettings.EventTile.mainContainer.width,
+            height: VisualSettings.EventTile.mainContainer.height,
+        }
+    }
+
+    return outputDimensions;
+}
+
+export function getInsertionIndexFromGesture(visibleDays: Date[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number, gesture: PanResponderGestureState) {
+    const dimensionsForAllTiles = getDimensionsForTileInRow(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
+    
+    for (let i = 0; i < dimensionsForAllTiles.length; i++) {
+        const tileDimeions = dimensionsForAllTiles[i];
+
+        // Intermediate variables
+        const tileXMidpoint = tileDimeions.x + tileDimeions.width / 2;
+        const eventTileRightEdgePlusMargin = tileDimeions.x + tileDimeions.width + VisualSettings.EventTile.mainContainer.marginRight;
+
+        // Overlap checks
+        const gestureYOverlapsTile = gesture.moveY > tileDimeions.y && gesture.moveY < tileDimeions.y + tileDimeions.width;
+        const gestureXOverlapsLeftHalf = gesture.moveX > tileDimeions.x && gesture.moveX < tileXMidpoint;
+        const gestureXOverlapsRightHalf = gesture.moveX > tileXMidpoint && gesture.moveX < eventTileRightEdgePlusMargin;
+
+        // If gesture overlaps with left side, insert to the left
+        if (gestureXOverlapsLeftHalf && gestureYOverlapsTile) return i;
+
+        // If gesture overlaps with right side, insert to the right
+        if (gestureXOverlapsRightHalf && gestureYOverlapsTile) return (i + 1);
+    }
+
+    // Default return case
+    const nextArrayIndex = dimensionsForAllTiles.length;
+    return nextArrayIndex;
+}

@@ -4,13 +4,13 @@ import {
     Text,
     View,
 } from "react-native";
-import { Event } from '../types/EventTypes';
+import { EventDetails } from '../types/EventTypes';
 import CallbackContext from '../context/CallbackContext';
 import DraggableComponent from './DraggableComponent';
 import VisualSettings from '../src/VisualSettings';
 
 type EvenTileProps = {
-    event: Event;
+    event: EventDetails;
 }
 
 const EventTile: React.FC<EvenTileProps> = ({ event }) => {
@@ -20,6 +20,7 @@ const EventTile: React.FC<EvenTileProps> = ({ event }) => {
         <DraggableComponent
             onStartDrag={gesture => callbackContext?.onTileDragStart(gesture)}
             onDrop={gesture => callbackContext?.onTileDropped(gesture, event)}
+            onPress={gesture => callbackContext?.onTilePressed(gesture, event)}
         >
             <View style={styles.mainContainer}>
                 <Text style={styles.eventNameText}>{event.name}</Text>
