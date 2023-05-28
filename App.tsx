@@ -25,6 +25,7 @@ import {
     getDayRowAtScreenPosition,
     getInsertionIndexFromGesture
 } from "./src/VisibleDaysHelpers";
+import EventEditor from "./components/EventEditor";
 
 const testEventData: RowEvents[] = [
     {
@@ -84,11 +85,13 @@ export default function App() {
     const [visibleDays, visibleDaysDispatch] = useReducer(visibleDaysReducer, initializeVisibleDays());
     
     const [scrollEnabled, setScrollEnabled] = useState(true);
-    const [eventCreatorModalVisible, setEventCreatorModalVisible] = useState(false);
+    const [eventCreatorVisible, setEventCreatorVisible] = useState(false);
+    const [eventEditorVisible, setEventEditorVisible] = useState(false);
     
     const visibleDays_closureSafeRef = useRef(visibleDays);
     const scrollYOffset = useRef(0);
-    const eventCreatorInitialDate = useRef<DateYMD>();
+    const eventCreator_initialDate = useRef<DateYMD>();
+    const eventEditor_eventDetails = useRef<EventDetails>();
     const flatListRef = useRef<FlatList<any> | null>(null);
     
 
@@ -124,14 +127,20 @@ export default function App() {
     }
 
     function onTilePressed(gesture: GestureResponderEvent, event: EventDetails) {
-        console.log('removing', event.name);
-        eventDataDispatch({ type: 'remove', eventID: event.id });
+        /*console.log('removing', event.name);
+        eventDataDispatch({ type: 'remove', eventID: event.id });*/
+        openEventEditor(event);
     }
 
     function openEventCreator(gesture: GestureResponderEvent, initialDate?: DateYMD) {
-        eventCreatorInitialDate.current = initialDate;
+        eventCreator_initialDate.current = initialDate;
 
-        setEventCreatorModalVisible(true);
+        setEventCreatorVisible(true);
+    }
+
+    function openEventEditor(editedEvent: EventDetails) {
+        eventEditor_eventDetails.current = editedEvent;
+        setEventEditorVisible(true);
     }
 
     function DayRowSeparater() {
@@ -168,11 +177,21 @@ export default function App() {
     }
 
     function onEventCreatorSubmitted(newEvent: EventDetails) {
-        setEventCreatorModalVisible(false);
+        setEventCreatorVisible(false);
 
         eventDataDispatch({
             type: 'add',
             newEvent: newEvent,
+        });
+    }
+
+    function onEventEditorSubmitted(editedEvent: EventDetails) {
+        setEventEditorVisible(false);
+        
+        eventDataDispatch({
+            type: 'set-event-details',
+            targetEventID: editedEvent.id,
+            newEventDetails: editedEvent
         });
     }
 
@@ -211,14 +230,17 @@ export default function App() {
                     //showsVerticalScrollIndicator={false}
                 />
             </CallbackContext.Provider>
-            <Modal
-                animationType="slide"
-                visible={eventCreatorModalVisible}
-                onRequestClose={() => setEventCreatorModalVisible(false)}
-                presentationStyle="pageSheet"
-            >
-                <EventCreator initialDate={eventCreatorInitialDate.current} onEventCreated={onEventCreatorSubmitted} />
-            </Modal>
+            <EventCreator
+                visible={eventCreatorVisible}
+                onRequestClose={() => setEventCreatorVisible(false)}
+                initialDueDate={eventCreator_initialDate.current}
+                onSubmit={onEventCreatorSubmitted} />
+            <EventEditor
+                visible={eventEditorVisible}
+                onRequestClose={() => setEventEditorVisible(false)}
+                editedEvent={eventEditor_eventDetails.current}
+                onSubmit={onEventEditorSubmitted}
+                />
             <TestButton onPress={onTestButtonPressed}/>
         </View>
     );

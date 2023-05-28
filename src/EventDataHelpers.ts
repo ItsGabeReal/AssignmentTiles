@@ -4,7 +4,8 @@ import DateYMD from "./DateMDY";
 export type EventDataReducerAction =
     | { type: 'add', newEvent: EventDetails }
     | { type: 'remove', eventID: string }
-    | { type: 'change-planned-date', eventID: string, newPlannedDate: DateYMD, insertionIndex?: number };
+    | { type: 'change-planned-date', eventID: string, newPlannedDate: DateYMD, insertionIndex?: number }
+    | { type: 'set-event-details', targetEventID: string, newEventDetails: EventDetails };
 
 export function eventDataReducer(state: RowEvents[], action: EventDataReducerAction) {
     const getInitialPlannedDateFromEventDetails = (eventDetails: EventDetails) => { // TESTING REQUIRED
@@ -135,6 +136,20 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
         // Add event back in
         const outputEventData = addEvent(removeEventOutput.outputEventData, event.details, newPlannedDate, actualInsertionIndex);
 
+        return outputEventData;
+    }
+    else if (action.type == 'set-event-details') {
+        const { targetEventID, newEventDetails } = action;
+        
+        const outputEventData = [...state];
+        const event = getEventFromID(outputEventData, targetEventID);
+
+        if (!event) {
+            console.error(`eventDataReducer -> set-event-details: Could not find event with id = ${targetEventID}`);
+            return state;
+        }
+        
+        outputEventData[event.eventDataIndex].events[event.rowOrder] = newEventDetails;
         return outputEventData;
     }
     else return state;
