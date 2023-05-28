@@ -1,6 +1,6 @@
 import React from "react"
 import { EventDetails } from "../types/EventTypes"
-import EventInput from "./EventInput"
+import EventInputModal from "./EventInputModal"
 import { Modal } from "react-native";
 
 type EventEditorProps = {
@@ -8,9 +8,9 @@ type EventEditorProps = {
 
     editedEvent?: EventDetails;
 
-    onSubmit: ((eventDetails: EventDetails) => void);
-
     onRequestClose: (() => void);
+
+    onSubmit: ((eventDetails: EventDetails) => void);
 }
 
 const EventEditor: React.FC<EventEditorProps> = (props) => {
@@ -26,18 +26,14 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
     }
     
     return (
-        <Modal
-            animationType="slide"
+        <EventInputModal
             visible={props.visible}
+            submitButtonTitle="Save"
+            initialName={props.editedEvent?.name}
+            initialDueDate={props.editedEvent?.dueDate}
             onRequestClose={props.onRequestClose}
-            presentationStyle="pageSheet"
-        >
-            <EventInput submitButtonTitle="Save"
-                initialName={props.editedEvent?.name}
-                initialDueDate={props.editedEvent?.dueDate}
-                onSubmit={handleOnSubmit} />
-        </Modal>
-        
+            onSubmit={handleOnSubmit}
+        />
     );
 }
 

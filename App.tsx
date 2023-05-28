@@ -2,7 +2,6 @@ import React, { useRef, useState, useReducer, useEffect } from "react";
 import {
     StyleSheet,
     View,
-    Modal,
     FlatList,
     PanResponderGestureState,
     GestureResponderEvent,
@@ -16,7 +15,7 @@ import InfiniteScrollFlatList from "./components/InfiniteScrollFlatList";
 import TestButton from "./components/TestButton";
 import DayRow from "./components/DayRow";
 import EventCreator from "./components/EventCreator";
-import { eventDataReducer, getRowEventsFromDate } from "./src/EventDataHelpers";
+import { eventDataReducer, getRowEventsFromDate, printEventData } from "./src/EventDataHelpers";
 import {
     visibleDaysReducer,
     initializeVisibleDays,
@@ -127,8 +126,6 @@ export default function App() {
     }
 
     function onTilePressed(gesture: GestureResponderEvent, event: EventDetails) {
-        /*console.log('removing', event.name);
-        eventDataDispatch({ type: 'remove', eventID: event.id });*/
         openEventEditor(event);
     }
 
@@ -177,8 +174,6 @@ export default function App() {
     }
 
     function onEventCreatorSubmitted(newEvent: EventDetails) {
-        setEventCreatorVisible(false);
-
         eventDataDispatch({
             type: 'add',
             newEvent: newEvent,
@@ -186,8 +181,6 @@ export default function App() {
     }
 
     function onEventEditorSubmitted(editedEvent: EventDetails) {
-        setEventEditorVisible(false);
-        
         eventDataDispatch({
             type: 'set-event-details',
             targetEventID: editedEvent.id,
@@ -196,13 +189,7 @@ export default function App() {
     }
 
     function onTestButtonPressed() {
-        /*console.log('visible days:');
-        const days = visibleDays_closureSafeRef.current;
-        for (let i = 0; i < days.length; i++) {
-            console.log(days[i].toString());
-        }*/
-
-        console.log(DateYMD.today())
+        printEventData(eventData);
     }
 
     function renderDayRow({ item }: { item: DateYMD }) {
