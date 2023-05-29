@@ -12,7 +12,7 @@ interface Props {
 
 const TestButton: React.FC<Props> = ({ onPress }) => {
     return (
-        <View style={styles.testButtonContainer}>
+        <View pointerEvents="box-none" style={styles.testButtonContainer}>
             <Button
                 onPress={onPress}
                 title="Test"

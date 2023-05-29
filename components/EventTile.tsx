@@ -4,7 +4,7 @@ import {
     Text,
     View,
 } from "react-native";
-import DateYMD from '../src/DateMDY';
+import DateYMD from '../src/DateYMD';
 import { EventDetails } from '../types/EventTypes';
 import CallbackContext from '../context/CallbackContext';
 import DraggableComponent from './DraggableComponent';

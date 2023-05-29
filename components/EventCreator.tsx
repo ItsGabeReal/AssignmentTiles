@@ -1,10 +1,8 @@
 import React from "react"
 import { EventDetails } from "../types/EventTypes"
-import EventInputModal from "./EventInputModal"
-import DateYMD from "../src/DateMDY";
-import { Modal } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
-import { Platform } from "react-native";
+import EventInputModal from "./EventInput"
+import DateYMD from "../src/DateYMD";
+import DefaultModal from "./DefaultModal";
 
 type EventCreatorProps = {
     visible: boolean;
@@ -18,13 +16,15 @@ type EventCreatorProps = {
 
 const EventCreator: React.FC<EventCreatorProps> = (props) => {
     return (
-        <EventInputModal
-            visible={props.visible}
-            submitButtonTitle="Create Event"
-            initialDueDate={props.initialDueDate}
-            onRequestClose={props.onRequestClose}
-            onSubmit={props.onSubmit}
-        />
+        <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
+            <EventInputModal
+                visible={props.visible}
+                submitButtonTitle="Create Event"
+                initialDueDate={props.initialDueDate}
+                onRequestClose={props.onRequestClose}
+                onSubmit={props.onSubmit}
+            />
+        </DefaultModal>
     );
 }
 

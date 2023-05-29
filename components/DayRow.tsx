@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     GestureResponderEvent,
 } from "react-native";
-import DateYMD from "../src/DateMDY";
+import DateYMD from "../src/DateYMD";
 import { EventDetails } from "../types/EventTypes";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
@@ -30,8 +30,9 @@ const DayRow: React.FC<DayRowProps> = (props) => {
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
-                <View style={{...styles.dateTextContainer, backgroundColor: (props.date.isToday() ? "#ddf" : "#fff0") }}>
-                    <Text>{props.date.dayNameAbrev()}, {props.date.month}/{props.date.date}</Text>
+                <View style={{ ...styles.dateTextContainer, backgroundColor: (props.date.isToday() ? "#ddf" : "#fff0") }}>
+                    <Text>{props.date.dayNameAbrev()}</Text>
+                    <Text>{props.date.monthNameAbrev()} {props.date.date}</Text>
                 </View>
                 <View style={styles.flatListContainer}>
                     <FlatList

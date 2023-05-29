@@ -1,5 +1,5 @@
 import { PanResponderGestureState } from "react-native/types";
-import DateYMD from "./DateMDY";
+import DateYMD from "./DateYMD";
 import { RowEvents } from "../types/EventTypes";
 import { getRowEventsFromDate } from "./EventDataHelpers";
 import VisualSettings from "./VisualSettings";

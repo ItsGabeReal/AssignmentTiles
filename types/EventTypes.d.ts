@@ -1,4 +1,4 @@
-import DateYMD from "../src/DateMDY";
+import DateYMD from "../src/DateYMD";
 
 export interface EventDetails {
     name: string;

@@ -1,7 +1,7 @@
 import React from "react"
 import { EventDetails } from "../types/EventTypes"
-import EventInputModal from "./EventInputModal"
-import { Modal } from "react-native";
+import EventInputModal from "./EventInput"
+import DefaultModal from "./DefaultModal"
 
 type EventEditorProps = {
     visible: boolean;
@@ -26,14 +26,17 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
     }
     
     return (
-        <EventInputModal
-            visible={props.visible}
-            submitButtonTitle="Save"
-            initialName={props.editedEvent?.name}
-            initialDueDate={props.editedEvent?.dueDate}
-            onRequestClose={props.onRequestClose}
-            onSubmit={handleOnSubmit}
-        />
+        <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
+            <EventInputModal
+                visible={props.visible}
+                submitButtonTitle="Save"
+                initialName={props.editedEvent?.name}
+                initialDueDate={props.editedEvent?.dueDate}
+                onRequestClose={props.onRequestClose}
+                onSubmit={handleOnSubmit}
+            />
+        </DefaultModal>
+        
     );
 }
 

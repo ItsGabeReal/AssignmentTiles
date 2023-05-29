@@ -7,7 +7,7 @@ import {
     GestureResponderEvent,
     StatusBar,
 } from "react-native";
-import DateYMD from "./src/DateMDY";
+import DateYMD from "./src/DateYMD";
 import { EventDetails, RowEvents } from "./types/EventTypes";
 import VisualSettings from "./src/VisualSettings";
 import CallbackContext from "./context/CallbackContext"
@@ -200,7 +200,7 @@ export default function App() {
 
     return (
         <View style={styles.container}>
-            <StatusBar backgroundColor={'#fff'} barStyle={"dark-content"} />
+            <StatusBar backgroundColor={'#fffb'} barStyle={"dark-content"} /*translucent={true}*/ />
             <CallbackContext.Provider value={{ onTileDragStart: onTileDragStart, onTileDropped: onTileDropped, onTilePressed: onTilePressed }}>
                 <InfiniteScrollFlatList
                     ref={flatListRef}
@@ -228,7 +228,7 @@ export default function App() {
                 editedEvent={eventEditor_eventDetails.current}
                 onSubmit={onEventEditorSubmitted}
                 />
-            <TestButton onPress={onTestButtonPressed}/>
+            <TestButton onPress={onTestButtonPressed} />
         </View>
     );
 }

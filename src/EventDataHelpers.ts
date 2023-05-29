@@ -1,5 +1,5 @@
 import { EventDetails, RowEvents } from "../types/EventTypes";
-import DateYMD from "./DateMDY";
+import DateYMD from "./DateYMD";
 
 export type EventDataReducerAction =
     | { type: 'add', newEvent: EventDetails }
