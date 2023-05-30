@@ -1,16 +1,8 @@
 import { PanResponderGestureState } from "react-native/types";
 import DateYMD from "./DateYMD";
 import { RowEvents } from "../types/EventTypes";
-import { getRowEventsFromDate } from "./EventDataHelpers";
+import { getRowEventsFromDate, EventTileDimensions } from "./EventDataHelpers";
 import VisualSettings from "./VisualSettings";
-
-export type EventTileDimensions = {
-    eventID: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
 
 export type VisibleDaysReducerAction =
     | { type: 'add-to-bottom', numNewDays: number, removeFromTop?: boolean }
@@ -117,7 +109,7 @@ export function getDayRowAtScreenPosition(visibleDays: DateYMD[], eventData: Row
     return null;
 }
 
-export function getDimensionsForTileInRow(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
+function getDimensionsForAllTilesInRow(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
     const rowYOffset = getDayRowScreenYOffset(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
 
     const rowEvents = getRowEventsFromDate(eventData, visibleDays[visibleDaysIndex]);
@@ -125,34 +117,37 @@ export function getDimensionsForTileInRow(visibleDays: DateYMD[], eventData: Row
     
     const outputDimensions: EventTileDimensions[] = [];
     for (let i = 0; i < rowEvents.events.length; i++) {
-        const event = rowEvents.events[i];
+        outputDimensions[i] = getEventTileDimensions(rowYOffset, i);
+    }
 
-        const tilesToTheLeft = i % VisualSettings.DayRow.numEventTileColumns;
-        const tilesAbove = Math.floor(i / VisualSettings.DayRow.numEventTileColumns);
+    return outputDimensions;
+}
 
-        const xPosition = (VisualSettings.DayRow.dateTextContainer.width +
-            VisualSettings.DayRow.dateTextContainer.borderRightWidth +
-            VisualSettings.DayRow.flatListContainer.paddingLeft +
-            tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight));
+export function getEventTileDimensions(rowYOffset: number, eventRowOrder: number) {
+    const tilesToTheLeft = eventRowOrder % VisualSettings.DayRow.numEventTileColumns;
+    const tilesAbove = Math.floor(eventRowOrder / VisualSettings.DayRow.numEventTileColumns);
 
-        const yPosition = (rowYOffset +
-            VisualSettings.DayRow.flatListContainer.paddingTop +
-            tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.App.dayRowSeparater.height));
+    const xPosition = (VisualSettings.DayRow.dateTextContainer.width
+        + VisualSettings.DayRow.dateTextContainer.borderRightWidth
+        + VisualSettings.DayRow.flatListContainer.paddingLeft
+        + tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight));
 
-        outputDimensions[i] = {
-            eventID: event.id,
-            x: xPosition,
-            y: yPosition,
-            width: VisualSettings.EventTile.mainContainer.width,
-            height: VisualSettings.EventTile.mainContainer.height,
-        }
+    const yPosition = (rowYOffset
+        + VisualSettings.DayRow.flatListContainer.paddingTop
+        + tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.EventTile.mainContainer.marginBottom));
+
+    const outputDimensions: EventTileDimensions = {
+        x: xPosition,
+        y: yPosition,
+        width: VisualSettings.EventTile.mainContainer.width,
+        height: VisualSettings.EventTile.mainContainer.height,
     }
 
     return outputDimensions;
 }
 
 export function getInsertionIndexFromGesture(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number, gesture: PanResponderGestureState) {
-    const dimensionsForAllTiles = getDimensionsForTileInRow(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
+    const dimensionsForAllTiles = getDimensionsForAllTilesInRow(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
     
     for (let i = 0; i < dimensionsForAllTiles.length; i++) {
         const tileDimeions = dimensionsForAllTiles[i];

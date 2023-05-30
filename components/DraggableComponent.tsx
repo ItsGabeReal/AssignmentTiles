@@ -6,6 +6,8 @@ import {
     TouchableWithoutFeedback,
     GestureResponderEvent,
     PanResponderGestureState,
+    Vibration,
+    Platform,
 } from 'react-native';
 
 type DraggableComponentProps = Omit<TouchableWithoutFeedbackProps, 'onLongPress'> & {
@@ -43,6 +45,7 @@ const DraggableComponent: React.FC<DraggableComponentProps> = (props) => {
     function onLongPress(gesture: GestureResponderEvent) {
         draggingEnabled.current = true;
         tileOpacity.setValue(0.75);
+        if (Platform.OS == 'android') Vibration.vibrate(10);
         props.onStartDrag?.(gesture);
     }
 

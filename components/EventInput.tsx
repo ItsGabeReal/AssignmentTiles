@@ -121,9 +121,9 @@ const styles = StyleSheet.create({
     },
     parameterContainer: {
         padding: 15,
-        backgroundColor: '#fff',
+        backgroundColor: '#f4f4f4',
         borderRadius: 10,
-        borderColor: '#bbb',
+        borderColor: '#aaa',
         borderWidth: StyleSheet.hairlineWidth,
         marginBottom: 10,
     },

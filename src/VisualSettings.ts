@@ -19,8 +19,8 @@ const VisualSettings = {
     },
     EventTile: {
         mainContainer: {
-            height: 80,
-            width: 80,
+            height: 90,
+            width: 90,
             marginRight: 5,
             marginBottom: 5,
         },

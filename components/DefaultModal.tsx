@@ -20,7 +20,7 @@ type DefaultModalProps = {
 const DefaultModal: React.FC<DefaultModalProps> = (props) => {
     const defaultChildren = (
         <View style={styles.mainContainer}>
-            <TouchableOpacity style={styles.closeButton} onPress={props.onRequestClose}>
+            <TouchableOpacity style={styles.closeButtonContainer} onPress={props.onRequestClose}>
                 <Icon name='ios-close' size={24} />
             </TouchableOpacity>
             {props.children}
@@ -29,11 +29,11 @@ const DefaultModal: React.FC<DefaultModalProps> = (props) => {
     return (
         <>
             {Platform.OS == 'android' ?
-                <AndroidModal backgroundColor={'#ddd'} visible={props.visible} onRequestClose={props.onRequestClose}>
+                <AndroidModal backgroundColor={'#fff'} visible={props.visible} onRequestClose={props.onRequestClose}>
                     {defaultChildren}
                 </AndroidModal>
                 :
-                <IosModal backgroundColor={'#ddd'} visible={props.visible} onRequestClose={props.onRequestClose}>
+                <IosModal backgroundColor={'#fff'} visible={props.visible} onRequestClose={props.onRequestClose}>
                     {defaultChildren}
                 </IosModal>
             }
@@ -46,15 +46,9 @@ const styles = StyleSheet.create({
         padding: 20,
         flex: 1,
     },
-    closeButton: {
-        backgroundColor: '#0002',
-        width: 36,
-        height: 36,
-        justifyContent: 'center',
-        alignItems: 'center',
-        alignSelf: 'flex-start',
-        borderRadius: 50,
-        marginBottom: 10,
+    closeButtonContainer: {
+        alignSelf: 'flex-end',
+        marginBottom: 15,
     },
 });
 

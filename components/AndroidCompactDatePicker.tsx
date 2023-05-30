@@ -4,7 +4,6 @@ import {
     Text,
     TouchableOpacity,
     StyleSheet,
-    StyleProp,
     ViewStyle,
 } from 'react-native';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
@@ -50,7 +49,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     dateTextContainer: {
-        backgroundColor: '#ebebeb',
+        backgroundColor: '#e4e4e4',
         padding: 7,
         borderRadius: 5,
     },

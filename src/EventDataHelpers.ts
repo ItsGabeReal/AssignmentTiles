@@ -1,6 +1,13 @@
 import { EventDetails, RowEvents } from "../types/EventTypes";
 import DateYMD from "./DateYMD";
 
+export type EventTileDimensions = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export type EventDataReducerAction =
     | { type: 'add', newEvent: EventDetails }
     | { type: 'remove', eventID: string }
