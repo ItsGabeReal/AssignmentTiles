@@ -128,7 +128,7 @@ const ContextMenu: React.FC<ContextMenuProps> = (props) => {
                 </View>
             </Pressable>
         </Modal>
-    );
+    )
 }
 
 const styles = StyleSheet.create({

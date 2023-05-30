@@ -3,9 +3,11 @@ import { GestureResponderEvent, PanResponderGestureState } from 'react-native/ty
 import { EventDetails } from '../types/EventTypes';
 
 export type CallbackContextType = {
-    onTileDragStart: ((gesture: GestureResponderEvent) => void);
-    onTileDropped: ((gesture: PanResponderGestureState, event: EventDetails) => void);
     onTilePressed: ((gesture: GestureResponderEvent, event: EventDetails) => void);
+    onTileLongPressed: ((gesture: GestureResponderEvent, event: EventDetails) => void);
+    onTileLongPressRelease: (() => void);
+    onTileDragStart: ((gesture: PanResponderGestureState) => void);
+    onTileDropped: ((gesture: PanResponderGestureState, event: EventDetails) => void);
 }
 
 export default React.createContext<CallbackContextType | null>(null);

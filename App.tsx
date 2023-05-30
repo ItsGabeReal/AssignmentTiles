@@ -1,4 +1,4 @@
-import React, { useRef, useState, useReducer, useEffect } from "react";
+import React, { useRef, useState, useReducer, useEffect, useCallback } from "react";
 import {
     StyleSheet,
     View,
@@ -6,6 +6,7 @@ import {
     PanResponderGestureState,
     GestureResponderEvent,
     StatusBar,
+    ListRenderItem,
 } from "react-native";
 import VisualSettings from "./src/VisualSettings";
 import DateYMD from "./src/DateYMD";
@@ -23,12 +24,12 @@ import {
     getEventTileDimensions,
     getDayRowScreenYOffset
 } from "./src/VisibleDaysHelpers";
-import TestButton from "./components/TestButton";
 import DayRow from "./components/DayRow";
 import EventCreator from "./components/EventCreator";
 import EventEditor from "./components/EventEditor";
 import ContextMenuContainer, { ContextMenuContainerRef } from "./components/ContextMenuContainer";
 import { ContextMenuDetails, ContextMenuPosition } from "./components/ContextMenu";
+import TestButton from "./components/TestButton";
 
 const testEventData: RowEvents[] = [
     {
@@ -36,6 +37,7 @@ const testEventData: RowEvents[] = [
         events: [
             {
                 name: 'Past Event',
+                completed: true,
                 id: Math.random().toString(),
                 dueDate: DateYMD.today().subtractDays(5),
             },
@@ -46,36 +48,25 @@ const testEventData: RowEvents[] = [
         events: [
             {
                 name: 'Event 1',
+                completed: false,
                 id: Math.random().toString(),
                 dueDate: DateYMD.today(),
             },
             {
                 name: 'Event 2',
+                completed: false,
                 id: Math.random().toString(),
                 dueDate: DateYMD.today(),
             },
             {
                 name: 'Event 3',
+                completed: false,
                 id: Math.random().toString(),
                 dueDate: DateYMD.today(),
             },
             {
                 name: 'Event 4',
-                id: Math.random().toString(),
-                dueDate: DateYMD.today(),
-            },
-            {
-                name: 'Event 5',
-                id: Math.random().toString(),
-                dueDate: DateYMD.today(),
-            },
-            {
-                name: 'Event 6',
-                id: Math.random().toString(),
-                dueDate: DateYMD.today(),
-            },
-            {
-                name: 'Event 7',
+                completed: false,
                 id: Math.random().toString(),
                 dueDate: DateYMD.today(),
             },
@@ -104,13 +95,24 @@ export default function App() {
     }, [visibleDays]);
 
 
-    function onTileDragStart() {
+    function onTilePressed(gesture: GestureResponderEvent, eventDetails: EventDetails) {
+        eventDataDispatch({ type: 'toggle-complete', targetEventID: eventDetails.id });
+    }
+
+    function onTileLongPressed(gesture: GestureResponderEvent, eventDetails: EventDetails) {
         setScrollEnabled(false);
+        openEventTileContextMenu(eventDetails);
+    }
+
+    function onTileLongPressRelease() {
+        setScrollEnabled(true);
+    }
+
+    function onTileDragStart() {
+        contextMenuRef.current?.close();
     }
 
     function onTileDropped(gesture: PanResponderGestureState, event: EventDetails) {
-        setScrollEnabled(true);
-
         const visibleDays_CSR = visibleDays_closureSafeRef.current;
 
         const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, eventData, scrollYOffset.current, { x: gesture.moveX, y: gesture.moveY });
@@ -130,14 +132,14 @@ export default function App() {
         eventDataDispatch({ type: 'change-planned-date', eventID: event.id, newPlannedDate: overlappingRowDate, insertionIndex: insertionIndex })
     }
 
-    function onTilePressed(gesture: GestureResponderEvent, eventDetails: EventDetails) {
+    function openEventTileContextMenu(eventDetails: EventDetails) {
         const contextMenuPosition = getContextMenuPositionForEventTile(eventDetails);
         if (!contextMenuPosition) {
             console.error(`App.tsx -> onTilePressed: Could not get context menu position`);
             return;
         }
-        
-        const testDetails: ContextMenuDetails = {
+
+        const contextMenuDetails: ContextMenuDetails = {
             options: [
                 {
                     name: 'Edit',
@@ -146,7 +148,7 @@ export default function App() {
                 },
                 {
                     name: 'Delete',
-                    onPress: () => eventDataDispatch({ type: 'remove', eventID: eventDetails.id}),
+                    onPress: () => eventDataDispatch({ type: 'remove', eventID: eventDetails.id }),
                     iconName: 'trash',
                     color: '#d00',
                 },
@@ -154,7 +156,7 @@ export default function App() {
             position: contextMenuPosition,
         }
 
-        contextMenuRef.current?.create(testDetails);
+        contextMenuRef.current?.create(contextMenuDetails);
     }
 
     function getContextMenuPositionForEventTile(eventDetails: EventDetails) {
@@ -244,10 +246,10 @@ export default function App() {
     }
 
     function onTestButtonPressed() {
-        printEventData(eventData);
+        eventDataDispatch({ type: 'toggle-complete', targetEventID: eventData[0].events[0].id});
     }
 
-    function renderDayRow({ item }: { item: DateYMD }) {
+    const renderItem: ListRenderItem<DateYMD> = ({ item }: { item: DateYMD }) => {
         const events = getRowEventsFromDate(eventData, item)?.events || [];
 
         return <DayRow date={item} events={events} onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)} />;
@@ -256,12 +258,18 @@ export default function App() {
     return (
         <View style={styles.container}>
             <StatusBar backgroundColor={'#fffb'} barStyle={"dark-content"} /*translucent={true}*/ />
-            <CallbackContext.Provider value={{ onTileDragStart: onTileDragStart, onTileDropped: onTileDropped, onTilePressed: onTilePressed }}>
+            <CallbackContext.Provider value={{
+                onTilePressed: onTilePressed,
+                onTileLongPressed: onTileLongPressed,
+                onTileLongPressRelease: onTileLongPressRelease,
+                onTileDragStart: onTileDragStart,
+                onTileDropped: onTileDropped
+            }}>
                 <InfiniteScrollFlatList
                     ref={flatListRef}
                     data={visibleDays}
                     keyExtractor={item => item.toString()}
-                    renderItem={renderDayRow}
+                    renderItem={renderItem}
                     ItemSeparatorComponent={DayRowSeparater}
                     getItemLayout={getItemLayout}
                     initialScrollIndex={visibleDays.findIndex(item => item.isToday())}
@@ -285,7 +293,7 @@ export default function App() {
                 editedEvent={eventEditor_eventDetails.current}
                 onSubmit={onEventEditorSubmitted}
             />
-            <TestButton onPress={onTestButtonPressed} />
+            {<TestButton onPress={onTestButtonPressed} />}
         </View>
     );
 }
