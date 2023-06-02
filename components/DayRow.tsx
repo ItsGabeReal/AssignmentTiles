@@ -8,7 +8,7 @@ import {
     GestureResponderEvent,
 } from "react-native";
 import DateYMD from "../src/DateYMD";
-import { EventDetails } from "../types/EventTypes";
+import { EventDetails, EventTileCallbacks } from "../types/EventTypes";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
 
@@ -16,15 +16,32 @@ type DayRowProps = {
     date: DateYMD;
     events: EventDetails[];
     onPress?: ((gesture: GestureResponderEvent, rowDate: DateYMD) => void);
+    eventTileCallbacks: EventTileCallbacks;
 }
 
-const DayRow: React.FC<DayRowProps> = (props) => {
+function propsAreEqual(prevProps: DayRowProps, newProps: DayRowProps) {
+    if (prevProps.events.length !== newProps.events.length) return false;
+    
+    for (let i = 0; i < prevProps.events.length; i++) {
+        if (prevProps.events[i].completed !== newProps.events[i].completed ||
+            prevProps.events[i].dueDate != newProps.events[i].dueDate ||
+            prevProps.events[i].name != newProps.events[i].name
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+const DayRow: React.FC<DayRowProps> = memo((props) => {
+    //console.log(`${props.date.toString()} rendered`);
     function handlePress(gesture: GestureResponderEvent) {
         props.onPress?.(gesture, props.date);
     }
 
     function renderEventTile({ item }: {item: EventDetails}) {
-        return <EventTile event={item} plannedDate={props.date} />;
+        return <EventTile event={item} plannedDate={props.date} eventTileCallbacks={props.eventTileCallbacks} />;
     }
 
     return (
@@ -44,7 +61,7 @@ const DayRow: React.FC<DayRowProps> = (props) => {
             </View>
         </TouchableOpacity>
     );
-}
+}, propsAreEqual);
 
 const styles = StyleSheet.create({
     mainContainer: {

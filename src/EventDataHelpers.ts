@@ -16,7 +16,7 @@ export type EventDataReducerAction =
     | { type: 'toggle-complete', targetEventID: string };
 
 export function eventDataReducer(state: RowEvents[], action: EventDataReducerAction) {
-    const getInitialPlannedDateFromEventDetails = (eventDetails: EventDetails) => { // TESTING REQUIRED
+    const getInitialPlannedDateFromEventDetails = (eventDetails: EventDetails) => {
         if (eventDetails.dueDate) {
             return eventDetails.dueDate;
         }
@@ -30,7 +30,7 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
     }
 
     const addEvent = (eventData: RowEvents[], event: EventDetails, plannedDate: DateYMD, insertionIndex?: number) => {
-        const outputEventData = [...eventData];
+        const outputEventData = deepCopyEventData(eventData); // <- REPLACE THIS WITH structuredClone IF IT BECOMES AVAILABLE
 
         const targetRowEvents = getRowEventsFromDate(outputEventData, plannedDate);
         if (targetRowEvents) {
@@ -46,7 +46,7 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
     }
 
     const removeEvent = (eventData: RowEvents[], eventID: string) => { // TEST TO MAKE SURE MULTIPLE INSTANCES OF THE SAME EVENT ARE REMOVED
-        const outputEventData = [...eventData];
+        const outputEventData = deepCopyEventData(eventData); // <- REPLACE THIS WITH structuredClone IF IT BECOMES AVAILABLE
 
         let removedFromIndex = -1;
         let removedFromDate: DateYMD | null = null;
@@ -175,6 +175,26 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
         return outputEventData;
     }
     else return state;
+}
+
+function deepCopyEventData(eventData: RowEvents[]) {
+    const outputEventData: RowEvents[] = [];
+
+    for (let i = 0; i < eventData.length; i++) {
+        
+        const coppiedEvents: EventDetails[] = [];
+        for (let j = 0; j < eventData[i].events.length; j++) {
+            const event = eventData[i].events[j];
+            coppiedEvents[j] = {...event};
+        }
+
+        outputEventData.push({
+            date: eventData[i].date,
+            events: coppiedEvents,
+        });
+    }
+
+    return outputEventData;
 }
 
 export function getRowEventsFromDate(eventData: RowEvents[], date: DateYMD) {

@@ -7,14 +7,19 @@ import {
 } from "react-native";
 
 interface Props {
-    onPress: (event: GestureResponderEvent) => void;
+    onPress: (gesture: GestureResponderEvent) => void;
 }
 
 const TestButton: React.FC<Props> = ({ onPress }) => {
+    function handlePress(gesture: GestureResponderEvent) {
+        console.log('----- TEST BUTTON PRESSED -----');
+        onPress(gesture);
+    }
+    
     return (
         <View pointerEvents="box-none" style={styles.testButtonContainer}>
             <Button
-                onPress={onPress}
+                onPress={handlePress}
                 title="Test"
             />
         </View>

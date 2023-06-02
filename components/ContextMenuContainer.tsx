@@ -14,30 +14,29 @@ type ContextMenuContainerProps = {
         | null
 }
 
-const defaultContextMenuDetails: ContextMenuDetails = {
+const emptyContextMenuDetails: ContextMenuDetails = {
     options: [],
     position: { x: 0, topY: 0, bottomY: 0 },
 }
 
 const ContextMenuContainer = forwardRef<ContextMenuContainerRef, ContextMenuContainerProps>((props, ref) => {
     const [contextMenuVisible, setContextMenuVisible] = useState(false);
-
-    const contextMenu_details = useRef(defaultContextMenuDetails);
+    const [menuDetails, setMenuDetails] = useState(emptyContextMenuDetails);
 
     useImperativeHandle(ref, () => ({
         create(details: ContextMenuDetails) {
-            contextMenu_details.current = details;
+            setMenuDetails(details);
             setContextMenuVisible(true);
         },
         close() {
-            setContextMenuVisible(false);
+            if (contextMenuVisible) setContextMenuVisible(false);
         }
     }));
     
     return (
         <ContextMenu
             visible={contextMenuVisible}
-            details={contextMenu_details.current}
+            details={menuDetails}
             onClose={() => setContextMenuVisible(false)}
         />
     );

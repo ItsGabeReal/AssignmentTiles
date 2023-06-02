@@ -81,8 +81,9 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             
             const newEvent: EventDetails = {
                 name: eventNameInput.current,
-                dueDate: DateYMD.fromDate(dateInput.current),
+                completed: false,
                 id: Math.random().toString(),
+                dueDate: DateYMD.fromDate(dateInput.current),
             };
 
             props.onSubmit(newEvent);
@@ -104,7 +105,9 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                 <View style={styles.parameterContainer}>
                     <View style={styles.dueDateContainer}>
                         <Text>Due Date:</Text>
-                        {showDatePicker()}
+                        <View style={{flex: 1}}>
+                            {showDatePicker()}
+                        </View>
                     </View>
                 </View>
             </View>

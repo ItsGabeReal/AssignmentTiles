@@ -3,16 +3,15 @@ import {
     StyleSheet,
     View,
     FlatList,
-    PanResponderGestureState,
     GestureResponderEvent,
     StatusBar,
-    ListRenderItem,
+    NativeSyntheticEvent,
+    NativeScrollEvent,
 } from "react-native";
 import VisualSettings from "./src/VisualSettings";
 import DateYMD from "./src/DateYMD";
-import CallbackContext from "./context/CallbackContext"
 import InfiniteScrollFlatList from "./components/InfiniteScrollFlatList";
-import { EventDetails, RowEvents } from "./types/EventTypes";
+import { EventDetails, RowEvents, EventTileCallbacks } from "./types/EventTypes";
 import { eventDataReducer, getEventFromID, getRowEventsFromDate, printEventData } from "./src/EventDataHelpers";
 import {
     visibleDaysReducer,
@@ -22,7 +21,7 @@ import {
     getDayRowAtScreenPosition,
     getInsertionIndexFromGesture,
     getEventTileDimensions,
-    getDayRowScreenYOffset
+    getDayRowScreenYOffset,
 } from "./src/VisibleDaysHelpers";
 import DayRow from "./components/DayRow";
 import EventCreator from "./components/EventCreator";
@@ -77,11 +76,11 @@ const testEventData: RowEvents[] = [
 export default function App() {
     const [eventData, eventDataDispatch] = useReducer(eventDataReducer, testEventData);
     const [visibleDays, visibleDaysDispatch] = useReducer(visibleDaysReducer, initializeVisibleDays());
-    
-    const [scrollEnabled, setScrollEnabled] = useState(true);
+
     const [eventCreatorVisible, setEventCreatorVisible] = useState(false);
     const [eventEditorVisible, setEventEditorVisible] = useState(false);
     
+    const eventData_closureSafeRef = useRef(eventData);
     const visibleDays_closureSafeRef = useRef(visibleDays);
     const scrollYOffset = useRef(0);
     const eventCreator_initialDate = useRef<DateYMD>();
@@ -91,8 +90,9 @@ export default function App() {
     
 
     useEffect(() => {
+        eventData_closureSafeRef.current = eventData;
         visibleDays_closureSafeRef.current = visibleDays;
-    }, [visibleDays]);
+    }, [eventData, visibleDays]);
 
 
     function onTilePressed(gesture: GestureResponderEvent, eventDetails: EventDetails) {
@@ -100,22 +100,23 @@ export default function App() {
     }
 
     function onTileLongPressed(gesture: GestureResponderEvent, eventDetails: EventDetails) {
-        setScrollEnabled(false);
+        flatListRef.current?.setNativeProps({ scrollEnabled: false });
         openEventTileContextMenu(eventDetails);
     }
 
     function onTileLongPressRelease() {
-        setScrollEnabled(true);
+        flatListRef.current?.setNativeProps({ scrollEnabled: true });
     }
 
     function onTileDragStart() {
         contextMenuRef.current?.close();
     }
 
-    function onTileDropped(gesture: PanResponderGestureState, event: EventDetails) {
+    function onTileDropped(gesture: GestureResponderEvent, event: EventDetails) {
+        const eventData_CSR = eventData_closureSafeRef.current;
         const visibleDays_CSR = visibleDays_closureSafeRef.current;
 
-        const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, eventData, scrollYOffset.current, { x: gesture.moveX, y: gesture.moveY });
+        const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, eventData_CSR, scrollYOffset.current, { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY });
         if (!overlappingRowDate) {
             console.error('Could not find row overlapping drop position');
             return;
@@ -127,7 +128,7 @@ export default function App() {
             return;
         }
 
-        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, eventData, scrollYOffset.current, targetVisibleDaysIndex, gesture);
+        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, eventData_CSR, scrollYOffset.current, targetVisibleDaysIndex, gesture);
 
         eventDataDispatch({ type: 'change-planned-date', eventID: event.id, newPlannedDate: overlappingRowDate, insertionIndex: insertionIndex })
     }
@@ -135,7 +136,7 @@ export default function App() {
     function openEventTileContextMenu(eventDetails: EventDetails) {
         const contextMenuPosition = getContextMenuPositionForEventTile(eventDetails);
         if (!contextMenuPosition) {
-            console.error(`App.tsx -> onTilePressed: Could not get context menu position`);
+            console.error(`App.tsx -> openEventTileContextMenu: Could not get context menu position`);
             return;
         }
 
@@ -187,14 +188,27 @@ export default function App() {
         return output;
     }
 
-    function openEventCreator(gesture: GestureResponderEvent, initialDate?: DateYMD) {
-        eventCreator_initialDate.current = initialDate;
-        setEventCreatorVisible(true);
+    const eventTileCallbacks: EventTileCallbacks = {
+        onTilePressed: onTilePressed,
+        onTileLongPressed: onTileLongPressed,
+        onTileLongPressRelease: onTileLongPressRelease,
+        onTileDragStart: onTileDragStart,
+        onTileDropped: onTileDropped
     }
 
-    function openEventEditor(editedEvent: EventDetails) {
-        eventEditor_eventDetails.current = editedEvent;
-        setEventEditorVisible(true);
+    function renderItem({ item }: { item: DateYMD }) {
+        const events = getRowEventsFromDate(eventData, item)?.events || [];
+
+        // In order for DayRow memo to know when a prop has changed, a COPY of events must be passed.
+        // Otherwise we're passing down the same object reference it had before, hence every attribute
+        // will be the same.
+        const eventsCopy: EventDetails[] = [];
+        for (let i = 0; i < events.length; i++) {
+            const eventCopy = {...events[i]};
+            eventsCopy.push(eventCopy);
+        }
+
+        return <DayRow date={item} events={eventsCopy} onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)} eventTileCallbacks={eventTileCallbacks} />;
     }
 
     function DayRowSeparater() {
@@ -207,6 +221,11 @@ export default function App() {
             offset: getDayRowYOffset(visibleDays, eventData, index),
             index
         });
+    }
+
+    function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+        scrollYOffset.current = event.nativeEvent.contentOffset.y;
+        //contextMenuRef.current?.close();
     }
 
     function onStartReached() {
@@ -230,6 +249,16 @@ export default function App() {
         });
     }
 
+    function openEventCreator(gesture: GestureResponderEvent, initialDate?: DateYMD) {
+        eventCreator_initialDate.current = initialDate;
+        setEventCreatorVisible(true);
+    }
+
+    function openEventEditor(editedEvent: EventDetails) {
+        eventEditor_eventDetails.current = editedEvent;
+        setEventEditorVisible(true);
+    }
+
     function onEventCreatorSubmitted(newEvent: EventDetails) {
         eventDataDispatch({
             type: 'add',
@@ -246,40 +275,27 @@ export default function App() {
     }
 
     function onTestButtonPressed() {
-        eventDataDispatch({ type: 'toggle-complete', targetEventID: eventData[0].events[0].id});
-    }
-
-    const renderItem: ListRenderItem<DateYMD> = ({ item }: { item: DateYMD }) => {
-        const events = getRowEventsFromDate(eventData, item)?.events || [];
-
-        return <DayRow date={item} events={events} onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)} />;
+        console.log('eventData:');
+        printEventData(eventData);
     }
 
     return (
         <View style={styles.container}>
             <StatusBar backgroundColor={'#fffb'} barStyle={"dark-content"} /*translucent={true}*/ />
-            <CallbackContext.Provider value={{
-                onTilePressed: onTilePressed,
-                onTileLongPressed: onTileLongPressed,
-                onTileLongPressRelease: onTileLongPressRelease,
-                onTileDragStart: onTileDragStart,
-                onTileDropped: onTileDropped
-            }}>
-                <InfiniteScrollFlatList
-                    ref={flatListRef}
-                    data={visibleDays}
-                    keyExtractor={item => item.toString()}
-                    renderItem={renderItem}
-                    ItemSeparatorComponent={DayRowSeparater}
-                    getItemLayout={getItemLayout}
-                    initialScrollIndex={visibleDays.findIndex(item => item.isToday())}
-                    scrollEnabled={scrollEnabled}
-                    onScroll={event => scrollYOffset.current = event.nativeEvent.contentOffset.y}
-                    onStartReached={onStartReached}
-                    onEndReached={onEndReached}
-                    showsVerticalScrollIndicator={false}
-                />
-            </CallbackContext.Provider>
+            <InfiniteScrollFlatList
+                ref={flatListRef}
+                data={visibleDays}
+                keyExtractor={item => item.toString()}
+                renderItem={renderItem}
+                ItemSeparatorComponent={DayRowSeparater}
+                getItemLayout={getItemLayout}
+                initialScrollIndex={visibleDays.findIndex(item => item.isToday())}
+                //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
+                onScroll={onScroll}
+                onStartReached={onStartReached}
+                onEndReached={onEndReached}
+                showsVerticalScrollIndicator={false}
+            />
             <ContextMenuContainer ref={contextMenuRef} />
             <EventCreator
                 visible={eventCreatorVisible}

@@ -22,6 +22,7 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
         
         const outputEvent = eventDetails;
         outputEvent.id = props.editedEvent.id;
+        outputEvent.completed = props.editedEvent.completed;
         props.onSubmit(outputEvent);
     }
     

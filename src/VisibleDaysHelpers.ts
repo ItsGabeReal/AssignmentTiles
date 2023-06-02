@@ -1,4 +1,4 @@
-import { PanResponderGestureState } from "react-native/types";
+import { GestureResponderEvent } from "react-native";
 import DateYMD from "./DateYMD";
 import { RowEvents } from "../types/EventTypes";
 import { getRowEventsFromDate, EventTileDimensions } from "./EventDataHelpers";
@@ -53,8 +53,8 @@ const createArrayOfSequentialDates = (startDate: DateYMD, numDays: number) => {
 }
 
 export function initializeVisibleDays() {
-    const numDaysAboveToday = 7;
-    const numDaysBelowToday = 13;
+    const numDaysAboveToday = 7 * 2;
+    const numDaysBelowToday = 7 * 3 - 1;
 
     const totalDays = numDaysAboveToday + 1 + numDaysBelowToday;
     const startDate = DateYMD.today().subtractDays(numDaysAboveToday);
@@ -146,7 +146,7 @@ export function getEventTileDimensions(rowYOffset: number, eventRowOrder: number
     return outputDimensions;
 }
 
-export function getInsertionIndexFromGesture(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number, gesture: PanResponderGestureState) {
+export function getInsertionIndexFromGesture(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number, gesture: GestureResponderEvent) {
     const dimensionsForAllTiles = getDimensionsForAllTilesInRow(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
     
     for (let i = 0; i < dimensionsForAllTiles.length; i++) {
@@ -157,9 +157,11 @@ export function getInsertionIndexFromGesture(visibleDays: DateYMD[], eventData: 
         const eventTileRightEdgePlusMargin = tileDimeions.x + tileDimeions.width + VisualSettings.EventTile.mainContainer.marginRight;
 
         // Overlap checks
-        const gestureYOverlapsTile = gesture.moveY > tileDimeions.y && gesture.moveY < tileDimeions.y + tileDimeions.width;
-        const gestureXOverlapsLeftHalf = gesture.moveX > tileDimeions.x && gesture.moveX < tileXMidpoint;
-        const gestureXOverlapsRightHalf = gesture.moveX > tileXMidpoint && gesture.moveX < eventTileRightEdgePlusMargin;
+        const pageX = gesture.nativeEvent.pageX;
+        const pageY = gesture.nativeEvent.pageY;
+        const gestureYOverlapsTile = pageY > tileDimeions.y && pageY < tileDimeions.y + tileDimeions.width;
+        const gestureXOverlapsLeftHalf = pageX > tileDimeions.x && pageX < tileXMidpoint;
+        const gestureXOverlapsRightHalf = pageX > tileXMidpoint && pageX < eventTileRightEdgePlusMargin;
 
         // If gesture overlaps with left side, insert to the left
         if (gestureXOverlapsLeftHalf && gestureYOverlapsTile) return i;

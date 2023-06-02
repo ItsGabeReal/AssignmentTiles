@@ -1,23 +1,29 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, memo } from 'react';
 import {
     StyleSheet,
     Text,
     View,
 } from "react-native";
 import DateYMD from '../src/DateYMD';
-import { EventDetails } from '../types/EventTypes';
-import CallbackContext from '../context/CallbackContext';
+import { EventDetails, EventTileCallbacks } from '../types/EventTypes';
 import Draggable from './Draggable';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/Ionicons";
 
-type EvenTileProps = {
+type EventTileProps = {
     event: EventDetails;
     plannedDate: DateYMD;
+    eventTileCallbacks: EventTileCallbacks;
 }
 
-const EventTile: React.FC<EvenTileProps> = (props) => {
-    const callbackContext = useContext(CallbackContext);
+function propsAreEqual(prevProps: EventTileProps, newProps: EventTileProps) {
+    return prevProps.event.completed === newProps.event.completed
+        && prevProps.event.dueDate == newProps.event.dueDate
+        && prevProps.event.name == newProps.event.name;
+}
+
+const EventTile: React.FC<EventTileProps> = memo((props) => {
+    console.log(`${props.event.name} updated`);
 
     function getBackgroundColor() {
         let output;
@@ -45,11 +51,11 @@ const EventTile: React.FC<EvenTileProps> = (props) => {
     
     return (
         <Draggable
-            onPress={gesture => callbackContext?.onTilePressed(gesture, props.event)}
-            onLongPress={gesture => callbackContext?.onTileLongPressed(gesture, props.event)}
-            onLongPressRelease={() => callbackContext?.onTileLongPressRelease()}
-            onStartDrag={gesture => callbackContext?.onTileDragStart(gesture)}
-            onDrop={gesture => callbackContext?.onTileDropped(gesture, props.event)}
+            onPress={gesture => props.eventTileCallbacks.onTilePressed(gesture, props.event)}
+            onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed(gesture, props.event)}
+            onLongPressRelease={() => props.eventTileCallbacks.onTileLongPressRelease()}
+            onStartDrag={gesture => props.eventTileCallbacks.onTileDragStart(gesture)}
+            onDrop={gesture => props.eventTileCallbacks.onTileDropped(gesture, props.event)}
         >
             <View style={styles.mainContainer}>
                 <View style={[styles.contentContainer, {backgroundColor: getBackgroundColor(), opacity: props.event.completed ? 0.25 : 1}]}>
@@ -60,7 +66,7 @@ const EventTile: React.FC<EvenTileProps> = (props) => {
             </View>
         </Draggable>
     );
-}
+}, propsAreEqual);
 
 const styles = StyleSheet.create({
     mainContainer: {

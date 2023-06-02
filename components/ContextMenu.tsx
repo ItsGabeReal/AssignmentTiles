@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
     StyleSheet,
     ViewStyle,
@@ -7,9 +7,9 @@ import {
     Pressable,
     TouchableOpacity,
     FlatList,
-    Modal,
     ColorValue,
     Dimensions,
+    Modal,
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";
 
@@ -87,7 +87,7 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
                 {drawIcon()}
             </View>
         </TouchableOpacity>
-    )
+    );
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = (props) => {
@@ -114,12 +114,12 @@ const ContextMenu: React.FC<ContextMenuProps> = (props) => {
     return (
         <Modal
             animationType='none'
-            transparent
             visible={props.visible}
+            transparent
             onRequestClose={props.onClose}
         >
-            <Pressable style={{ flex: 1 }} onPress={props.onClose}>
-                <View style={[styles.mainContainer, styles.dropShadow, getPositionStyleProps()]}>
+            <Pressable style={styles.pressOutContainer} onPress={props.onClose}>
+                <View style={[styles.listBackground, styles.dropShadow, getPositionStyleProps()]}>
                     <FlatList<ContextMenuOptionDetails>
                         data={props.details.options}
                         renderItem={({ item }) => <OptionComponent details={item} onClose={props.onClose} />}
@@ -128,11 +128,15 @@ const ContextMenu: React.FC<ContextMenuProps> = (props) => {
                 </View>
             </Pressable>
         </Modal>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
-    mainContainer: {
+    pressOutContainer: {
+        width: '100%',
+        height: '100%',
+    },
+    listBackground: {
         backgroundColor: '#f4f4f4',
         width: CONTEXT_MENU_WIDTH,
         borderRadius: 10,
