@@ -19,7 +19,7 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
         <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
             <EventInputModal
                 visible={props.visible}
-                submitButtonTitle="Create Event"
+                submitButtonTitle="Create"
                 initialDueDate={props.initialDueDate}
                 onRequestClose={props.onRequestClose}
                 onSubmit={props.onSubmit}

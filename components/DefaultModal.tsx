@@ -1,11 +1,9 @@
 import React from "react";
 import {
-    View,
     StyleSheet,
+    View,
     Platform,
-    TouchableOpacity,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
 import IosModal from "./IosModal";
 import AndroidModal from "./AndroidModal";
 
@@ -14,15 +12,12 @@ type DefaultModalProps = {
 
     children?: React.ReactNode;
 
-    onRequestClose: (() => void);
+    onRequestClose?: (() => void);
 }
 
 const DefaultModal: React.FC<DefaultModalProps> = (props) => {
     const defaultChildren = (
         <View style={styles.mainContainer}>
-            <TouchableOpacity style={styles.closeButtonContainer} onPress={props.onRequestClose}>
-                <Icon name='ios-close' size={24} />
-            </TouchableOpacity>
             {props.children}
         </View>
     )
@@ -43,12 +38,8 @@ const DefaultModal: React.FC<DefaultModalProps> = (props) => {
 
 const styles = StyleSheet.create({
     mainContainer: {
-        padding: 20,
+        padding: 25,
         flex: 1,
-    },
-    closeButtonContainer: {
-        alignSelf: 'flex-end',
-        marginBottom: 15,
     },
 });
 

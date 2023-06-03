@@ -23,8 +23,6 @@ function propsAreEqual(prevProps: EventTileProps, newProps: EventTileProps) {
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
-    console.log(`${props.event.name} updated`);
-
     function getBackgroundColor() {
         let output;
 

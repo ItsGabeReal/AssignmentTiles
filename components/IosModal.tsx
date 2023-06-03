@@ -15,7 +15,7 @@ type IosModalProps = {
 
     backgroundColor?: ColorValue;
 
-    onRequestClose: (() => void);
+    onRequestClose?: (() => void);
 }
 
 const IosModal: React.FC<IosModalProps> = (props) => {

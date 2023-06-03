@@ -16,7 +16,7 @@ type AndroidModalProps = {
 
     backgroundColor?: ColorValue;
 
-    onRequestClose: (() => void);
+    onRequestClose?: (() => void);
 }
 
 const AndroidModal: React.FC<AndroidModalProps> = (props) => {
@@ -78,8 +78,8 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         flex: 1,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        borderTopLeftRadius: 25,
+        borderTopRightRadius: 25,
     }
 });
 

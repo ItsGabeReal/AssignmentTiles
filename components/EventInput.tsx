@@ -1,16 +1,18 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     View,
     TextInput,
     StyleSheet,
     Text,
-    Button,
+    TouchableOpacity,
 } from "react-native";
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 import AndroidCompactDatePicker from "./AndroidCompactDatePicker";
+import SubmitButton from "./SubmitButton";
 import DateYMD from "../src/DateYMD";
 import { EventDetails } from "../types/EventTypes";
 import { Platform } from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
 
 type EventInputProps = {
     initialName?: string;
@@ -27,8 +29,9 @@ type EventInputProps = {
 }
 
 const EventInput: React.FC<EventInputProps> = (props) => {
+    const [eventNameInput, setEventNameInput] = useState(props.initialName || '');
     const eventNameInputRef = useRef<TextInput>(null);
-    const eventNameInput = useRef(props.initialName || '');
+    //const eventNameInput = useRef(props.initialName || '');
     const dateInput = useRef((props.initialDueDate || DateYMD.today()).toDate());
     
     useEffect(() => {
@@ -37,7 +40,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
         * inputs doesn't automatically show the keyboard.
         * This fixes that.
         */
-        setTimeout(() => { eventNameInputRef.current?.focus(); }, 50);
+        setTimeout(() => { eventNameInputRef.current?.focus(); }, 75);
     });
 
     function onDateChanged(newDate?: Date) {
@@ -72,7 +75,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
     }
 
     function readyToSubmit(): boolean {
-        return (eventNameInput.current.length > 0);
+        return (eventNameInput.length > 0);
     }
 
     function onSubmit() {
@@ -80,7 +83,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             props.onRequestClose();
             
             const newEvent: EventDetails = {
-                name: eventNameInput.current,
+                name: eventNameInput,
                 completed: false,
                 id: Math.random().toString(),
                 dueDate: DateYMD.fromDate(dateInput.current),
@@ -92,14 +95,23 @@ const EventInput: React.FC<EventInputProps> = (props) => {
 
     return (
         <>
+            <View style={styles.actionsContainer}>
+                <TouchableOpacity onPress={props.onRequestClose} hitSlop={10}>
+                    <Icon name='ios-close' size={26} />
+                </TouchableOpacity>
+                <View style={styles.submitButtonContainer}>
+                    <SubmitButton title={props.submitButtonTitle} onPress={onSubmit} disabled={!readyToSubmit()} />
+                </View>
+            </View>
             <View style={styles.inputContainer}>
+                
                 <View style={styles.parameterContainer}>
                     <TextInput
                         ref={eventNameInputRef}
                         defaultValue={props.initialName}
                         placeholder="Name"
                         //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
-                        onChangeText={changedText => { eventNameInput.current = changedText; }}
+                        onChangeText={changedText => { setEventNameInput(changedText); }}
                     />
                 </View>
                 <View style={styles.parameterContainer}>
@@ -111,14 +123,24 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                     </View>
                 </View>
             </View>
-            <View style={styles.createEventButtonContainer}>
-                <Button title={props.submitButtonTitle} onPress={onSubmit} />
-            </View>
         </>
     );
 }
 
 const styles = StyleSheet.create({
+    actionsContainer: {
+        flexDirection: 'row',
+        marginBottom: 25,
+        alignItems: 'center',
+    },
+    submitButtonContainer: {
+        marginLeft: 'auto',
+    },
+    submitButtonText: {
+        fontWeight: 'bold',
+        color: '#06f',
+        fontSize: 18,
+    },
     inputContainer: {
         flex: 1,
     },
@@ -132,9 +154,6 @@ const styles = StyleSheet.create({
     },
     dueDateContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-    },
-    createEventButtonContainer: {
         alignItems: 'center',
     },
 });
