@@ -59,6 +59,12 @@ class DateYMD {
         return this.toDate().valueOf() > date.toDate().valueOf();
     }
 
+    daysBefore(date: DateYMD) {
+        const oneDayInMilliseconds = 86_400_000;
+        const millisecondsBetween = date.toDate().getTime() - this.toDate().getTime();
+        return Math.round(millisecondsBetween / oneDayInMilliseconds);
+    }
+
     addDays(numDays: number) {
         const _date = new Date(this.year, this.month - 1, this.date + numDays);
 

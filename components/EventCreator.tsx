@@ -1,8 +1,9 @@
-import React from "react"
+import React, { useContext } from "react"
 import { EventDetails } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DateYMD from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
+import EventDataContext from "../context/EventDataContext";
 
 type EventCreatorProps = {
     visible: boolean;
@@ -10,11 +11,18 @@ type EventCreatorProps = {
     initialDueDate?: DateYMD;
 
     onRequestClose: (() => void);
-
-    onSubmit: ((eventDetails: EventDetails) => void);
 }
 
 const EventCreator: React.FC<EventCreatorProps> = (props) => {
+    const eventData = useContext(EventDataContext);
+
+    function onSubmit(newEvent: EventDetails) {
+        eventData.dispatch({
+            type: 'add',
+            newEvent: newEvent,
+        });
+    }
+
     return (
         <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
             <EventInputModal
@@ -22,7 +30,7 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
                 submitButtonTitle="Create"
                 initialDueDate={props.initialDueDate}
                 onRequestClose={props.onRequestClose}
-                onSubmit={props.onSubmit}
+                onSubmit={onSubmit}
             />
         </DefaultModal>
     );

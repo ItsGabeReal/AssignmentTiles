@@ -7,8 +7,8 @@ import {
     TouchableOpacity,
 } from "react-native";
 import RNDateTimePicker from "@react-native-community/datetimepicker";
-import AndroidCompactDatePicker from "./AndroidCompactDatePicker";
-import SubmitButton from "./SubmitButton";
+import AndroidCompactDatePicker from "./core/AndroidCompactDatePicker";
+import SubmitButton from "./core/SubmitButton";
 import DateYMD from "../src/DateYMD";
 import { EventDetails } from "../types/EventTypes";
 import { Platform } from "react-native";

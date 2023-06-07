@@ -3,8 +3,6 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    Animated,
-    Platform,
 } from "react-native";
 
 type SubmitButtonProps = {
@@ -18,19 +16,16 @@ type SubmitButtonProps = {
 }
 
 const SubmitButton: React.FC<SubmitButtonProps> = (props) => {
-    const androidGreen = '#6b0';
-    const iosBlue = '#07f';
-    const platformSpecificColor = Platform.OS == 'android' ? androidGreen : iosBlue;
     return (
         <TouchableOpacity disabled={props.disabled} onPress={props.onPress}>
-            <Animated.Text
+            <Text
                 style={[styles.submitButtonText, {
                     fontSize: props.fontSize || 18,
-                    color: props.disabled ? '#aaa' : platformSpecificColor,
+                    color: props.disabled ? '#aaa' : '#07f',
                 }]}
             >
                 {props.title}
-            </Animated.Text>
+            </Text>
         </TouchableOpacity>
     );
 }

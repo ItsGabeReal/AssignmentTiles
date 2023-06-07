@@ -1,4 +1,4 @@
-import React, { useContext, memo } from 'react';
+import React, { memo, useContext } from 'react';
 import {
     StyleSheet,
     Text,
@@ -6,9 +6,10 @@ import {
 } from "react-native";
 import DateYMD from '../src/DateYMD';
 import { EventDetails, EventTileCallbacks } from '../types/EventTypes';
-import Draggable from './Draggable';
+import Draggable from './core/Draggable';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/Ionicons";
+import EventDataContext from '../context/EventDataContext';
 
 type EventTileProps = {
     event: EventDetails;
@@ -23,20 +24,36 @@ function propsAreEqual(prevProps: EventTileProps, newProps: EventTileProps) {
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
-    function getBackgroundColor() {
-        let output;
+    const eventData = useContext(EventDataContext);
 
+    const daysPlannedBeforeDue = getDaysPlannedBeforeDue();
+
+    function getDaysPlannedBeforeDue() {
         if (props.event.dueDate) {
-            const isPastDueDate = props.plannedDate.isAfter(props.event.dueDate);
-            if (isPastDueDate) {
-                output = '#fbb';
+            return props.plannedDate.daysBefore(props.event.dueDate);
+        }
+    }
+
+    function getBackgroundColor() {
+        return '#ddd';
+    }
+
+    function getDueDateText() {
+        if (daysPlannedBeforeDue != undefined) {
+            let outputString = 'Due: ';
+
+            if (daysPlannedBeforeDue > 0) {
+                outputString += `${daysPlannedBeforeDue} ${daysPlannedBeforeDue === 1 ? 'day' : 'days'}`;
+            }
+            else if (daysPlannedBeforeDue < 0) {
+                outputString += `${Math.abs(daysPlannedBeforeDue)} ${daysPlannedBeforeDue === -1 ? 'day' : 'days'} ago`;
             }
             else {
-                output = '#bfb';
+                outputString += 'Today';
             }
-        }
 
-        return output || '#bbb';
+            return outputString;
+        }
     }
 
     function checkmark() {
@@ -46,19 +63,23 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
             </View>
         );
     }
+
+    function onPress() {
+        eventData.dispatch({ type: 'toggle-complete', targetEventID: props.event.id });
+    }
     
     return (
         <Draggable
-            onPress={gesture => props.eventTileCallbacks.onTilePressed(gesture, props.event)}
-            onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed(gesture, props.event)}
-            onLongPressRelease={() => props.eventTileCallbacks.onTileLongPressRelease()}
-            onStartDrag={gesture => props.eventTileCallbacks.onTileDragStart(gesture)}
-            onDrop={gesture => props.eventTileCallbacks.onTileDropped(gesture, props.event)}
+            onPress={onPress}
+            onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed?.(gesture, props.event)}
+            onLongPressRelease={() => props.eventTileCallbacks.onTileLongPressRelease?.()}
+            onStartDrag={gesture => props.eventTileCallbacks.onTileDragStart?.(gesture)}
+            onDrop={gesture => props.eventTileCallbacks.onTileDropped?.(gesture, props.event)}
         >
             <View style={styles.mainContainer}>
                 <View style={[styles.contentContainer, {backgroundColor: getBackgroundColor(), opacity: props.event.completed ? 0.25 : 1}]}>
                     <Text style={styles.eventNameText}>{props.event.name}</Text>
-                    <Text style={styles.dueDateText}>Due: {props.event.dueDate?.dayNameAbrev()}</Text>
+                    <Text style={styles.dueDateText}>{getDueDateText()}</Text>
                 </View>
                 {props.event.completed ? checkmark() : null}
             </View>
@@ -80,6 +101,7 @@ const styles = StyleSheet.create({
     },
     eventNameText: {
         textAlign: 'center',
+        fontWeight: 'bold',
     },
     dueDateText: {
         textAlign: 'center',

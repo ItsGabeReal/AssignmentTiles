@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useContext } from "react"
 import { EventDetails } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DefaultModal from "./DefaultModal"
+import EventDataContext from "../context/EventDataContext"
 
 type EventEditorProps = {
     visible: boolean;
@@ -9,11 +10,11 @@ type EventEditorProps = {
     editedEvent?: EventDetails;
 
     onRequestClose: (() => void);
-
-    onSubmit: ((eventDetails: EventDetails) => void);
 }
 
 const EventEditor: React.FC<EventEditorProps> = (props) => {
+    const eventData = useContext(EventDataContext);
+
     function handleOnSubmit(eventDetails: EventDetails) {
         if (!props.editedEvent) {
             console.error(`Initial edited event was null. Event editor has no idea what event it's supposed to edit.`);
@@ -23,7 +24,15 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
         const outputEvent = eventDetails;
         outputEvent.id = props.editedEvent.id;
         outputEvent.completed = props.editedEvent.completed;
-        props.onSubmit(outputEvent);
+        onSubmit(outputEvent);
+    }
+
+    function onSubmit(editedEvent: EventDetails) {
+        eventData.dispatch({
+            type: 'set-event-details',
+            targetEventID: editedEvent.id,
+            newEventDetails: editedEvent
+        });
     }
     
     return (

@@ -4,8 +4,8 @@ import {
     View,
     Platform,
 } from "react-native";
-import IosModal from "./IosModal";
-import AndroidModal from "./AndroidModal";
+import IosModal from "./core/IosModal";
+import AndroidModal from "./core/AndroidModal";
 
 type DefaultModalProps = {
     visible: boolean;
