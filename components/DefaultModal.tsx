@@ -24,11 +24,11 @@ const DefaultModal: React.FC<DefaultModalProps> = (props) => {
     return (
         <>
             {Platform.OS == 'android' ?
-                <AndroidModal backgroundColor={'#fff'} visible={props.visible} onRequestClose={props.onRequestClose}>
+                <AndroidModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose}>
                     {defaultChildren}
                 </AndroidModal>
                 :
-                <IosModal backgroundColor={'#fff'} visible={props.visible} onRequestClose={props.onRequestClose}>
+                <IosModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose}>
                     {defaultChildren}
                 </IosModal>
             }
@@ -38,7 +38,9 @@ const DefaultModal: React.FC<DefaultModalProps> = (props) => {
 
 const styles = StyleSheet.create({
     mainContainer: {
-        padding: 25,
+        paddingLeft: 25,
+        paddingTop: 25,
+        paddingRight: 25,
         flex: 1,
     },
 });

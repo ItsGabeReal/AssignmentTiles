@@ -42,6 +42,7 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
                 submitButtonTitle="Save"
                 initialName={props.editedEvent?.name}
                 initialDueDate={props.editedEvent?.dueDate}
+                initialCategoryID={props.editedEvent?.categoryID}
                 onRequestClose={props.onRequestClose}
                 onSubmit={handleOnSubmit}
             />

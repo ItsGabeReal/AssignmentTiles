@@ -47,9 +47,9 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
-                <View style={{ ...styles.dateTextContainer, backgroundColor: (props.date.isToday() ? "#ddf" : "#fff0") }}>
-                    <Text>{props.date.dayNameAbrev()}</Text>
-                    <Text>{props.date.monthNameAbrev()} {props.date.date}</Text>
+                <View style={[styles.dateTextContainer, {backgroundColor: (props.date.isToday() ? "#44a" : "#444")} ]}>
+                    <Text style={styles.dateText}>{props.date.dayNameAbrev()}</Text>
+                    <Text style={styles.dateText}>{props.date.monthNameAbrev()} {props.date.date}</Text>
                 </View>
                 <View style={styles.flatListContainer}>
                     <FlatList
@@ -72,8 +72,12 @@ const styles = StyleSheet.create({
     dateTextContainer: {
         width: VisualSettings.DayRow.dateTextContainer.width,
         borderRightWidth: VisualSettings.DayRow.dateTextContainer.borderRightWidth,
+        borderColor: '#aaa0',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+    },
+    dateText: {
+        color: '#fff',
     },
     flatListContainer: {
         flex: 1,

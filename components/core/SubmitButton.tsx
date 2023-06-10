@@ -21,7 +21,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = (props) => {
             <Text
                 style={[styles.submitButtonText, {
                     fontSize: props.fontSize || 18,
-                    color: props.disabled ? '#aaa' : '#07f',
+                    color: props.disabled ? '#8888' : '#07f',
                 }]}
             >
                 {props.title}

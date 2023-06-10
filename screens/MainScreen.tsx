@@ -50,20 +50,24 @@ export default function MainScreen() {
         visibleDays_closureSafeRef.current = visibleDays;
     }, [visibleDays]);
 
-    function onTileLongPressed(gesture: GestureResponderEvent, eventDetails: EventDetails) {
+    function onTilePressed_cb(gesture: GestureResponderEvent, eventDetails: EventDetails) {
+        eventData.dispatch({ type: 'toggle-complete', targetEventID: eventDetails.id });
+    }
+
+    function onTileLongPressed_cb(gesture: GestureResponderEvent, eventDetails: EventDetails) {
         flatListRef.current?.setNativeProps({ scrollEnabled: false });
         openEventTileContextMenu(eventDetails);
     }
 
-    function onTileLongPressRelease() {
+    function onTileLongPressRelease_cb() {
         flatListRef.current?.setNativeProps({ scrollEnabled: true });
     }
 
-    function onTileDragStart() {
+    function onTileDragStart_cb() {
         contextMenuRef.current?.close();
     }
 
-    function onTileDropped(gesture: GestureResponderEvent, event: EventDetails) {
+    function onTileDropped_cb(gesture: GestureResponderEvent, event: EventDetails) {
         const visibleDays_CSR = visibleDays_closureSafeRef.current;
         const eventData_CSR = eventData.closureSafeRef.current;
 
@@ -112,19 +116,21 @@ export default function MainScreen() {
     }
 
     function getContextMenuPositionForEventTile(eventDetails: EventDetails) {
-        const event = getEventFromID(eventData.state, eventDetails.id);
+        const event = getEventFromID(eventData.closureSafeRef.current, eventDetails.id);
         if (!event) {
             console.error(`App.tsx -> getContextMenuPositionForEventTile: Could not find event with id = ${eventDetails.id}`);
             return;
         }
 
-        const visibleDaysIndex = visibleDays.findIndex(item => item.equals(event.plannedDate));
+        const visibleDays_CSR = visibleDays_closureSafeRef.current;
+
+        const visibleDaysIndex = visibleDays_CSR.findIndex(item => item.equals(event.plannedDate));
         if (visibleDaysIndex == -1) {
             console.error(`App.tsx -> getContextMenuPositionForEventTile: Could not find visible day with date = ${event.plannedDate.toString()}`);
             return;
         }
 
-        const rowYOffset = getDayRowScreenYOffset(visibleDays, eventData.state, scrollYOffset.current, visibleDaysIndex);
+        const rowYOffset = getDayRowScreenYOffset(visibleDays_CSR, eventData.closureSafeRef.current, scrollYOffset.current, visibleDaysIndex);
 
         const eventTileDimensions = getEventTileDimensions(rowYOffset, event.rowOrder);
 
@@ -140,10 +146,11 @@ export default function MainScreen() {
     }
 
     const eventTileCallbacks: EventTileCallbacks = {
-        onTileLongPressed: onTileLongPressed,
-        onTileLongPressRelease: onTileLongPressRelease,
-        onTileDragStart: onTileDragStart,
-        onTileDropped: onTileDropped
+        onTilePressed: onTilePressed_cb,
+        onTileLongPressed: onTileLongPressed_cb,
+        onTileLongPressRelease: onTileLongPressRelease_cb,
+        onTileDragStart: onTileDragStart_cb,
+        onTileDropped: onTileDropped_cb,
     }
 
     function renderItem({ item }: { item: DateYMD }) {
@@ -183,11 +190,6 @@ export default function MainScreen() {
             numNewDays: 7,
             removeFromBottom: true,
         });
-
-        flatListRef.current?.scrollToIndex({
-            index: 7,
-            animated: false,
-        });
     }
 
     function onEndReached() {
@@ -215,7 +217,7 @@ export default function MainScreen() {
 
     return (
         <View style={styles.container}>
-            <StatusBar backgroundColor={'#fffb'} barStyle={"dark-content"} /*translucent={true}*/ />
+            <StatusBar /*backgroundColor={'#0004'} */barStyle={"light-content"} /*translucent={true}*/ />
             <InfiniteScrollFlatList
                 ref={flatListRef}
                 data={visibleDays}
@@ -228,6 +230,7 @@ export default function MainScreen() {
                 onScroll={onScroll}
                 onStartReached={onStartReached}
                 onEndReached={onEndReached}
+                maintainVisibleContentPosition={{minIndexForVisible: 0}}
                 showsVerticalScrollIndicator={false}
             />
             <ContextMenuContainer ref={contextMenuRef} />
@@ -248,11 +251,11 @@ export default function MainScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#fff",
+        backgroundColor: "#222",
         flex: 1
     },
     dayRowSeparater: {
-        backgroundColor: '#000',
+        backgroundColor: '#666',
         height: VisualSettings.App.dayRowSeparater.height,
         zIndex: 1,
     }

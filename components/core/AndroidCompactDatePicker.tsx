@@ -16,6 +16,8 @@ type AndroidCompactDatePickerProps = {
     onChange: ((newDate: Date) => void);
 
     style?: ViewStyle;
+
+    themeVariant?: 'light' | 'dark';
 }
 
 const AndroidCompactDatePicker: React.FC<AndroidCompactDatePickerProps> = (props) => {
@@ -35,10 +37,25 @@ const AndroidCompactDatePicker: React.FC<AndroidCompactDatePickerProps> = (props
         });
     }
 
+    function getThemeTextColor() {
+        let useLightMode = true;
+
+        if (props.themeVariant) {
+            if (props.themeVariant == 'dark') useLightMode = false;
+            else if (props.themeVariant == 'light') useLightMode = true;
+            else {
+                console.error(`AndroidCompactDatePicker: ${props.themeVariant} is not a valid value for themeVariant. Must be either 'light' or 'dark'.`);
+            }
+        }
+
+        if (useLightMode) return 'black'
+        else return 'white'
+    }
+
     return (
         <View pointerEvents='box-none' style={styles.mainContainer}>
-            <TouchableOpacity onPress={handleOnPress} style={{...styles.dateTextContainer, ...props.style}}>
-                <Text>{MONTH_NAMES_ABREV[dateInput.getMonth()]} {dateInput.getDate()}, {dateInput.getFullYear()}</Text>
+            <TouchableOpacity onPress={handleOnPress} style={[styles.dateTextContainer, props.style]}>
+                <Text style={{color: getThemeTextColor()}}>{MONTH_NAMES_ABREV[dateInput.getMonth()]} {dateInput.getDate()}, {dateInput.getFullYear()}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -49,7 +66,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     dateTextContainer: {
-        backgroundColor: '#e4e4e4',
+        backgroundColor: '#8882',
         padding: 7,
         borderRadius: 5,
     },

@@ -5,17 +5,17 @@ import { CategoryReducerAction, categoriesReducer } from '../src/CategoryHelpers
 const testCategories: Category[] = [
     {
         name: 'Discrete Logic',
-        color: '#00f',
+        color: '#48f',
         id: 'a',
     },
     {
         name: 'Calculus 2',
-        color: '#0f0',
+        color: '#4f4',
         id: 'b',
     },
     {
         name: 'Mechanics',
-        color: '#ff0',
+        color: '#ff4',
         id: 'c',
     },
 ];
