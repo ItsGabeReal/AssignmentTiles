@@ -1,8 +1,12 @@
+import React from 'react';
+import { ColorValue } from 'react-native';
 import { Category } from "../types/EventTypes";
+import { EventDataReducerAction } from './EventDataHelpers';
 
 export type CategoryReducerAction =
     | { type: 'create', newCategory: Category }
-    | { type: 'remove', categoryID: string };
+    | { type: 'remove', categoryID: string }
+    | { type: 'edit', categoryID: string, newName?: string, newColor?: ColorValue };
 
 export function categoriesReducer(state: Category[], action: CategoryReducerAction) {
     if (action.type == 'create') {
@@ -26,6 +30,26 @@ export function categoriesReducer(state: Category[], action: CategoryReducerActi
         const outputCategories = deepCopyCategories(state);
         
         outputCategories.splice(categoryIndex, 1);
+
+        return outputCategories;
+    }
+    else if (action.type == 'edit') {
+        const { categoryID, newName, newColor } = action;
+
+        const categoryIndex = state.findIndex(item => item.id == categoryID);
+        if (categoryIndex === -1) {
+            console.error(`categoriesReducer/remove: Could not find category index from id`);
+            return state;
+        }
+        
+        const outputCategories = deepCopyCategories(state);
+
+        const editedCategory = {
+            name: newName || outputCategories[categoryIndex].name,
+            color: newColor || outputCategories[categoryIndex].color,
+            id: outputCategories[categoryIndex].id,
+        }
+        outputCategories[categoryIndex] = editedCategory;
 
         return outputCategories;
     }

@@ -1,12 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-    View,
-    TextInput,
     StyleSheet,
+    View,
     Text,
+    Button,
+    TextInput,
     ScrollView,
-    TouchableOpacity,
-    Pressable,
 } from 'react-native';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import AndroidCompactDatePicker from './core/AndroidCompactDatePicker';
@@ -14,9 +13,12 @@ import SubmitButton from './core/SubmitButton';
 import DateYMD from '../src/DateYMD';
 import { EventDetails } from '../types/EventTypes';
 import { Platform } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 import CategoryContext from '../context/CategoryContext';
+import CategoryInput, { CategoryInputRef } from './CategoryInput';
+import generalStyles from '../src/GeneralStyles';
+import CloseButton from './core/CloseButton';
+import CategoryEditor from './CategoryEditor';
 
 type EventInputProps = {
     initialName?: string;
@@ -41,6 +43,8 @@ const EventInput: React.FC<EventInputProps> = (props) => {
     const [selectedCategory, setSelectedCategory] = useState(props.initialCategoryID ? props.initialCategoryID : 'none');
     
     const eventNameInputRef = useRef<TextInput>(null);
+    const categoryInputRef = useRef<CategoryInputRef | null>(null);
+    const categoryEditorRef = useRef<CategoryInputRef | null>(null);
     const dateInput = useRef((props.initialDueDate || DateYMD.today()).toDate());
     
     useEffect(() => {
@@ -106,10 +110,10 @@ const EventInput: React.FC<EventInputProps> = (props) => {
 
     return (
         <>
+            <CategoryInput ref={categoryInputRef} onCategoryCreated={category => setSelectedCategory(category.id)} />
+            <CategoryEditor ref={categoryEditorRef} />
             <View style={styles.actionsContainer}>
-                <TouchableOpacity onPress={props.onRequestClose} hitSlop={10}>
-                    <Icon name='ios-close' size={26} color='white' />
-                </TouchableOpacity>
+                <CloseButton onPress={props.onRequestClose} hitSlop={10} size={26} color='white' />
                 <View style={styles.submitButtonContainer}>
                     <SubmitButton title={props.submitButtonTitle} onPress={onSubmit} disabled={!readyToSubmit()} />
                 </View>
@@ -118,25 +122,23 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                 style={styles.inputContainer}
                 keyboardDismissMode='on-drag'
             >
-                <Text style={[styles.fieldDescription, {fontWeight: 'bold'}]}>Name:</Text>
-                <Pressable style={styles.parameterContainer} onPress={() => eventNameInputRef.current?.focus()}>
+                <Text style={[generalStyles.fieldDescription, {fontWeight: 'bold'}]}>Name:</Text>
                     <TextInput
                         ref={eventNameInputRef}
                         defaultValue={props.initialName}
                         //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
                         onChangeText={changedText => { setEventNameInput(changedText); }}
-                        style={{color: 'white'}}
+                        style={[generalStyles.parameterContainer, {color: 'white'}]}
                         keyboardAppearance='dark'
                     />
-                </Pressable>
-                <Text style={styles.fieldDescription}>Due:</Text>
-                <View style={styles.parameterContainer}>
+                <Text style={generalStyles.fieldDescription}>Due:</Text>
+                <View style={generalStyles.parameterContainer}>
                     <View style={styles.dueDateContainer}>
                         {showDatePicker()}
                     </View>
                 </View>
-                <Text style={styles.fieldDescription}>Category:</Text>
-                <View style={[styles.parameterContainer, {padding: 0, overflow: 'hidden'}]}>
+                <Text style={generalStyles.fieldDescription}>Category:</Text>
+                <View style={[generalStyles.parameterContainer, {padding: 0, overflow: 'hidden'}]}>
                     <Picker
                         selectedValue={selectedCategory}
                         onValueChange={(value, name) => setSelectedCategory(value)}
@@ -148,6 +150,10 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                             <Picker.Item key={item.id} label={item.name} value={item.id} color={item.color} style={styles.androidPickerItem} />
                         ))}
                     </Picker>
+                </View>
+                <View style={{flexDirection: 'row'}}>
+                    <Button title='Create' onPress={() => categoryInputRef.current?.open()} />
+                    <Button title='Edit' onPress={() => categoryEditorRef.current?.open()} />
                 </View>
             </ScrollView>
         </>
@@ -170,19 +176,6 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         flex: 1,
-    },
-    fieldDescription: {
-        color: 'white',
-        marginLeft: 10,
-        marginBottom: 5,
-    },
-    parameterContainer: {
-        padding: 15,
-        backgroundColor: '#333',
-        borderRadius: 10,
-        borderColor: '#666',
-        borderWidth: StyleSheet.hairlineWidth,
-        marginBottom: 15,
     },
     dueDateContainer: {
         flexDirection: 'row',

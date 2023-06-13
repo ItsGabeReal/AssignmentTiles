@@ -13,7 +13,8 @@ export type EventDataReducerAction =
     | { type: 'remove', eventID: string }
     | { type: 'change-planned-date', eventID: string, newPlannedDate: DateYMD, insertionIndex?: number }
     | { type: 'set-event-details', targetEventID: string, newEventDetails: EventDetails }
-    | { type: 'toggle-complete', targetEventID: string };
+    | { type: 'toggle-complete', targetEventID: string }
+    | { type: 'remove-category', categoryID: string };
 
 export function eventDataReducer(state: RowEvents[], action: EventDataReducerAction) {
     const getInitialPlannedDateFromEventDetails = (eventDetails: EventDetails) => {
@@ -174,6 +175,23 @@ export function eventDataReducer(state: RowEvents[], action: EventDataReducerAct
 
         return outputEventData;
     }
+    else if (action.type == 'remove-category') {
+        const { categoryID } = action;
+
+        const outputEventData = deepCopyEventData(state);
+
+        for (let i = 0; i < outputEventData.length; i++) {
+            const events = outputEventData[i].events;
+
+            for (let j = 0; j < events.length; j++) {
+                const event = events[j];
+                if (event.categoryID == categoryID) event.categoryID = undefined;
+            }
+        }
+
+        return outputEventData;
+    }
+
     else return state;
 }
 
@@ -225,9 +243,18 @@ export function printEventData(eventData: RowEvents[]) {
             if (j > 0) eventArrayString += ', ';
             const event = eventData[i].events[j];
             eventArrayString += event.name;
+            if (event.categoryID) eventArrayString += `: ${event.categoryID}`;
         }
         eventArrayString += ']';
 
         console.log(`${eventData[i].date.toString()}: ${eventArrayString}`);
     }
+}
+
+export function areEventsEqual(eventA: EventDetails, eventB: EventDetails) {
+    return eventA.id == eventB.id
+        && eventA.completed == eventB.completed
+        && eventA.name == eventB.name
+        && eventA.dueDate == eventB.dueDate
+        && eventA.categoryID == eventB.categoryID;
 }

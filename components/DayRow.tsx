@@ -11,6 +11,7 @@ import DateYMD from "../src/DateYMD";
 import { EventDetails, EventTileCallbacks } from "../types/EventTypes";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
+import { areEventsEqual } from "../src/EventDataHelpers";
 
 type DayRowProps = {
     date: DateYMD;
@@ -23,12 +24,7 @@ function propsAreEqual(prevProps: DayRowProps, newProps: DayRowProps) {
     if (prevProps.events.length !== newProps.events.length) return false;
     
     for (let i = 0; i < prevProps.events.length; i++) {
-        if (prevProps.events[i].completed !== newProps.events[i].completed ||
-            prevProps.events[i].dueDate != newProps.events[i].dueDate ||
-            prevProps.events[i].name != newProps.events[i].name
-        ) {
-            return false;
-        }
+        if (!areEventsEqual(prevProps.events[i], newProps.events[i])) return false;
     }
 
     return true;
@@ -71,7 +67,6 @@ const styles = StyleSheet.create({
     },
     dateTextContainer: {
         width: VisualSettings.DayRow.dateTextContainer.width,
-        borderRightWidth: VisualSettings.DayRow.dateTextContainer.borderRightWidth,
         borderColor: '#aaa0',
         justifyContent: 'center',
         alignItems: 'center',

@@ -9,7 +9,6 @@ const VisualSettings = {
     DayRow: {
         dateTextContainer: {
             width: 80,
-            borderRightWidth: StyleSheet.hairlineWidth,
         },
         flatListContainer: {
             paddingLeft: 5,

@@ -12,6 +12,7 @@ import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/Ionicons";
 import { getCategoryFromID } from '../src/CategoryHelpers';
 import CategoryContext from '../context/CategoryContext';
+import { areEventsEqual } from '../src/EventDataHelpers';
 
 type EventTileProps = {
     event: EventDetails;
@@ -20,9 +21,7 @@ type EventTileProps = {
 }
 
 function propsAreEqual(prevProps: EventTileProps, newProps: EventTileProps) {
-    return prevProps.event.completed === newProps.event.completed
-        && prevProps.event.dueDate == newProps.event.dueDate
-        && prevProps.event.name == newProps.event.name;
+    return areEventsEqual(prevProps.event, newProps.event);
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {

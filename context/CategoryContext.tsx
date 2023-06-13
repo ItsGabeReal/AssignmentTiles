@@ -6,17 +6,17 @@ const testCategories: Category[] = [
     {
         name: 'Discrete Logic',
         color: '#48f',
-        id: 'a',
+        id: 'logic',
     },
     {
         name: 'Calculus 2',
         color: '#4f4',
-        id: 'b',
+        id: 'calc',
     },
     {
         name: 'Mechanics',
         color: '#ff4',
-        id: 'c',
+        id: 'mech',
     },
 ];
 

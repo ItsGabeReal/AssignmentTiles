@@ -128,7 +128,6 @@ export function getEventTileDimensions(rowYOffset: number, eventRowOrder: number
     const tilesAbove = Math.floor(eventRowOrder / VisualSettings.DayRow.numEventTileColumns);
 
     const xPosition = (VisualSettings.DayRow.dateTextContainer.width
-        + VisualSettings.DayRow.dateTextContainer.borderRightWidth
         + VisualSettings.DayRow.flatListContainer.paddingLeft
         + tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight));
 
