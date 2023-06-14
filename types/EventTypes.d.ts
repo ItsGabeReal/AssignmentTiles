@@ -1,16 +1,16 @@
 import DateYMD from "../src/DateYMD";
 
-export interface EventDetails {
+export interface Event {
     name: string;
     completed: boolean;
-    id: string;
     categoryID?: string;
     dueDate?: DateYMD;
+    id: string;
 }
 
-export interface RowEvents {
-    date: DateYMD;
-    events: EventDetails[];
+export interface EventsOnDate {
+    plannedDate: DateYMD;
+    orderedEventIDs: string[];
 }
 
 export type EventTileCallbacks = {
