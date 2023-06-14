@@ -160,13 +160,15 @@ export default function MainScreen() {
         // Otherwise we're passing down the same object reference it had before, hence every attribute
         // will be the same.
         const eventsCopy: EventDetails[] = [];
-        for (let i = 0; i < events.length; i++) {
-            const eventCopy = { ...events[i] };
-            eventsCopy.push(eventCopy);
-        }
+        events.forEach(item => eventsCopy.push({ ...item }));
 
-        return <DayRow date={item} events={eventsCopy} onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)} eventTileCallbacks={eventTileCallbacks} />;
-    }
+        return <DayRow
+            date={item}
+            events={eventsCopy}
+            onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)}
+            eventTileCallbacks={eventTileCallbacks}
+        />;
+    };
 
     function DayRowSeparater() {
         return <View style={styles.dayRowSeparater} />;
