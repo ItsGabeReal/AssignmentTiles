@@ -31,13 +31,43 @@ function propsAreEqual(prevProps: DayRowProps, newProps: DayRowProps) {
 }
 
 const DayRow: React.FC<DayRowProps> = memo((props) => {
-    //console.log(`${props.date.toString()} rendered`);
     function handlePress(gesture: GestureResponderEvent) {
         props.onPress?.(gesture, props.date);
     }
 
-    function renderEventTile({ item }: {item: EventDetails}) {
-        return <EventTile event={item} plannedDate={props.date} eventTileCallbacks={props.eventTileCallbacks} />;
+    function renderEventList() {
+        const eventRows: EventDetails[][] = [];
+        const numColumns = VisualSettings.DayRow.numEventTileColumns;
+
+        for (let i = 0; i < props.events.length; i++) {
+            const event = props.events[i];
+            const rowIndex = Math.floor(i / numColumns);
+            
+            if (!eventRows[rowIndex]) eventRows[rowIndex] = [];
+
+            eventRows[rowIndex].push(event);
+        }
+
+        return (
+            <>
+                {eventRows.map((row, index) => {
+                    return (
+                        <View key={index} style={styles.listRow}>
+                            {row.map(event => renderItem({item: event}))}
+                        </View>
+                    )
+                })}
+            </>
+        );
+    }
+
+    function renderItem({item}: { item: EventDetails }) {
+        return <EventTile
+            key={item.id}
+            event={item}
+            plannedDate={props.date}
+            eventTileCallbacks={props.eventTileCallbacks}
+        />
     }
 
     return (
@@ -47,12 +77,8 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
                     <Text style={styles.dateText}>{props.date.dayNameAbrev()}</Text>
                     <Text style={styles.dateText}>{props.date.monthNameAbrev()} {props.date.date}</Text>
                 </View>
-                <View style={styles.flatListContainer}>
-                    <FlatList
-                        data={props.events}
-                        numColumns={VisualSettings.DayRow.numEventTileColumns}
-                        renderItem={renderEventTile}
-                    />
+                <View style={styles.eventsContainer}>
+                    {renderEventList()}
                 </View>
             </View>
         </TouchableOpacity>
@@ -74,11 +100,14 @@ const styles = StyleSheet.create({
     dateText: {
         color: '#fff',
     },
-    flatListContainer: {
+    eventsContainer: {
         flex: 1,
         paddingLeft: VisualSettings.DayRow.flatListContainer.paddingLeft,
         paddingTop: VisualSettings.DayRow.flatListContainer.paddingTop,
     },
+    listRow: {
+        flexDirection: 'row',
+    }
 });
 
 export default DayRow;
