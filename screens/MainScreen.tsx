@@ -11,8 +11,8 @@ import {
 import VisualSettings from "../src/VisualSettings";
 import DateYMD from "../src/DateYMD";
 import InfiniteScrollFlatList from "../components/core/InfiniteScrollFlatList";
-import { EventDetails, EventTileCallbacks } from "../types/EventTypes";
-import { getEventFromID, getRowEventsFromDate, printEventData } from "../src/EventDataHelpers";
+import { Event, EventTileCallbacks, EventsOnDate } from "../types/EventTypes";
+import { getEventFromID } from "../src/EventsHelpers";
 import {
     visibleDaysReducer,
     initializeVisibleDays,
@@ -29,34 +29,40 @@ import EventEditor from "../components/EventEditor";
 import ContextMenuContainer, { ContextMenuContainerRef } from "../components/ContextMenuContainer";
 import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMenu";
 import TestButton from "../components/core/TestButton";
-import EventDataContext from "../context/EventDataContext";
+import EventsContext from "../context/EventsContext";
+import { getEventPlan, getEventsOnDate, getInitialPlannedDateForEvent, rowEventsReducer } from "../src/RowEventsHelpers";
+import { testRowEvents } from "../src/TestData";
 
 export default function MainScreen() {
-    const eventData = useContext(EventDataContext);
+    const events = useContext(EventsContext);
+
     const [visibleDays, visibleDaysDispatch] = useReducer(visibleDaysReducer, initializeVisibleDays());
+    const [rowEvents, rowEventsDispatch] = useReducer(rowEventsReducer, testRowEvents);
 
     const [eventCreatorVisible, setEventCreatorVisible] = useState(false);
     const [eventEditorVisible, setEventEditorVisible] = useState(false);
 
     const visibleDays_closureSafeRef = useRef(visibleDays);
+    const rowEvents_closureSafeRef = useRef(rowEvents);
     const scrollYOffset = useRef(0);
     const eventCreator_initialDate = useRef<DateYMD>();
-    const eventEditor_eventDetails = useRef<EventDetails>();
+    const eventEditor_editedEvent = useRef<Event>();
     const flatListRef = useRef<FlatList<any> | null>(null);
     const contextMenuRef = useRef<ContextMenuContainerRef | null>(null);
 
 
     useEffect(() => {
         visibleDays_closureSafeRef.current = visibleDays;
-    }, [visibleDays]);
+        rowEvents_closureSafeRef.current = rowEvents;
+    }, [visibleDays, rowEvents]);
 
-    function onTilePressed_cb(gesture: GestureResponderEvent, eventDetails: EventDetails) {
-        eventData.dispatch({ type: 'toggle-complete', targetEventID: eventDetails.id });
+    function onTilePressed_cb(gesture: GestureResponderEvent, event: Event) {
+        events.dispatch({ type: 'toggle-event-complete', eventID: event.id });
     }
 
-    function onTileLongPressed_cb(gesture: GestureResponderEvent, eventDetails: EventDetails) {
+    function onTileLongPressed_cb(gesture: GestureResponderEvent, event: Event) {
         flatListRef.current?.setNativeProps({ scrollEnabled: false });
-        openEventTileContextMenu(eventDetails);
+        openEventTileContextMenu(event);
     }
 
     function onTileLongPressRelease_cb() {
@@ -67,11 +73,11 @@ export default function MainScreen() {
         contextMenuRef.current?.close();
     }
 
-    function onTileDropped_cb(gesture: GestureResponderEvent, event: EventDetails) {
+    function onTileDropped_cb(gesture: GestureResponderEvent, event: Event) {
         const visibleDays_CSR = visibleDays_closureSafeRef.current;
-        const eventData_CSR = eventData.closureSafeRef.current;
+        const rowEvents_CSR = rowEvents_closureSafeRef.current;
 
-        const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, eventData_CSR, scrollYOffset.current, { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY });
+        const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, rowEvents_CSR, scrollYOffset.current, { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY });
         if (!overlappingRowDate) {
             console.error('Could not find row overlapping drop position');
             return;
@@ -83,15 +89,15 @@ export default function MainScreen() {
             return;
         }
 
-        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, eventData_CSR, scrollYOffset.current, targetVisibleDaysIndex, gesture);
+        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowEvents_CSR, scrollYOffset.current, targetVisibleDaysIndex, gesture);
 
-        eventData.dispatch({ type: 'change-planned-date', eventID: event.id, newPlannedDate: overlappingRowDate, insertionIndex: insertionIndex });
+        rowEventsDispatch({ type: 'move-event', eventID: event.id, plannedDate: overlappingRowDate, insertionIndex: insertionIndex });
     }
 
-    function openEventTileContextMenu(eventDetails: EventDetails) {
-        const contextMenuPosition = getContextMenuPositionForEventTile(eventDetails);
+    function openEventTileContextMenu(selectedEvent: Event) {
+        const contextMenuPosition = getContextMenuPositionForEventTile(selectedEvent);
         if (!contextMenuPosition) {
-            console.error(`App.tsx -> openEventTileContextMenu: Could not get context menu position`);
+            console.error(`MainScreen -> openEventTileContextMenu: Could not get context menu position`);
             return;
         }
 
@@ -99,12 +105,15 @@ export default function MainScreen() {
             options: [
                 {
                     name: 'Edit',
-                    onPress: () => openEventEditor(eventDetails),
+                    onPress: () => openEventEditor(selectedEvent),
                     iconName: 'pencil',
                 },
                 {
                     name: 'Delete',
-                    onPress: () => eventData.dispatch({ type: 'remove', eventID: eventDetails.id }),
+                    onPress: () => {
+                        rowEventsDispatch({ type: 'remove-event', eventID: selectedEvent.id });
+                        events.dispatch({ type: 'remove-event', eventID: selectedEvent.id });
+                    },
                     iconName: 'trash',
                     color: '#d00',
                 },
@@ -115,24 +124,25 @@ export default function MainScreen() {
         contextMenuRef.current?.create(contextMenuDetails);
     }
 
-    function getContextMenuPositionForEventTile(eventDetails: EventDetails) {
-        const event = getEventFromID(eventData.closureSafeRef.current, eventDetails.id);
-        if (!event) {
-            console.error(`App.tsx -> getContextMenuPositionForEventTile: Could not find event with id = ${eventDetails.id}`);
+    function getContextMenuPositionForEventTile(event: Event) {
+        const eventPlan = getEventPlan(rowEvents, event.id);
+        if (!eventPlan) {
+            console.error(`MainScreen -> getContextMenuPositionForEventTile: Could not get event plan`);
             return;
         }
 
         const visibleDays_CSR = visibleDays_closureSafeRef.current;
+        const rowEvents_CSR = rowEvents_closureSafeRef.current;
 
-        const visibleDaysIndex = visibleDays_CSR.findIndex(item => item.equals(event.plannedDate));
+        const visibleDaysIndex = visibleDays_CSR.findIndex(item => item.equals(eventPlan.plannedDate));
         if (visibleDaysIndex == -1) {
-            console.error(`App.tsx -> getContextMenuPositionForEventTile: Could not find visible day with date = ${event.plannedDate.toString()}`);
+            console.error(`MainScreen -> getContextMenuPositionForEventTile: Could not find visible day with date = ${eventPlan.plannedDate.toString()}`);
             return;
         }
 
-        const rowYOffset = getDayRowScreenYOffset(visibleDays_CSR, eventData.closureSafeRef.current, scrollYOffset.current, visibleDaysIndex);
+        const rowYOffset = getDayRowScreenYOffset(visibleDays_CSR, rowEvents_CSR, scrollYOffset.current, visibleDaysIndex);
 
-        const eventTileDimensions = getEventTileDimensions(rowYOffset, event.rowOrder);
+        const eventTileDimensions = getEventTileDimensions(rowYOffset, eventPlan.rowOrder);
 
         const xMidpoint = eventTileDimensions.x + eventTileDimensions.width / 2;
 
@@ -154,17 +164,16 @@ export default function MainScreen() {
     }
 
     function renderItem({ item }: { item: DateYMD }) {
-        const events = getRowEventsFromDate(eventData.state, item)?.events || []; // Could be in day row
+        const eventIDs = getEventsOnDate(rowEvents, item)?.orderedEventIDs || [];
 
         // In order for DayRow memo to know when a prop has changed, a COPY of events must be passed.
         // Otherwise we're passing down the same object reference it had before, hence every attribute
         // will be the same.
-        const eventsCopy: EventDetails[] = [];
-        events.forEach(item => eventsCopy.push({ ...item }));
+        const eventsIDsCopy = [...eventIDs];
 
         return <DayRow
             date={item}
-            events={eventsCopy}
+            eventIDs={eventsIDsCopy}
             onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)}
             eventTileCallbacks={eventTileCallbacks}
         />;
@@ -176,8 +185,8 @@ export default function MainScreen() {
 
     function getItemLayout(data: DateYMD[] | null | undefined, index: number) {
         return ({
-            length: getDayRowHeight(eventData.state, visibleDays[index]),
-            offset: getDayRowYOffset(visibleDays, eventData.state, index),
+            length: getDayRowHeight(rowEvents, visibleDays[index]),
+            offset: getDayRowYOffset(visibleDays, rowEvents, index),
             index
         });
     }
@@ -207,14 +216,13 @@ export default function MainScreen() {
         setEventCreatorVisible(true);
     }
 
-    function openEventEditor(editedEvent: EventDetails) {
-        eventEditor_eventDetails.current = editedEvent;
+    function openEventEditor(editedEvent: Event) {
+        eventEditor_editedEvent.current = editedEvent;
         setEventEditorVisible(true);
     }
 
     function onTestButtonPressed() {
-        console.log('eventData:');
-        printEventData(eventData.state);
+        console.log(rowEvents);
     }
 
     return (
@@ -240,11 +248,15 @@ export default function MainScreen() {
                 visible={eventCreatorVisible}
                 onRequestClose={() => setEventCreatorVisible(false)}
                 initialDueDate={eventCreator_initialDate.current}
+                onEventCreated={createdEvent => {
+                    const plannedDate = getInitialPlannedDateForEvent(createdEvent);
+                    rowEventsDispatch({ type: 'insert-event', eventID: createdEvent.id, plannedDate });
+                }}
             />
             <EventEditor
                 visible={eventEditorVisible}
                 onRequestClose={() => setEventEditorVisible(false)}
-                editedEvent={eventEditor_eventDetails.current}
+                editedEvent={eventEditor_editedEvent.current}
             />
             {<TestButton onPress={onTestButtonPressed} />}
         </View>

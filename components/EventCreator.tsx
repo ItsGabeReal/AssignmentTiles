@@ -1,9 +1,9 @@
 import React, { useContext } from "react"
-import { EventDetails } from "../types/EventTypes"
+import { Event } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DateYMD from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
-import EventDataContext from "../context/EventDataContext";
+import eventsContext from "../context/EventsContext";
 
 type EventCreatorProps = {
     visible: boolean;
@@ -11,16 +11,21 @@ type EventCreatorProps = {
     initialDueDate?: DateYMD;
 
     onRequestClose: (() => void);
+
+    onEventCreated?: ((createdEvent: Event) => void);
 }
 
 const EventCreator: React.FC<EventCreatorProps> = (props) => {
-    const eventData = useContext(EventDataContext);
+    const events = useContext(eventsContext);
 
-    function onSubmit(newEvent: EventDetails) {
-        eventData.dispatch({
-            type: 'add',
-            newEvent: newEvent,
+    function onSubmit(newEvent: Event) {
+        events.dispatch({
+            type: 'add-event',
+            event: newEvent,
         });
+        
+        // Return the new event so it can be added to rowEvents
+        props.onEventCreated?.(newEvent);
     }
 
     return (

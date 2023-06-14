@@ -11,7 +11,7 @@ import RNDateTimePicker from '@react-native-community/datetimepicker';
 import AndroidCompactDatePicker from './core/AndroidCompactDatePicker';
 import SubmitButton from './core/SubmitButton';
 import DateYMD from '../src/DateYMD';
-import { EventDetails } from '../types/EventTypes';
+import { CategoryID, Event } from '../types/EventTypes';
 import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import CategoryContext from '../context/CategoryContext';
@@ -25,13 +25,13 @@ type EventInputProps = {
     
     initialDueDate?: DateYMD;
 
-    initialCategoryID?: string;
+    initialCategoryID?: CategoryID;
 
     visible: boolean;
 
     submitButtonTitle: string;
 
-    onSubmit: ((eventDetails: EventDetails) => void);
+    onSubmit: ((event: Event) => void);
 
     onRequestClose: (() => void);
 }
@@ -96,12 +96,12 @@ const EventInput: React.FC<EventInputProps> = (props) => {
         if (readyToSubmit()) {
             props.onRequestClose();
             
-            const newEvent: EventDetails = {
+            const newEvent: Event = {
                 name: eventNameInput,
                 completed: false,
                 id: Math.random().toString(),
                 dueDate: DateYMD.fromDate(dateInput.current),
-                categoryID: selectedCategory == 'none' ? undefined : selectedCategory,
+                categoryID: selectedCategory === 'none' ? null : selectedCategory,
             };
 
             props.onSubmit(newEvent);

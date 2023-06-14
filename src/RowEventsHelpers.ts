@@ -1,4 +1,4 @@
-import { EventsOnDate } from "../types/EventTypes";
+import { EventsOnDate, Event } from "../types/EventTypes";
 import DateYMD from "./DateYMD";
 
 export type RowEventsReducerAction =
@@ -121,6 +121,7 @@ export function rowEventsReducer(state: EventsOnDate[], action: RowEventsReducer
         
         return outputRowEvents;
     }
+    else return state;
 }
 
 function deepCopyRowEvents(rowEvents: EventsOnDate[]) {
@@ -146,18 +147,29 @@ function sortRowEventsByDate(rowEvents: EventsOnDate[]) {
     rowEvents.sort((a, b) => (a.plannedDate.toDate().valueOf() - b.plannedDate.toDate().valueOf()));
 }
 
-export function getEventPlan(rowEvents: EventsOnDate[], eventID: string): {plannedDate: DateYMD, rowEventsIndex: number, rowOrder: number} | undefined {
-    rowEvents.forEach((eventsOnDate, rowEventsIndex) => {
-        eventsOnDate.orderedEventIDs.forEach((id, rowOrder) => {
-            if (id == eventID) {
+export function getEventPlan(rowEvents: EventsOnDate[], eventID: string) {
+    for (let i = 0; i < rowEvents.length; i++) {
+        const orderedEventIDs = rowEvents[i].orderedEventIDs;
+
+        for (let j = 0; j < orderedEventIDs.length; j++) {
+            if (orderedEventIDs[j] === eventID) {
                 return {
-                    plannedDate: eventsOnDate.plannedDate,
-                    rowEventsIndex,
-                    rowOrder,
+                    plannedDate: rowEvents[i].plannedDate,
+                    rowEventsIndex: i,
+                    rowOrder: j,
                 };
             }
-        });
-    });
+        }
+    }
 
     return undefined;
+}
+
+export function getInitialPlannedDateForEvent(event: Event) {
+    if (event.dueDate) {
+        return event.dueDate;
+    }
+    else {
+        return DateYMD.today();
+    }
 }

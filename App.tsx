@@ -1,14 +1,14 @@
 import React from "react";
-import { EventDataContextProvider } from "./context/EventDataContext";
+import { EventsContextProvider } from "./context/EventsContext";
 import { CategoryContextProvider } from "./context/CategoryContext";
 import MainScreen from "./screens/MainScreen";
 
 export default function App() {
     return (
-        <EventDataContextProvider>
+        <EventsContextProvider>
             <CategoryContextProvider>
                 <MainScreen/>
             </CategoryContextProvider>
-        </EventDataContextProvider>
+        </EventsContextProvider>
     );
 }

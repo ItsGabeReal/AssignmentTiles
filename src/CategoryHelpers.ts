@@ -1,7 +1,6 @@
 import React from 'react';
 import { ColorValue } from 'react-native';
 import { Category } from "../types/EventTypes";
-import { EventDataReducerAction } from './EventDataHelpers';
 
 export type CategoryReducerAction =
     | { type: 'create', newCategory: Category }

@@ -1,24 +1,7 @@
 import React, { useReducer, useRef, useEffect } from 'react';
 import { Category } from '../types/EventTypes';
 import { CategoryReducerAction, categoriesReducer } from '../src/CategoryHelpers';
-
-const testCategories: Category[] = [
-    {
-        name: 'Discrete Logic',
-        color: '#48f',
-        id: 'logic',
-    },
-    {
-        name: 'Calculus 2',
-        color: '#4f4',
-        id: 'calc',
-    },
-    {
-        name: 'Mechanics',
-        color: '#ff4',
-        id: 'mech',
-    },
-];
+import { testCategories } from '../src/TestData';
 
 type CategoryContextType = {
     state: Category[],

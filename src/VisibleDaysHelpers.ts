@@ -1,8 +1,8 @@
 import { GestureResponderEvent } from "react-native";
 import DateYMD from "./DateYMD";
-import { RowEvents } from "../types/EventTypes";
-import { getRowEventsFromDate, EventTileDimensions } from "./EventDataHelpers";
+import { EventTileDimensions, EventsOnDate } from "../types/EventTypes";
 import VisualSettings from "./VisualSettings";
+import { getEventsOnDate } from "./RowEventsHelpers";
 
 export type VisibleDaysReducerAction =
     | { type: 'add-to-bottom', numNewDays: number, removeFromTop?: boolean }
@@ -62,18 +62,19 @@ export function initializeVisibleDays() {
     return createArrayOfSequentialDates(startDate, totalDays);
 }
 
-export function getDayRowHeight(eventData: RowEvents[], date: DateYMD) {
+export function getDayRowHeight(rowEvents: EventsOnDate[], date: DateYMD) {
     const eventTileHeight = VisualSettings.EventTile.mainContainer.height;
     
-    const rowEvents = getRowEventsFromDate(eventData, date);
+    const eventsOnDate = getEventsOnDate(rowEvents, date);
+    
 
     let eventContainerHeight;
-    if (!rowEvents || rowEvents.events.length == 0) {
+    if (!eventsOnDate || eventsOnDate.orderedEventIDs.length == 0) {
         eventContainerHeight = eventTileHeight;
     }
     else {
         const verticalSpaceBetweenTiles = VisualSettings.EventTile.mainContainer.marginBottom;
-        const numTileRows = Math.ceil(rowEvents.events.length / VisualSettings.DayRow.numEventTileColumns);
+        const numTileRows = Math.ceil(eventsOnDate.orderedEventIDs.length / VisualSettings.DayRow.numEventTileColumns);
         eventContainerHeight = eventTileHeight * numTileRows + verticalSpaceBetweenTiles * (numTileRows - 1);
     }
 
@@ -82,25 +83,25 @@ export function getDayRowHeight(eventData: RowEvents[], date: DateYMD) {
     return (eventContainerHeight + topAndBottomMargin);
 }
 
-export function getDayRowYOffset(visibleDays: DateYMD[], eventData: RowEvents[], visibleDaysIndex: number) {
+export function getDayRowYOffset(visibleDays: DateYMD[], rowEvents: EventsOnDate[], visibleDaysIndex: number) {
     const rowsAbove = visibleDaysIndex;
     const spaceBetweenRows = VisualSettings.App.dayRowSeparater.height;
     let sumOfDayRowHeights = 0;
     for (let i = 0; i < rowsAbove; i++) {
-        sumOfDayRowHeights += getDayRowHeight(eventData, visibleDays[i]);
+        sumOfDayRowHeights += getDayRowHeight(rowEvents, visibleDays[i]);
     }
 
     return (sumOfDayRowHeights + spaceBetweenRows * rowsAbove);
 }
 
-export function getDayRowScreenYOffset(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
-    return getDayRowYOffset(visibleDays, eventData, visibleDaysIndex) - scrollYOffset;
+export function getDayRowScreenYOffset(visibleDays: DateYMD[], rowEvents: EventsOnDate[], scrollYOffset: number, visibleDaysIndex: number) {
+    return getDayRowYOffset(visibleDays, rowEvents, visibleDaysIndex) - scrollYOffset;
 }
 
-export function getDayRowAtScreenPosition(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, screenPosition: { x: number, y: number }) {
+export function getDayRowAtScreenPosition(visibleDays: DateYMD[], rowEvents: EventsOnDate[], scrollYOffset: number, screenPosition: { x: number, y: number }) {
     for (let i = 0; i < visibleDays.length; i++) {
-        const rowScreenYOffset = getDayRowScreenYOffset(visibleDays, eventData, scrollYOffset, i);
-        const rowHeight = getDayRowHeight(eventData, visibleDays[i]);
+        const rowScreenYOffset = getDayRowScreenYOffset(visibleDays, rowEvents, scrollYOffset, i);
+        const rowHeight = getDayRowHeight(rowEvents, visibleDays[i]);
         if (screenPosition.y > rowScreenYOffset && screenPosition.y < rowScreenYOffset + rowHeight) {
             return visibleDays[i];
         }
@@ -109,14 +110,14 @@ export function getDayRowAtScreenPosition(visibleDays: DateYMD[], eventData: Row
     return null;
 }
 
-function getDimensionsForAllTilesInRow(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number) {
-    const rowYOffset = getDayRowScreenYOffset(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
+function getDimensionsForAllTilesInRow(visibleDays: DateYMD[], rowEvents: EventsOnDate[], scrollYOffset: number, visibleDaysIndex: number) {
+    const rowYOffset = getDayRowScreenYOffset(visibleDays, rowEvents, scrollYOffset, visibleDaysIndex);
 
-    const rowEvents = getRowEventsFromDate(eventData, visibleDays[visibleDaysIndex]);
-    if (!rowEvents) return [];
+    const eventsOnDate = getEventsOnDate(rowEvents, visibleDays[visibleDaysIndex]);
+    if (!eventsOnDate) return [];
     
     const outputDimensions: EventTileDimensions[] = [];
-    for (let i = 0; i < rowEvents.events.length; i++) {
+    for (let i = 0; i < eventsOnDate.orderedEventIDs.length; i++) {
         outputDimensions[i] = getEventTileDimensions(rowYOffset, i);
     }
 
@@ -145,8 +146,8 @@ export function getEventTileDimensions(rowYOffset: number, eventRowOrder: number
     return outputDimensions;
 }
 
-export function getInsertionIndexFromGesture(visibleDays: DateYMD[], eventData: RowEvents[], scrollYOffset: number, visibleDaysIndex: number, gesture: GestureResponderEvent) {
-    const dimensionsForAllTiles = getDimensionsForAllTilesInRow(visibleDays, eventData, scrollYOffset, visibleDaysIndex);
+export function getInsertionIndexFromGesture(visibleDays: DateYMD[], rowEvents: EventsOnDate[], scrollYOffset: number, visibleDaysIndex: number, gesture: GestureResponderEvent) {
+    const dimensionsForAllTiles = getDimensionsForAllTilesInRow(visibleDays, rowEvents, scrollYOffset, visibleDaysIndex);
     
     for (let i = 0; i < dimensionsForAllTiles.length; i++) {
         const tileDimeions = dimensionsForAllTiles[i];

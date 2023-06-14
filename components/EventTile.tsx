@@ -6,25 +6,39 @@ import {
     ColorValue,
 } from "react-native";
 import DateYMD from '../src/DateYMD';
-import { EventDetails, EventTileCallbacks } from '../types/EventTypes';
+import { Event, EventTileCallbacks } from '../types/EventTypes';
 import Draggable from './core/Draggable';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/Ionicons";
 import { getCategoryFromID } from '../src/CategoryHelpers';
 import CategoryContext from '../context/CategoryContext';
-import { areEventsEqual } from '../src/EventDataHelpers';
+import EventsContext from '../context/EventsContext';
+import { areEventsEqual, getEventFromID } from '../src/EventsHelpers';
 
 type EventTileProps = {
-    event: EventDetails;
+    eventID: string;
     plannedDate: DateYMD;
     eventTileCallbacks: EventTileCallbacks;
 }
 
-function propsAreEqual(prevProps: EventTileProps, newProps: EventTileProps) {
-    return areEventsEqual(prevProps.event, newProps.event);
+const EventTile: React.FC<EventTileProps> = (props) => {
+    const events = useContext(EventsContext);
+    const event = getEventFromID(events.state, props.eventID);
+
+    if (!event) {
+        return <></>;
+    }
+
+    return <EventTileMemo event={event.details} plannedDate={props.plannedDate} eventTileCallbacks={props.eventTileCallbacks} />
 }
 
-const EventTile: React.FC<EventTileProps> = memo((props) => {
+type EventTileMemoProps = {
+    event: Event;
+    plannedDate: DateYMD;
+    eventTileCallbacks: EventTileCallbacks;
+}
+
+const EventTileMemo: React.FC<EventTileMemoProps> = memo((props) => {
     const categories = useContext(CategoryContext);
 
     const daysPlannedBeforeDue = getDaysPlannedBeforeDue();
@@ -38,7 +52,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     function getBackgroundColor() {
         let outputColorValue: ColorValue = '#fff';
 
-        if (props.event.categoryID) {
+        if (props.event.categoryID !== null) {
             const category = getCategoryFromID(categories.state, props.event.categoryID);
             if (!category) {
                 console.error('EventTile/getBackgroundColor: Could not find category from id');
@@ -87,7 +101,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
             </View>
         );
     }
-    
+
     return (
         <Draggable
             onPress={gesture => props.eventTileCallbacks.onTilePressed?.(gesture, props.event)}
@@ -97,10 +111,10 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
             onDrop={gesture => props.eventTileCallbacks.onTileDropped?.(gesture, props.event)}
         >
             <View style={styles.mainContainer}>
-                <View style={[styles.tileBackground, {backgroundColor: getBackgroundColor(), opacity: props.event.completed ? 0.25 : 1}]}>
+                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: props.event.completed ? 0.25 : 1 }]}>
                     <View style={styles.contentContainer}>
                         <Text style={styles.eventNameText}>{props.event.name}</Text>
-                        <Text style={[styles.dueDateText, {color: getDueDateTextColor()}]}>{getDueDateText()}</Text>
+                        <Text style={[styles.dueDateText, { color: getDueDateTextColor() }]}>{getDueDateText()}</Text>
                     </View>
                 </View>
                 {props.event.completed ? checkmark() : null}
@@ -108,6 +122,10 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         </Draggable>
     );
 }, propsAreEqual);
+
+function propsAreEqual(prevProps: EventTileMemoProps, newProps: EventTileMemoProps) {
+    return areEventsEqual(prevProps.event, newProps.event);
+}
 
 const styles = StyleSheet.create({
     mainContainer: {

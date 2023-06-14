@@ -3,28 +3,27 @@ import {
     StyleSheet,
     Text,
     View,
-    FlatList,
     TouchableOpacity,
     GestureResponderEvent,
 } from "react-native";
 import DateYMD from "../src/DateYMD";
-import { EventDetails, EventTileCallbacks } from "../types/EventTypes";
+import { EventTileCallbacks } from "../types/EventTypes";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
-import { areEventsEqual } from "../src/EventDataHelpers";
+import { areEventsEqual } from "../src/EventsHelpers";
 
 type DayRowProps = {
     date: DateYMD;
-    events: EventDetails[];
+    eventIDs: string[];
     onPress?: ((gesture: GestureResponderEvent, rowDate: DateYMD) => void);
     eventTileCallbacks: EventTileCallbacks;
 }
 
 function propsAreEqual(prevProps: DayRowProps, newProps: DayRowProps) {
-    if (prevProps.events.length !== newProps.events.length) return false;
+    if (prevProps.eventIDs.length !== newProps.eventIDs.length) return false;
     
-    for (let i = 0; i < prevProps.events.length; i++) {
-        if (!areEventsEqual(prevProps.events[i], newProps.events[i])) return false;
+    for (let i = 0; i < prevProps.eventIDs.length; i++) {
+        if (prevProps.eventIDs[i] !== newProps.eventIDs[i]) return false;
     }
 
     return true;
@@ -36,16 +35,16 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
     }
 
     function renderEventList() {
-        const eventRows: EventDetails[][] = [];
+        const eventRows: string[][] = [];
         const numColumns = VisualSettings.DayRow.numEventTileColumns;
 
-        for (let i = 0; i < props.events.length; i++) {
-            const event = props.events[i];
+        for (let i = 0; i < props.eventIDs.length; i++) {
+            const eventID = props.eventIDs[i];
             const rowIndex = Math.floor(i / numColumns);
             
             if (!eventRows[rowIndex]) eventRows[rowIndex] = [];
 
-            eventRows[rowIndex].push(event);
+            eventRows[rowIndex].push(eventID);
         }
 
         return (
@@ -61,10 +60,10 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
         );
     }
 
-    function renderItem({item}: { item: EventDetails }) {
+    function renderItem({item}: { item: string }) {
         return <EventTile
-            key={item.id}
-            event={item}
+            key={item}
+            eventID={item}
             plannedDate={props.date}
             eventTileCallbacks={props.eventTileCallbacks}
         />

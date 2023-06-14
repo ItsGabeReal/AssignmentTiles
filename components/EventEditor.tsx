@@ -1,37 +1,32 @@
 import React, { useContext } from "react"
-import { EventDetails } from "../types/EventTypes"
+import { Event } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DefaultModal from "./DefaultModal"
-import EventDataContext from "../context/EventDataContext"
+import eventsContext from "../context/EventsContext"
 
 type EventEditorProps = {
     visible: boolean;
 
-    editedEvent?: EventDetails;
+    editedEvent?: Event;
 
     onRequestClose: (() => void);
 }
 
 const EventEditor: React.FC<EventEditorProps> = (props) => {
-    const eventData = useContext(EventDataContext);
+    const events = useContext(eventsContext);
 
-    function handleOnSubmit(eventDetails: EventDetails) {
+    function handleOnSubmit(eventDetails: Event) {
         if (!props.editedEvent) {
             console.error(`Initial edited event was null. Event editor has no idea what event it's supposed to edit.`);
             return;
         }
         
-        const outputEvent = eventDetails;
-        outputEvent.id = props.editedEvent.id;
-        outputEvent.completed = props.editedEvent.completed;
-        onSubmit(outputEvent);
-    }
-
-    function onSubmit(editedEvent: EventDetails) {
-        eventData.dispatch({
-            type: 'set-event-details',
-            targetEventID: editedEvent.id,
-            newEventDetails: editedEvent
+        events.dispatch({
+            type: 'edit-event',
+            eventID: props.editedEvent.id,
+            name: eventDetails.name,
+            categoryID: eventDetails.categoryID,
+            dueDate: eventDetails.dueDate,
         });
     }
     

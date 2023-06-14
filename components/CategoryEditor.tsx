@@ -17,7 +17,7 @@ import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import CategoryContext from '../context/CategoryContext';
 import { Category } from '../types/EventTypes';
 import Icon from 'react-native-vector-icons/Ionicons';
-import EventDataContext from '../context/EventDataContext';
+import EventsContext from '../context/EventsContext';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 
 export type CategoryEditorRef = {
@@ -66,7 +66,7 @@ type CategoryListItemProps = {
 }
 const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
     const categoryContext = useContext(CategoryContext);
-    const eventDataContext = useContext(EventDataContext);
+    const eventsContext = useContext(EventsContext);
 
     const categoryInputRef = useRef<CategoryInputRef | null>(null);
 
@@ -86,7 +86,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
     }
 
     function deleteCategory() {
-        eventDataContext.dispatch({ type: 'remove-category', categoryID: props.category.id });
+        eventsContext.dispatch({ type: 'remove-category', categoryID: props.category.id });
         categoryContext.dispatch({ type: 'remove', categoryID: props.category.id });
     }
 
