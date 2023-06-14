@@ -1,4 +1,4 @@
-import { Category, Event, EventsOnDate } from "../types/EventTypes";
+import { Category, Event, RowPlan } from "../types/EventTypes";
 import DateYMD from "./DateYMD";
 
 export const testCategories: Category[] = [
@@ -57,7 +57,7 @@ export const testEvents: Event[] = [
     },
 ];
 
-export const testRowEvents: EventsOnDate[] = [
+export const testRowPlans: RowPlan[] = [
     {
         plannedDate: DateYMD.today(),
         orderedEventIDs: [

@@ -15,7 +15,7 @@ export type EventTileDimensions = {
     height: number;
 }
 
-export interface EventsOnDate {
+export interface RowPlan {
     plannedDate: DateYMD;
     orderedEventIDs: string[];
 }

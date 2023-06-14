@@ -24,7 +24,7 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
             event: newEvent,
         });
         
-        // Return the new event so it can be added to rowEvents
+        // Return the new event so it can be added to rowPlans
         props.onEventCreated?.(newEvent);
     }
 
