@@ -1,19 +1,17 @@
-import React, { memo, useContext } from 'react';
+import React, { memo } from 'react';
 import {
     StyleSheet,
     Text,
     View,
     ColorValue,
 } from "react-native";
-import DateYMD from '../src/DateYMD';
+import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import { Event, EventTileCallbacks } from '../types/EventTypes';
 import Draggable from './core/Draggable';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/Ionicons";
-import { getCategoryFromID } from '../src/CategoryHelpers';
-import CategoryContext from '../context/CategoryContext';
-import EventsContext from '../context/EventsContext';
-import { areEventsEqual, getEventFromID } from '../src/EventsHelpers';
+import { useAppSelector } from '../src/redux/hooks';
+import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
 
 type EventTileProps = {
     eventID: string;
@@ -21,39 +19,26 @@ type EventTileProps = {
     eventTileCallbacks: EventTileCallbacks;
 }
 
-const EventTile: React.FC<EventTileProps> = (props) => {
-    const events = useContext(EventsContext);
-    const event = getEventFromID(events.state, props.eventID);
+const EventTile: React.FC<EventTileProps> = memo((props) => {
+    const event = useAppSelector(state => state.events.find(item => item.id === props.eventID));
+    if (!event) console.warn(`EventTile: event is undefined`);
+    const eventButNotUndefined: Event = event || {name: 'null', completed: false, id: '', categoryID: null};
 
-    if (!event) {
-        return <></>;
-    }
-
-    return <EventTileMemo event={event.details} plannedDate={props.plannedDate} eventTileCallbacks={props.eventTileCallbacks} />
-}
-
-type EventTileMemoProps = {
-    event: Event;
-    plannedDate: DateYMD;
-    eventTileCallbacks: EventTileCallbacks;
-}
-
-const EventTileMemo: React.FC<EventTileMemoProps> = memo((props) => {
-    const categories = useContext(CategoryContext);
+    const categories = useAppSelector(state => state.categories);
 
     const daysPlannedBeforeDue = getDaysPlannedBeforeDue();
 
     function getDaysPlannedBeforeDue() {
-        if (props.event.dueDate) {
-            return props.plannedDate.daysBefore(props.event.dueDate);
+        if (eventButNotUndefined.dueDate) {
+            return DateYMDHelpers.daysBefore(eventButNotUndefined.dueDate, props.plannedDate);
         }
     }
 
     function getBackgroundColor() {
         let outputColorValue: ColorValue = '#fff';
 
-        if (props.event.categoryID !== null) {
-            const category = getCategoryFromID(categories.state, props.event.categoryID);
+        if (eventButNotUndefined.categoryID !== null) {
+            const category = getCategoryFromID(categories, eventButNotUndefined.categoryID);
             if (!category) {
                 console.error('EventTile/getBackgroundColor: Could not find category from id');
             }
@@ -104,28 +89,24 @@ const EventTileMemo: React.FC<EventTileMemoProps> = memo((props) => {
 
     return (
         <Draggable
-            onPress={gesture => props.eventTileCallbacks.onTilePressed?.(gesture, props.event)}
-            onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed?.(gesture, props.event)}
+            onPress={gesture => props.eventTileCallbacks.onTilePressed?.(gesture, eventButNotUndefined)}
+            onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed?.(gesture, eventButNotUndefined)}
             onLongPressRelease={() => props.eventTileCallbacks.onTileLongPressRelease?.()}
             onStartDrag={gesture => props.eventTileCallbacks.onTileDragStart?.(gesture)}
-            onDrop={gesture => props.eventTileCallbacks.onTileDropped?.(gesture, props.event)}
+            onDrop={gesture => props.eventTileCallbacks.onTileDropped?.(gesture, eventButNotUndefined)}
         >
             <View style={styles.mainContainer}>
-                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: props.event.completed ? 0.25 : 1 }]}>
+                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: eventButNotUndefined.completed ? 0.25 : 1 }]}>
                     <View style={styles.contentContainer}>
-                        <Text style={styles.eventNameText}>{props.event.name}</Text>
+                        <Text style={styles.eventNameText}>{eventButNotUndefined.name}</Text>
                         <Text style={[styles.dueDateText, { color: getDueDateTextColor() }]}>{getDueDateText()}</Text>
                     </View>
                 </View>
-                {props.event.completed ? checkmark() : null}
+                {eventButNotUndefined.completed ? checkmark() : null}
             </View>
         </Draggable>
     );
-}, propsAreEqual);
-
-function propsAreEqual(prevProps: EventTileMemoProps, newProps: EventTileMemoProps) {
-    return areEventsEqual(prevProps.event, newProps.event);
-}
+}, (prevProps, newProps) => prevProps.eventID === newProps.eventID);
 
 const styles = StyleSheet.create({
     mainContainer: {

@@ -17,8 +17,9 @@ import {
 import generalStyles from '../src/GeneralStyles';
 import SubmitButton from './core/SubmitButton';
 import { Category } from '../types/EventTypes';
-import CategoryContext from '../context/CategoryContext';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
+import { useAppDispatch } from '../src/redux/hooks';
+import { addCategory, editCategory } from '../src/redux/features/categories/categoriesSlice';
 
 const AVAILABLE_CATEGORY_COLORS: ColorValue[] = [
     '#f44',
@@ -41,7 +42,7 @@ type CategoryInputProps = {
 }
 
 const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, ref) => {
-    const categoryContext = useContext(CategoryContext);
+    const dispatch = useAppDispatch();
     
     const [nameInput, setNameInput] = useState('');
     const [selectedColor, setSelectedColor] = useState(AVAILABLE_CATEGORY_COLORS[0]);
@@ -81,7 +82,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 color: selectedColor,
                 id: Math.random().toString(),
             }
-            categoryContext.dispatch({ type: 'create', newCategory });
+            dispatch(addCategory({category: newCategory}));
             
             props.onCategoryCreated?.(newCategory);
         }
@@ -90,7 +91,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 console.error(`CategoryInput/handleSubmit: Could not update category because edited category was not provided`);
                 return;
             }
-            categoryContext.dispatch({ type: 'edit', categoryID: props.editedCategory.id, newName: nameInput, newColor: selectedColor });
+            dispatch(editCategory({categoryID: props.editedCategory.id, newName: nameInput, newColor: selectedColor}));
         }
     }
     

@@ -2,7 +2,6 @@ import React, {
     forwardRef,
     useRef,
     useImperativeHandle,
-    useContext,
 } from 'react';
 import {
     StyleSheet,
@@ -14,11 +13,12 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
-import CategoryContext from '../context/CategoryContext';
 import { Category } from '../types/EventTypes';
 import Icon from 'react-native-vector-icons/Ionicons';
-import EventsContext from '../context/EventsContext';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
+import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
+import { removeCategory } from '../src/redux/features/categories/categoriesSlice';
+import { removeCategoryFromEvents } from '../src/redux/features/events/eventsSlice';
 
 export type CategoryEditorRef = {
     open: (() => void);
@@ -29,8 +29,8 @@ type CategoryEditorProps = {
 }
 
 const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props, ref) => {
-    const categoryContext = useContext(CategoryContext);
-    
+    const categories = useAppSelector(state => state.categories);
+
     const floatingModalRef = useRef<FloatingModalRef | null>(null);
 
     useImperativeHandle(ref, () => ({
@@ -45,7 +45,7 @@ const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props
                 <Text style={styles.title}>Edit Categories:</Text>
             </View>
             <FlatList
-                data={categoryContext.state}
+                data={categories}
                 renderItem={({ item }) => <CategoryListItem category={item} />}
                 ListEmptyComponent={() => {
                     return (
@@ -65,8 +65,7 @@ type CategoryListItemProps = {
     category: Category;
 }
 const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
-    const categoryContext = useContext(CategoryContext);
-    const eventsContext = useContext(EventsContext);
+    const dispatch = useAppDispatch();
 
     const categoryInputRef = useRef<CategoryInputRef | null>(null);
 
@@ -86,8 +85,8 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
     }
 
     function deleteCategory() {
-        eventsContext.dispatch({ type: 'remove-category', categoryID: props.category.id });
-        categoryContext.dispatch({ type: 'remove', categoryID: props.category.id });
+        dispatch(removeCategoryFromEvents({categoryID: props.category.id }));
+        dispatch(removeCategory({categoryID: props.category.id}));
     }
 
     return (

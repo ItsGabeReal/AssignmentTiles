@@ -1,4 +1,4 @@
-import React, { useRef, useState, useReducer, useEffect, useContext } from "react";
+import React, { useRef, useState, useReducer, useEffect, useContext, useCallback } from "react";
 import {
     StyleSheet,
     View,
@@ -9,12 +9,10 @@ import {
     NativeScrollEvent,
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
-import DateYMD from "../src/DateYMD";
+import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import InfiniteScrollFlatList from "../components/core/InfiniteScrollFlatList";
 import { Event, EventTileCallbacks } from "../types/EventTypes";
 import {
-    visibleDaysReducer,
-    initializeVisibleDays,
     getDayRowHeight,
     getDayRowYOffset,
     getDayRowAtScreenPosition,
@@ -28,15 +26,16 @@ import EventEditor from "../components/EventEditor";
 import ContextMenuContainer, { ContextMenuContainerRef } from "../components/ContextMenuContainer";
 import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMenu";
 import TestButton from "../components/core/TestButton";
-import EventsContext from "../context/EventsContext";
-import { getEventPlan, getRowPlan, getInitialPlannedDateForEvent, rowPlansReducer } from "../src/RowPlansHelpers";
-import { testRowPlans } from "../src/TestData";
+import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
+import { removeEvent, toggleEventComplete } from "../src/redux/features/events/eventsSlice";
+import { changePlannedDate, getEventPlan, removeEventFromRowPlans } from "../src/redux/features/rowPlans/rowPlansSlice";
+import { addDaysToBottom, addDaysToTop } from "../src/redux/features/visibleDays/visibleDaysSlice";
 
 export default function MainScreen() {
-    const events = useContext(EventsContext);
+    const dispatch = useAppDispatch();
 
-    const [visibleDays, visibleDaysDispatch] = useReducer(visibleDaysReducer, initializeVisibleDays());
-    const [rowPlans, rowPlansDispatch] = useReducer(rowPlansReducer, testRowPlans);
+    const visibleDays = useAppSelector(state => state.visibleDays);
+    const rowPlans = useAppSelector(state => state.rowPlans);
 
     const [eventCreatorVisible, setEventCreatorVisible] = useState(false);
     const [eventEditorVisible, setEventEditorVisible] = useState(false);
@@ -56,7 +55,7 @@ export default function MainScreen() {
     }, [visibleDays, rowPlans]);
 
     function onTilePressed_cb(gesture: GestureResponderEvent, event: Event) {
-        events.dispatch({ type: 'toggle-event-complete', eventID: event.id });
+        dispatch(toggleEventComplete({eventID: event.id}));
     }
 
     function onTileLongPressed_cb(gesture: GestureResponderEvent, event: Event) {
@@ -82,15 +81,15 @@ export default function MainScreen() {
             return;
         }
 
-        const targetVisibleDaysIndex = visibleDays_CSR.findIndex(item => item.equals(overlappingRowDate));
+        const targetVisibleDaysIndex = visibleDays_CSR.findIndex(item => DateYMDHelpers.datesEqual(item, overlappingRowDate));
         if (targetVisibleDaysIndex == -1) {
-            console.error('onTileDropped: Could not find visible day with date matching', overlappingRowDate.toString());
+            console.error('onTileDropped: Could not find visible day with date matching', DateYMDHelpers.toString(overlappingRowDate));
             return;
         }
 
         const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, gesture);
 
-        rowPlansDispatch({ type: 'move-event', eventID: event.id, plannedDate: overlappingRowDate, insertionIndex: insertionIndex });
+        dispatch(changePlannedDate({eventID: event.id, plannedDate: overlappingRowDate, insertionIndex: insertionIndex}));
     }
 
     function openEventTileContextMenu(selectedEvent: Event) {
@@ -110,8 +109,8 @@ export default function MainScreen() {
                 {
                     name: 'Delete',
                     onPress: () => {
-                        rowPlansDispatch({ type: 'remove-event', eventID: selectedEvent.id });
-                        events.dispatch({ type: 'remove-event', eventID: selectedEvent.id });
+                        dispatch(removeEventFromRowPlans({eventID: selectedEvent.id}));
+                        dispatch(removeEvent({eventID: selectedEvent.id}));
                     },
                     iconName: 'trash',
                     color: '#d00',
@@ -124,18 +123,18 @@ export default function MainScreen() {
     }
 
     function getContextMenuPositionForEventTile(event: Event) {
-        const eventPlan = getEventPlan(rowPlans, event.id);
+        const visibleDays_CSR = visibleDays_closureSafeRef.current;
+        const rowPlans_CSR = rowPlans_closureSafeRef.current;
+
+        const eventPlan = getEventPlan(rowPlans_CSR, event.id);
         if (!eventPlan) {
             console.error(`MainScreen -> getContextMenuPositionForEventTile: Could not get event plan`);
             return;
         }
 
-        const visibleDays_CSR = visibleDays_closureSafeRef.current;
-        const rowPlans_CSR = rowPlans_closureSafeRef.current;
-
-        const visibleDaysIndex = visibleDays_CSR.findIndex(item => item.equals(eventPlan.plannedDate));
+        const visibleDaysIndex = visibleDays_CSR.findIndex(item => DateYMDHelpers.datesEqual(item, eventPlan.plannedDate));
         if (visibleDaysIndex == -1) {
-            console.error(`MainScreen -> getContextMenuPositionForEventTile: Could not find visible day with date = ${eventPlan.plannedDate.toString()}`);
+            console.error(`MainScreen -> getContextMenuPositionForEventTile: Could not find visible day with date = ${DateYMDHelpers.toString(eventPlan.plannedDate)}`);
             return;
         }
 
@@ -163,16 +162,8 @@ export default function MainScreen() {
     }
 
     function renderItem({ item }: { item: DateYMD }) {
-        const eventIDs = getRowPlan(rowPlans, item)?.orderedEventIDs || [];
-
-        // In order for DayRow memo to know when a prop has changed, a COPY of events must be passed.
-        // Otherwise we're passing down the same object reference it had before, hence every attribute
-        // will be the same.
-        const eventsIDsCopy = [...eventIDs];
-
         return <DayRow
             date={item}
-            eventIDs={eventsIDsCopy}
             onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)}
             eventTileCallbacks={eventTileCallbacks}
         />;
@@ -195,19 +186,11 @@ export default function MainScreen() {
     }
 
     function onStartReached() {
-        visibleDaysDispatch({
-            type: 'add-to-top',
-            numNewDays: 7,
-            removeFromBottom: true,
-        });
+        dispatch(addDaysToTop({ numNewDays: 7, removeFromBottom: true}));
     }
 
     function onEndReached() {
-        visibleDaysDispatch({
-            type: 'add-to-bottom',
-            numNewDays: 7,
-            removeFromTop: true,
-        });
+        dispatch(addDaysToBottom({numNewDays: 7, removeFromTop: true}));
     }
 
     function openEventCreator(gesture: GestureResponderEvent, initialDate?: DateYMD) {
@@ -221,7 +204,7 @@ export default function MainScreen() {
     }
 
     function onTestButtonPressed() {
-        console.log(rowPlans);
+        
     }
 
     return (
@@ -230,11 +213,11 @@ export default function MainScreen() {
             <InfiniteScrollFlatList
                 ref={flatListRef}
                 data={visibleDays}
-                keyExtractor={item => item.toString()}
+                keyExtractor={item => DateYMDHelpers.toString(item)}
                 renderItem={renderItem}
                 ItemSeparatorComponent={DayRowSeparater}
                 getItemLayout={getItemLayout}
-                initialScrollIndex={visibleDays.findIndex(item => item.isToday())}
+                initialScrollIndex={visibleDays.findIndex(item => DateYMDHelpers.isToday(item))}
                 //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
                 onScroll={onScroll}
                 onStartReached={onStartReached}
@@ -247,10 +230,6 @@ export default function MainScreen() {
                 visible={eventCreatorVisible}
                 onRequestClose={() => setEventCreatorVisible(false)}
                 initialDueDate={eventCreator_initialDate.current}
-                onEventCreated={createdEvent => {
-                    const plannedDate = getInitialPlannedDateForEvent(createdEvent);
-                    rowPlansDispatch({ type: 'insert-event', eventID: createdEvent.id, plannedDate });
-                }}
             />
             <EventEditor
                 visible={eventEditorVisible}

@@ -2,65 +2,7 @@ import { GestureResponderEvent } from "react-native";
 import DateYMD from "./DateYMD";
 import { EventTileDimensions, RowPlan } from "../types/EventTypes";
 import VisualSettings from "./VisualSettings";
-import { getRowPlan } from "./RowPlansHelpers";
-
-export type VisibleDaysReducerAction =
-    | { type: 'add-to-bottom', numNewDays: number, removeFromTop?: boolean }
-    | { type: 'add-to-top', numNewDays: number, removeFromBottom?: boolean };
-
-export function visibleDaysReducer(state: DateYMD[], action: VisibleDaysReducerAction) {
-    if (action.type == 'add-to-bottom') { // TESTING REQUIRED
-        const { numNewDays, removeFromTop = false } = action;
-
-        const currentLastDate = state[state.length - 1];
-        const startDate = currentLastDate.addDays(1);
-        const newDates = createArrayOfSequentialDates(startDate, numNewDays);
-
-        const outputDates = [...state, ...newDates];
-
-        if (removeFromTop) {
-            outputDates.splice(0, numNewDays);
-        }
-
-        return outputDates;
-    }
-    else if (action.type == 'add-to-top') { // TESTING REQUIRED
-        const { numNewDays, removeFromBottom = false } = action;
-
-        const currentFirstDate = state[0];
-        const startDate = currentFirstDate.subtractDays(numNewDays);
-        const newDates = createArrayOfSequentialDates(startDate, numNewDays);
-
-        const outputDates = [...newDates, ...state];
-
-        if (removeFromBottom) {
-            outputDates.length = outputDates.length - numNewDays;
-        }
-
-        return outputDates;
-    }
-    else return state;
-}
-
-const createArrayOfSequentialDates = (startDate: DateYMD, numDays: number) => {
-    const outputDates: DateYMD[] = [];
-
-    for (let i = 0; i < numDays; i++) {
-        outputDates.push(startDate.addDays(i));
-    }
-
-    return outputDates;
-}
-
-export function initializeVisibleDays() {
-    const numDaysAboveToday = 7 * 2;
-    const numDaysBelowToday = 7 * 3 - 1;
-
-    const totalDays = numDaysAboveToday + 1 + numDaysBelowToday;
-    const startDate = DateYMD.today().subtractDays(numDaysAboveToday);
-
-    return createArrayOfSequentialDates(startDate, totalDays);
-}
+import { getRowPlan } from "./redux/features/rowPlans/rowPlansSlice";
 
 export function getDayRowHeight(rowPlans: RowPlan[], date: DateYMD) {
     const eventTileHeight = VisualSettings.EventTile.mainContainer.height;

@@ -3,7 +3,9 @@ import { Event } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DateYMD from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
-import eventsContext from "../context/EventsContext";
+import { useAppDispatch } from '../src/redux/hooks';
+import { addEvent } from "../src/redux/features/events/eventsSlice";
+import { getInitialPlannedDateForEvent, insertEventInRowPlans } from "../src/redux/features/rowPlans/rowPlansSlice";
 
 type EventCreatorProps = {
     visible: boolean;
@@ -16,16 +18,13 @@ type EventCreatorProps = {
 }
 
 const EventCreator: React.FC<EventCreatorProps> = (props) => {
-    const events = useContext(eventsContext);
+    const dispatch = useAppDispatch();
 
     function onSubmit(newEvent: Event) {
-        events.dispatch({
-            type: 'add-event',
-            event: newEvent,
-        });
-        
-        // Return the new event so it can be added to rowPlans
-        props.onEventCreated?.(newEvent);
+        dispatch(addEvent({ event: newEvent }));
+
+        const plannedDate = getInitialPlannedDateForEvent(newEvent);
+        dispatch(insertEventInRowPlans({ eventID: newEvent.id, plannedDate: plannedDate }));
     }
 
     return (

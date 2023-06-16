@@ -6,30 +6,22 @@ import {
     TouchableOpacity,
     GestureResponderEvent,
 } from "react-native";
-import DateYMD from "../src/DateYMD";
+import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import { EventTileCallbacks } from "../types/EventTypes";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
-import { areEventsEqual } from "../src/EventsHelpers";
+import { useAppSelector } from "../src/redux/hooks";
 
 type DayRowProps = {
     date: DateYMD;
-    eventIDs: string[];
     onPress?: ((gesture: GestureResponderEvent, rowDate: DateYMD) => void);
     eventTileCallbacks: EventTileCallbacks;
 }
 
-function propsAreEqual(prevProps: DayRowProps, newProps: DayRowProps) {
-    if (prevProps.eventIDs.length !== newProps.eventIDs.length) return false;
-    
-    for (let i = 0; i < prevProps.eventIDs.length; i++) {
-        if (prevProps.eventIDs[i] !== newProps.eventIDs[i]) return false;
-    }
-
-    return true;
-}
-
 const DayRow: React.FC<DayRowProps> = memo((props) => {
+    const rowPlan = useAppSelector(state => state.rowPlans.find(item => DateYMDHelpers.datesEqual(item.plannedDate, props.date)));
+    const eventIDsInRow = rowPlan?.orderedEventIDs || [];
+
     function handlePress(gesture: GestureResponderEvent) {
         props.onPress?.(gesture, props.date);
     }
@@ -38,8 +30,8 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
         const eventRows: string[][] = [];
         const numColumns = VisualSettings.DayRow.numEventTileColumns;
 
-        for (let i = 0; i < props.eventIDs.length; i++) {
-            const eventID = props.eventIDs[i];
+        for (let i = 0; i < eventIDsInRow.length; i++) {
+            const eventID = eventIDsInRow[i];
             const rowIndex = Math.floor(i / numColumns);
             
             if (!eventRows[rowIndex]) eventRows[rowIndex] = [];
@@ -72,9 +64,9 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
-                <View style={[styles.dateTextContainer, {backgroundColor: (props.date.isToday() ? "#44a" : "#444")} ]}>
-                    <Text style={styles.dateText}>{props.date.dayNameAbrev()}</Text>
-                    <Text style={styles.dateText}>{props.date.monthNameAbrev()} {props.date.date}</Text>
+                <View style={[styles.dateTextContainer, {backgroundColor: (DateYMDHelpers.isToday(props.date) ? "#44a" : "#444")} ]}>
+                    <Text style={styles.dateText}>{DateYMDHelpers.dayNameAbrev(props.date)}</Text>
+                    <Text style={styles.dateText}>{DateYMDHelpers.monthNameAbrev(props.date)} {props.date.date}</Text>
                 </View>
                 <View style={styles.eventsContainer}>
                     {renderEventList()}
@@ -82,7 +74,7 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
             </View>
         </TouchableOpacity>
     );
-}, propsAreEqual);
+}, () => true);
 
 const styles = StyleSheet.create({
     mainContainer: {

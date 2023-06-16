@@ -2,7 +2,8 @@ import React, { useContext } from "react"
 import { Event } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DefaultModal from "./DefaultModal"
-import eventsContext from "../context/EventsContext"
+import { useAppDispatch } from '../src/redux/hooks';
+import { editEvent } from "../src/redux/features/events/eventsSlice"
 
 type EventEditorProps = {
     visible: boolean;
@@ -13,7 +14,7 @@ type EventEditorProps = {
 }
 
 const EventEditor: React.FC<EventEditorProps> = (props) => {
-    const events = useContext(eventsContext);
+    const dispatch = useAppDispatch();
 
     function handleOnSubmit(eventDetails: Event) {
         if (!props.editedEvent) {
@@ -21,13 +22,12 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
             return;
         }
         
-        events.dispatch({
-            type: 'edit-event',
+        dispatch(editEvent({
             eventID: props.editedEvent.id,
             name: eventDetails.name,
             categoryID: eventDetails.categoryID,
             dueDate: eventDetails.dueDate,
-        });
+        }));
     }
     
     return (

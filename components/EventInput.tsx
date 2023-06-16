@@ -10,15 +10,15 @@ import {
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import AndroidCompactDatePicker from './core/AndroidCompactDatePicker';
 import SubmitButton from './core/SubmitButton';
-import DateYMD from '../src/DateYMD';
+import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import { CategoryID, Event } from '../types/EventTypes';
 import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import CategoryContext from '../context/CategoryContext';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import generalStyles from '../src/GeneralStyles';
 import CloseButton from './core/CloseButton';
 import CategoryEditor from './CategoryEditor';
+import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
 
 type EventInputProps = {
     initialName?: string;
@@ -37,7 +37,7 @@ type EventInputProps = {
 }
 
 const EventInput: React.FC<EventInputProps> = (props) => {
-    const categoryContext = useContext(CategoryContext);
+    const categories = useAppSelector(state => state.categories);
 
     const [eventNameInput, setEventNameInput] = useState(props.initialName || '');
     const [selectedCategory, setSelectedCategory] = useState(props.initialCategoryID ? props.initialCategoryID : 'none');
@@ -45,7 +45,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
     const eventNameInputRef = useRef<TextInput>(null);
     const categoryInputRef = useRef<CategoryInputRef | null>(null);
     const categoryEditorRef = useRef<CategoryInputRef | null>(null);
-    const dateInput = useRef((props.initialDueDate || DateYMD.today()).toDate());
+    const dateInput = useRef(DateYMDHelpers.toDate(props.initialDueDate || DateYMDHelpers.today()));
     
     useEffect(() => {
         /* 
@@ -100,7 +100,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                 name: eventNameInput,
                 completed: false,
                 id: Math.random().toString(),
-                dueDate: DateYMD.fromDate(dateInput.current),
+                dueDate: DateYMDHelpers.fromDate(dateInput.current),
                 categoryID: selectedCategory === 'none' ? null : selectedCategory,
             };
 
@@ -110,7 +110,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
 
     return (
         <>
-            <CategoryInput ref={categoryInputRef} onCategoryCreated={category => setSelectedCategory(category.id)} />
+            <CategoryInput ref={categoryInputRef} onCategoryCreated={category => setSelectedCategory(category.id || 'none')} />
             <CategoryEditor ref={categoryEditorRef} />
             <View style={styles.actionsContainer}>
                 <CloseButton onPress={props.onRequestClose} hitSlop={10} size={26} color='white' />
@@ -146,7 +146,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                         dropdownIconColor='white'
                     >
                         <Picker.Item key='none' label='None' value='none' color='#bbb' style={styles.androidPickerItem} />
-                        {categoryContext.state.map(item => (
+                        {categories.map(item => (
                             <Picker.Item key={item.id} label={item.name} value={item.id} color={item.color} style={styles.androidPickerItem} />
                         ))}
                     </Picker>

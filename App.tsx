@@ -1,14 +1,12 @@
 import React from "react";
-import { EventsContextProvider } from "./context/EventsContext";
-import { CategoryContextProvider } from "./context/CategoryContext";
 import MainScreen from "./screens/MainScreen";
+import { Provider } from "react-redux";
+import store from "./src/redux/store";
 
 export default function App() {
     return (
-        <EventsContextProvider>
-            <CategoryContextProvider>
-                <MainScreen/>
-            </CategoryContextProvider>
-        </EventsContextProvider>
+        <Provider store={store}>
+            <MainScreen />
+        </Provider>
     );
 }

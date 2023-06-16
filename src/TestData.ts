@@ -1,5 +1,5 @@
 import { Category, Event, RowPlan } from "../types/EventTypes";
-import DateYMD from "./DateYMD";
+import DateYMD, { DateYMDHelpers } from "./DateYMD";
 
 export const testCategories: Category[] = [
     {
@@ -24,42 +24,42 @@ export const testEvents: Event[] = [
         name: 'Class',
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMD.today(),
+        dueDate: DateYMDHelpers.today(),
         categoryID: testCategories[2].id,
     },
     {
         name: 'Quiz',
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMD.today(),
+        dueDate: DateYMDHelpers.today(),
         categoryID: null,
     },
     {
         name: 'Homework',
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMD.today(),
+        dueDate: DateYMDHelpers.today(),
         categoryID: testCategories[1].id,
     },
     {
         name: 'Discussion Response',
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMD.today(),
+        dueDate: DateYMDHelpers.today(),
         categoryID: testCategories[0].id,
     },
     {
         name: 'Discussion Replies',
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMD.today(),
+        dueDate: DateYMDHelpers.today(),
         categoryID: testCategories[1].id,
     },
 ];
 
 export const testRowPlans: RowPlan[] = [
     {
-        plannedDate: DateYMD.today(),
+        plannedDate: DateYMDHelpers.today(),
         orderedEventIDs: [
             testEvents[0].id,
             testEvents[1].id,

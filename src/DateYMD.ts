@@ -3,88 +3,74 @@ const MONTH_NAMES_ABREV = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-class DateYMD {
-    public year: number;
-    public month: number;
-    public date: number;
-
-    constructor(year: number, month: number, date: number) {
-        this.year = year;
-        this.month = month;
-        this.date = date;
+export namespace DateYMDHelpers {
+    export function toDate(date: DateYMD) {
+        return new Date(date.year, date.month - 1, date.date);
     }
 
-    toDate() {
-        return new Date(this.year, this.month - 1, this.date);
+    export function toString(date?: DateYMD | null) {
+        if (date === null) return 'null DateYMD';
+        if (date === undefined) return 'undefined DateYMD';
+
+        return `${date.month}/${date.date}/${date.year}`;
     }
 
-    toString() {
-        return `${this.month}/${this.date}/${this.year}`;
+    export function monthName(date: DateYMD) {
+        return MONTH_NAMES[date.month - 1];
     }
 
-    monthName() {
-        return MONTH_NAMES[this.month - 1];
+    export function monthNameAbrev(date: DateYMD) {
+        return MONTH_NAMES_ABREV[date.month - 1];
     }
 
-    monthNameAbrev() {
-        return MONTH_NAMES_ABREV[this.month - 1];
+    export function dayName(date: DateYMD) {
+        return DAY_NAMES[toDate(date).getDay()];
     }
 
-    dayName() {
-        return DAY_NAMES[this.toDate().getDay()];
+    export function dayNameAbrev(date: DateYMD) {
+        return DAY_NAMES_ABREV[toDate(date).getDay()];
     }
 
-    dayNameAbrev() {
-        return DAY_NAMES_ABREV[this.toDate().getDay()];
-    }
-
-    isToday() {
+    export function isToday(date: DateYMD) {
         const today = new Date();
-        return this.year == today.getFullYear()
-            && this.month == (today.getMonth() + 1)
-            && this.date == today.getDate();
+        return date.year == today.getFullYear()
+            && date.month == (today.getMonth() + 1)
+            && date.date == today.getDate();
     }
 
-    equals(date: DateYMD) {
-        return this.year == date.year
-            && this.month == date.month
-            && this.date == date.date;
+    export function datesEqual(dateA: DateYMD, dateB: DateYMD) {
+        return dateA.year == dateB.year
+            && dateA.month == dateB.month
+            && dateA.date == dateB.date;
     }
 
-    isBefore(date: DateYMD) {
-        return this.toDate().valueOf() < date.toDate().valueOf();
-    }
-
-    isAfter(date: DateYMD) {
-        return this.toDate().valueOf() > date.toDate().valueOf();
-    }
-
-    daysBefore(date: DateYMD) {
+    export function daysBefore(date: DateYMD, comparedDate: DateYMD) {
         const oneDayInMilliseconds = 86_400_000;
-        const millisecondsBetween = date.toDate().getTime() - this.toDate().getTime();
+        const millisecondsBetween = toDate(date).getTime() - toDate(comparedDate).getTime();
         return Math.round(millisecondsBetween / oneDayInMilliseconds);
     }
 
-    addDays(numDays: number) {
-        const _date = new Date(this.year, this.month - 1, this.date + numDays);
+    export function addDays(date: DateYMD, numDays: number) {
+        const _date = new Date(date.year, date.month - 1, date.date + numDays);
 
-        return DateYMD.fromDate(_date);
+        return fromDate(_date);
     }
 
-    subtractDays(numDays: number) {
-        const _date = new Date(this.year, this.month - 1, this.date - numDays);
+    export function subtractDays(date: DateYMD, numDays: number) {
+        const _date = new Date(date.year, date.month - 1, date.date - numDays);
 
-        return DateYMD.fromDate(_date);
+        return fromDate(_date);
     }
 
-    static today() {
-        let today = new Date();
-        return new DateYMD(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    export function today() {
+        return fromDate(new Date());
     }
 
-    static fromDate(date: Date) {
-        return new DateYMD(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    export function fromDate(date: Date) {
+        return { year: date.getFullYear(), month: date.getMonth() + 1, date: date.getDate() } as DateYMD;
     }
 }
+
+export type DateYMD = { year: number, month: number, date: number };
 
 export default DateYMD;

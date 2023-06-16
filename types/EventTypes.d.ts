@@ -33,5 +33,5 @@ export type CategoryID = string | null;
 export type Category = {
     name: string;
     color: ColorValue;
-    id: string;
+    id: CategoryID;
 }
