@@ -1,5 +1,5 @@
-import React, { useContext } from "react"
-import { Event } from "../types/EventTypes"
+import React, { useRef } from "react"
+import { CategoryID, Event } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DateYMD from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
@@ -20,19 +20,26 @@ type EventCreatorProps = {
 const EventCreator: React.FC<EventCreatorProps> = (props) => {
     const dispatch = useAppDispatch();
 
+    const lastUsedName = useRef('');
+    const lastUsedCategory = useRef<CategoryID>(null);
+
     function onSubmit(newEvent: Event) {
         dispatch(addEvent({ event: newEvent }));
 
-        const plannedDate = getInitialPlannedDateForEvent(newEvent);
-        dispatch(insertEventInRowPlans({ eventID: newEvent.id, plannedDate: plannedDate }));
+        const plannedDate = props.initialDueDate || getInitialPlannedDateForEvent(newEvent);
+        dispatch(insertEventInRowPlans({ eventID: newEvent.id, plannedDate }));
+
+        lastUsedName.current = newEvent.name;
+        lastUsedCategory.current = newEvent.categoryID;
     }
 
     return (
         <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
             <EventInputModal
                 visible={props.visible}
-                submitButtonTitle="Create"
+                initialName={lastUsedName.current}
                 initialDueDate={props.initialDueDate}
+                initialCategoryID={lastUsedCategory.current}
                 onRequestClose={props.onRequestClose}
                 onSubmit={onSubmit}
             />

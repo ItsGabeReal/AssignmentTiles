@@ -34,7 +34,7 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
         <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
             <EventInputModal
                 visible={props.visible}
-                submitButtonTitle="Save"
+                editingEvent
                 initialName={props.editedEvent?.name}
                 initialDueDate={props.editedEvent?.dueDate}
                 initialCategoryID={props.editedEvent?.categoryID}

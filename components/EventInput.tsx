@@ -43,7 +43,7 @@ type EventInputProps = {
 
     visible: boolean;
 
-    submitButtonTitle: string;
+    editingEvent?: boolean;
 
     onSubmit: ((event: Event, repeatSettings: RepeatSettings | null) => void);
 
@@ -72,7 +72,9 @@ const EventInput: React.FC<EventInputProps> = (props) => {
         * inputs doesn't automatically show the keyboard.
         * This fixes that.
         */
-        setTimeout(() => { eventNameInputRef.current?.focus(); }, 75);
+        if (!props.editingEvent) {
+            setTimeout(() => { eventNameInputRef.current?.focus(); }, 75);
+        }
     }, []);
 
     function onDateChanged(newDate?: Date) {
@@ -134,7 +136,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             <View style={styles.actionsContainer}>
                 <CloseButton onPress={props.onRequestClose} hitSlop={10} size={26} color='white' />
                 <View style={styles.submitButtonContainer}>
-                    <SubmitButton title={props.submitButtonTitle} onPress={onSubmit} disabled={!readyToSubmit()} hitSlop={15} />
+                    <SubmitButton title={props.editingEvent ? 'Save' : 'Create'} onPress={onSubmit} disabled={!readyToSubmit()} hitSlop={15} />
                 </View>
             </View>
             <ScrollView
@@ -147,6 +149,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                     defaultValue={props.initialName}
                     //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
                     onChangeText={setEventNameInput}
+                    selectTextOnFocus
                     style={[generalStyles.parameterContainer, { color: 'white' }]}
                     keyboardAppearance='dark'
                 />

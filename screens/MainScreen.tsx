@@ -236,7 +236,7 @@ export default function MainScreen() {
                 onRequestClose={() => setEventEditorVisible(false)}
                 editedEvent={eventEditor_editedEvent.current}
             />
-            {<TestButton onPress={onTestButtonPressed} />}
+            {/*<TestButton onPress={onTestButtonPressed} />*/}
         </View>
     );
 }
