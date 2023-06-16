@@ -23,7 +23,7 @@ export const eventsSlice = createSlice({
                 }
             }
         },
-        editEvent(state, action: PayloadAction<{ eventID: string, name?: string, completed?: boolean, categoryID?: CategoryID, dueDate?: DateYMD}>) {
+        editEvent(state, action: PayloadAction<{ eventID: string, name?: string, completed?: boolean, categoryID?: CategoryID, dueDate?: DateYMD | null}>) {
             const eventIndex = state.findIndex(item => item.id === action.payload.eventID);
             if (eventIndex === -1) {
                 console.error(`eventsSlice -> editEvent: Could not find event index`);
@@ -36,7 +36,7 @@ export const eventsSlice = createSlice({
                 name: action.payload.name || prevEventDetails.name,
                 completed: action.payload.completed === undefined ? prevEventDetails.completed : action.payload.completed,
                 categoryID: newCategoryID,
-                dueDate: action.payload.dueDate || prevEventDetails.dueDate,
+                dueDate: action.payload.dueDate === undefined ? prevEventDetails.dueDate : action.payload.dueDate,
                 id: prevEventDetails.id,
             }
         },

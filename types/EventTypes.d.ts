@@ -4,7 +4,7 @@ export interface Event {
     name: string;
     completed: boolean;
     categoryID: CategoryID;
-    dueDate?: DateYMD;
+    dueDate: DateYMD | null;
     id: string;
 }
 

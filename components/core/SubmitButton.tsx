@@ -13,11 +13,13 @@ type SubmitButtonProps = {
     disabled?: boolean;
 
     fontSize?: number;
+
+    hitSlop?: number;
 }
 
 const SubmitButton: React.FC<SubmitButtonProps> = (props) => {
     return (
-        <TouchableOpacity disabled={props.disabled} onPress={props.onPress}>
+        <TouchableOpacity disabled={props.disabled} onPress={props.onPress} hitSlop={props.hitSlop}>
             <Text
                 style={[styles.submitButtonText, {
                     fontSize: props.fontSize || 18,

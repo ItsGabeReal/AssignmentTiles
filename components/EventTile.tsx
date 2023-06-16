@@ -12,6 +12,7 @@ import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/Ionicons";
 import { useAppSelector } from '../src/redux/hooks';
 import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
+import HideableView from './core/HideableView';
 
 type EventTileProps = {
     eventID: string;
@@ -22,7 +23,7 @@ type EventTileProps = {
 const EventTile: React.FC<EventTileProps> = memo((props) => {
     const event = useAppSelector(state => state.events.find(item => item.id === props.eventID));
     if (!event) console.warn(`EventTile: event is undefined`);
-    const eventButNotUndefined: Event = event || {name: 'null', completed: false, id: '', categoryID: null};
+    const eventButNotUndefined: Event = event || {name: 'null', completed: false, id: '', categoryID: null, dueDate: null};
 
     const categories = useAppSelector(state => state.categories);
 
@@ -99,7 +100,9 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
                 <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: eventButNotUndefined.completed ? 0.25 : 1 }]}>
                     <View style={styles.contentContainer}>
                         <Text style={styles.eventNameText}>{eventButNotUndefined.name}</Text>
-                        <Text style={[styles.dueDateText, { color: getDueDateTextColor() }]}>{getDueDateText()}</Text>
+                        <HideableView hidden={event?.dueDate === null}>
+                            <Text style={[styles.dueDateText, { color: getDueDateTextColor() }]}>{getDueDateText()}</Text>
+                        </HideableView>
                     </View>
                 </View>
                 {eventButNotUndefined.completed ? checkmark() : null}
