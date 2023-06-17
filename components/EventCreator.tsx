@@ -25,7 +25,7 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
     function onSubmit(details: EventDetails, repeatSettings: RepeatSettings | null) {
         if (repeatSettings) {
             for (let i = 0; i < repeatSettings.recurrences; i++) {
-                let dueDate = props.initialDueDate || DateYMDHelpers.today();
+                let dueDate = details.dueDate || DateYMDHelpers.today();
                 if (repeatSettings.valueType === 'days') dueDate = DateYMDHelpers.addDays(dueDate, i * repeatSettings.value);
 
                 const repeatedEventDetails: EventDetails = {

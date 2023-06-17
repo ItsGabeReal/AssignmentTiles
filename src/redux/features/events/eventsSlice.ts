@@ -7,7 +7,7 @@ export type EventsState = Event[];
 
 export const eventsSlice = createSlice({
     name: 'events',
-    initialState: testEvents as EventsState,
+    initialState: /*testEvents*/[] as EventsState,
     reducers: {
         addEvent(state, action: PayloadAction<{event: Event}>) {
             state.push(action.payload.event);

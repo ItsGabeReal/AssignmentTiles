@@ -12,18 +12,16 @@ import RNDateTimePicker from '@react-native-community/datetimepicker';
 import AndroidCompactDatePicker from './core/AndroidCompactDatePicker';
 import IosStyleButton from './core/IosStyleButton';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
-import { CategoryID, Event, EventDetails } from '../types/EventTypes';
+import { CategoryID, EventDetails } from '../types/EventTypes';
 import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import generalStyles from '../src/GeneralStyles';
-import CloseButton from './core/CloseButton';
 import CategoryEditor from './CategoryEditor';
 import { useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
 import HideableView from './core/HideableView';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
-import { BlurView } from 'expo-blur';
 
 export type RepeatSettings = {
     valueType: RepeatValueType;
@@ -220,16 +218,14 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                             <Picker.Item key='none' label='None' value='none' color='#bbb' style={styles.androidPickerItem} />
                             {categories.map(item => (
                                 <Picker.Item key={item.id} label={item.name} value={item.id} color={item.color} style={styles.androidPickerItem} />
-                            ))}
+                                ))}
                         </Picker>
                     </View>
-                    <View style={{ flexDirection: 'row', marginBottom: 50 }}>
-                        <Button title='Create' onPress={() => categoryInputRef.current?.open()} />
-                        <Button title='Edit' onPress={() => categoryEditorRef.current?.open()} />
-                    </View>
+                    <Button title='New Category' onPress={() => categoryInputRef.current?.open()} />
+                    <Button title='Edit Categories' onPress={() => categoryEditorRef.current?.open()} />
                 </ScrollView>
             </View>
-            <BlurView style={styles.keyboardAttachedView} intensity={30}>
+            <View style={styles.keyboardAttachedView}>
                 <View style={styles.actionContainer}>
                     <IosStyleButton
                         title='Cancel'
@@ -248,7 +244,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                         hitSlop={30}
                     />
                 </View>
-            </BlurView>
+            </View>
         </>
     );
 }
@@ -291,10 +287,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#333',
     },
     keyboardAttachedView: {
-        position: 'absolute',
         flexDirection: 'row',
         bottom: 0,
         width: '100%',
+        backgroundColor: '#000'
     },
     actionContainer: {
         flex: 1,

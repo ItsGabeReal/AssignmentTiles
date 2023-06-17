@@ -3,7 +3,6 @@ import React, {
     useRef,
     useImperativeHandle,
     forwardRef,
-    useContext,
 } from 'react';
 import {
     StyleSheet,
@@ -15,7 +14,7 @@ import {
     ColorValue,
 } from 'react-native';
 import generalStyles from '../src/GeneralStyles';
-import SubmitButton from './core/IosStyleButton';
+import IosStyleButton from './core/IosStyleButton';
 import { Category } from '../types/EventTypes';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { useAppDispatch } from '../src/redux/hooks';
@@ -101,7 +100,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 <Text style={styles.title}>{inputMode == 'edit' ? 'Edit Category' : 'Create Category'}</Text>
             </View>
             <Text style={generalStyles.fieldDescription}>Name:</Text>
-            <TextInput value={nameInput} style={[generalStyles.parameterContainer, styles.textInput]} onChangeText={newText => setNameInput(newText)} />
+            <TextInput value={nameInput} style={[generalStyles.parameterContainer, styles.textInput]} selectTextOnFocus autoFocus onChangeText={newText => setNameInput(newText)} />
             <Text style={generalStyles.fieldDescription}>Color:</Text>
             <View style={generalStyles.parameterContainer}>
                 <FlatList
@@ -121,7 +120,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 />
             </View>
             <View style={styles.submitButtonContainer}>
-                <SubmitButton title={inputMode == 'edit' ? 'Save' : 'Create'} disabled={!readyToSubmit()} onPress={handleSubmit} />
+                <IosStyleButton title={inputMode == 'edit' ? 'Save' : 'Create'} textStyle={{fontWeight: 'bold', fontSize: 20}} disabled={!readyToSubmit()} onPress={handleSubmit} />
             </View>
         </FloatingModal>
     );

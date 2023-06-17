@@ -7,7 +7,7 @@ export type RowPlansState = RowPlan[];
 
 export const rowPlansSlice = createSlice({
     name: 'rowPlans',
-    initialState: testRowPlans as RowPlansState,
+    initialState: /*testRowPlans*/[] as RowPlansState,
     reducers: {
         insertEventInRowPlans(state, action: PayloadAction<{eventID: string, plannedDate: DateYMD, insertionIndex?: number}>) {
             _insertEventInRowPlans(

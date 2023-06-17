@@ -1,12 +1,15 @@
 import React from "react";
 import MainScreen from "./screens/MainScreen";
 import { Provider } from "react-redux";
-import store from "./src/redux/store";
+import { store, persistedStore } from "./src/redux/store";
+import { PersistGate } from "redux-persist/integration/react";
 
 export default function App() {
     return (
         <Provider store={store}>
-            <MainScreen />
+            <PersistGate persistor={persistedStore}>
+                <MainScreen />
+            </PersistGate>
         </Provider>
     );
 }

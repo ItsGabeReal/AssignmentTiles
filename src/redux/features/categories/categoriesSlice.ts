@@ -7,7 +7,7 @@ export type CategoriesState = Category[];
 
 export const categoriesSlice = createSlice({
     name: 'categories',
-    initialState: testCategories as CategoriesState,
+    initialState: /*testCategories*/[] as CategoriesState,
     reducers: {
         addCategory(state, action: PayloadAction<{ category: Category }>) {
             state.push(action.payload.category);
