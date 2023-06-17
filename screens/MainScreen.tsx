@@ -1,4 +1,4 @@
-import React, { useRef, useState, useReducer, useEffect, useContext, useCallback } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
     StyleSheet,
     View,
@@ -7,6 +7,7 @@ import {
     StatusBar,
     NativeSyntheticEvent,
     NativeScrollEvent,
+    TouchableOpacity,
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
@@ -27,9 +28,11 @@ import ContextMenuContainer, { ContextMenuContainerRef } from "../components/Con
 import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMenu";
 import TestButton from "../components/core/TestButton";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
-import { removeEvent, toggleEventComplete } from "../src/redux/features/events/eventsSlice";
-import { changePlannedDate, getEventPlan, removeEventFromRowPlans } from "../src/redux/features/rowPlans/rowPlansSlice";
+import { toggleEventComplete } from "../src/redux/features/events/eventsSlice";
+import { changePlannedDate, getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { addDaysToBottom, addDaysToTop } from "../src/redux/features/visibleDays/visibleDaysSlice";
+import { deleteEvent } from "../src/EventHelpers";
+import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function MainScreen() {
     const dispatch = useAppDispatch();
@@ -109,8 +112,7 @@ export default function MainScreen() {
                 {
                     name: 'Delete',
                     onPress: () => {
-                        dispatch(removeEventFromRowPlans({eventID: selectedEvent.id}));
-                        dispatch(removeEvent({eventID: selectedEvent.id}));
+                        deleteEvent(dispatch, selectedEvent.id);
                     },
                     iconName: 'trash',
                     color: '#d00',
@@ -164,7 +166,7 @@ export default function MainScreen() {
     function renderItem({ item }: { item: DateYMD }) {
         return <DayRow
             date={item}
-            onPress={(gesture, rowDate) => openEventCreator(gesture, rowDate)}
+            onPress={(gesture, rowDate) => openEventCreator(rowDate)}
             eventTileCallbacks={eventTileCallbacks}
         />;
     };
@@ -193,7 +195,7 @@ export default function MainScreen() {
         dispatch(addDaysToBottom({numNewDays: 7, removeFromTop: true}));
     }
 
-    function openEventCreator(gesture: GestureResponderEvent, initialDate?: DateYMD) {
+    function openEventCreator(initialDate?: DateYMD) {
         eventCreator_initialDate.current = initialDate;
         setEventCreatorVisible(true);
     }
@@ -209,7 +211,7 @@ export default function MainScreen() {
 
     return (
         <View style={styles.container}>
-            <StatusBar /*backgroundColor={'#0004'} */barStyle={"light-content"} /*translucent={true}*/ />
+            <StatusBar backgroundColor={'#0008'} barStyle={"light-content"} translucent />
             <InfiniteScrollFlatList
                 ref={flatListRef}
                 data={visibleDays}
@@ -225,6 +227,9 @@ export default function MainScreen() {
                 maintainVisibleContentPosition={{minIndexForVisible: 0}}
                 showsVerticalScrollIndicator={false}
             />
+            <TouchableOpacity style={styles.addButton} onPress={() => openEventCreator()}>
+                <Icon name="add" color={'white'} size={40} />
+            </TouchableOpacity>
             <ContextMenuContainer ref={contextMenuRef} />
             <EventCreator
                 visible={eventCreatorVisible}
@@ -245,6 +250,17 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: "#222",
         flex: 1
+    },
+    addButton: {
+        position: 'absolute',
+        width: 70, 
+        height: 70,
+        right: 15,
+        bottom: 15,
+        borderRadius: 100,
+        backgroundColor: '#04f',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     dayRowSeparater: {
         backgroundColor: '#666',

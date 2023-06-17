@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Event, RowPlan } from "../../../../types/EventTypes";
+import { EventDetails, RowPlan } from "../../../../types/EventTypes";
 import { testRowPlans } from "../../../TestData";
 import DateYMD, { DateYMDHelpers } from '../../../DateYMD';
 
@@ -145,7 +145,7 @@ export function getEventPlan(rowPlans: RowPlansState, eventID: string) {
     return undefined;
 }
 
-export function getInitialPlannedDateForEvent(event: Event) {
+export function getInitialPlannedDateForEvent(event: EventDetails) {
     if (event.dueDate) {
         return event.dueDate;
     }

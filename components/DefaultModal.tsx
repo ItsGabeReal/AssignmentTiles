@@ -1,9 +1,5 @@
 import React from "react";
-import {
-    StyleSheet,
-    View,
-    Platform,
-} from "react-native";
+import { Platform } from "react-native";
 import IosModal from "./core/IosModal";
 import AndroidModal from "./core/AndroidModal";
 
@@ -12,37 +8,25 @@ type DefaultModalProps = {
 
     children?: React.ReactNode;
 
+    keyboardAvoidingChildren?: React.ReactNode;
+
     onRequestClose?: (() => void);
 }
 
 const DefaultModal: React.FC<DefaultModalProps> = (props) => {
-    const defaultChildren = (
-        <View style={styles.mainContainer}>
-            {props.children}
-        </View>
-    )
     return (
         <>
             {Platform.OS == 'android' ?
-                <AndroidModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose}>
-                    {defaultChildren}
+                <AndroidModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose} keyboardAvoidingChildren={props.keyboardAvoidingChildren}>
+                    {props.children}
                 </AndroidModal>
                 :
-                <IosModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose}>
-                    {defaultChildren}
+                <IosModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose} keyboardAvoidingChildren={props.keyboardAvoidingChildren}>
+                    {props.children}
                 </IosModal>
             }
         </>
     );
 }
-
-const styles = StyleSheet.create({
-    mainContainer: {
-        paddingLeft: 25,
-        paddingTop: 25,
-        paddingRight: 25,
-        flex: 1,
-    },
-});
 
 export default DefaultModal;

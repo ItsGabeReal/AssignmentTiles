@@ -15,7 +15,7 @@ type DraggableProps = TouchableWithoutFeedbackProps & {
     onDrop?: ((event: GestureResponderEvent) => void);
 }
 
-const DRAG_START_DISTANCE = 3;
+const DRAG_START_DISTANCE = 5;
 
 const Draggable: React.FC<DraggableProps> = (props) => {
     const { onLongPress, ...otherProps } = props;

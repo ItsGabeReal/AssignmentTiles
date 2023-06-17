@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CategoryID, Event } from '../../../../types/EventTypes';
+import { CategoryID, Event, EventDetails } from '../../../../types/EventTypes';
 import { testEvents } from '../../../TestData';
 import DateYMD from '../../../DateYMD';
 
@@ -23,21 +23,16 @@ export const eventsSlice = createSlice({
                 }
             }
         },
-        editEvent(state, action: PayloadAction<{ eventID: string, name?: string, completed?: boolean, categoryID?: CategoryID, dueDate?: DateYMD | null}>) {
+        editEvent(state, action: PayloadAction<{ eventID: string, newDetails: EventDetails}>) {
             const eventIndex = state.findIndex(item => item.id === action.payload.eventID);
             if (eventIndex === -1) {
                 console.error(`eventsSlice -> editEvent: Could not find event index`);
                 return;
             }
 
-            const prevEventDetails = state[eventIndex];
-            const newCategoryID = action.payload.categoryID === undefined ? state[eventIndex].categoryID : action.payload.categoryID;
             state[eventIndex] = {
-                name: action.payload.name || prevEventDetails.name,
-                completed: action.payload.completed === undefined ? prevEventDetails.completed : action.payload.completed,
-                categoryID: newCategoryID,
-                dueDate: action.payload.dueDate === undefined ? prevEventDetails.dueDate : action.payload.dueDate,
-                id: prevEventDetails.id,
+                ...state[eventIndex],
+                details: action.payload.newDetails,
             }
         },
         toggleEventComplete(state, action: PayloadAction<{eventID: string}>) {
@@ -51,8 +46,8 @@ export const eventsSlice = createSlice({
         },
         removeCategoryFromEvents(state, action: PayloadAction<{ categoryID: CategoryID }>) {
             for (let i = 0; i < state.length; i++) {
-                if (state[i].categoryID === action.payload.categoryID) {
-                    state[i].categoryID = null;
+                if (state[i].details.categoryID === action.payload.categoryID) {
+                    state[i].details.categoryID = null;
                 }
             }
         },
@@ -75,9 +70,9 @@ export function getEventFromID(events: EventsState, eventID: string) {
 export function areEventsEqual(eventA: Event, eventB: Event) {
     return eventA.id == eventB.id
         && eventA.completed == eventB.completed
-        && eventA.name == eventB.name
-        && eventA.dueDate == eventB.dueDate
-        && eventA.categoryID == eventB.categoryID;
+        && eventA.details.name == eventB.details.name
+        && eventA.details.dueDate == eventB.details.dueDate
+        && eventA.details.categoryID == eventB.details.categoryID;
 }
 
 export const { addEvent, removeEvent, editEvent, toggleEventComplete, removeCategoryFromEvents } = eventsSlice.actions;

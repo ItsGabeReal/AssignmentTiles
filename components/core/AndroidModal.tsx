@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import {
     StyleSheet,
+    View,
     Modal,
     Pressable,
     ColorValue,
@@ -43,7 +44,7 @@ const AndroidModal: React.FC<AndroidModalProps> = (props) => {
     }
 
     return (
-        <Animated.View style={{ ...styles.screenDimmer, opacity: backgroundOpacity }} pointerEvents="none">
+        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#0004', opacity: backgroundOpacity }]} pointerEvents="none">
             <Modal
                 animationType='slide'
                 visible={props.visible}
@@ -56,7 +57,9 @@ const AndroidModal: React.FC<AndroidModalProps> = (props) => {
                     behavior="padding"
                     style={{ ...styles.contentContainer, backgroundColor: props.backgroundColor }}
                 >
-                    {props.children}
+                    <View style={{flex: 1}}>
+                        {props.children}
+                    </View>
                 </KeyboardAvoidingView>
             </Modal>
         </Animated.View>
@@ -64,14 +67,6 @@ const AndroidModal: React.FC<AndroidModalProps> = (props) => {
 }
 
 const styles = StyleSheet.create({
-    screenDimmer: {
-        position: "absolute",
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#0004'
-    },
     closeOutArea: {
         height: '15%',
     },

@@ -23,7 +23,8 @@
     "react-native-event-listeners": "^1.0.7",
     "react-native-vector-icons": "^9.2.0",
     "react-native-web": "~0.18.9",
-    "react-redux": "^8.1.0"
+    "react-redux": "^8.1.0",
+    "expo-blur": "~12.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

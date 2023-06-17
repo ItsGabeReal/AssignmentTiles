@@ -15,7 +15,7 @@ import {
     ColorValue,
 } from 'react-native';
 import generalStyles from '../src/GeneralStyles';
-import SubmitButton from './core/SubmitButton';
+import SubmitButton from './core/IosStyleButton';
 import { Category } from '../types/EventTypes';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { useAppDispatch } from '../src/redux/hooks';

@@ -1,11 +1,15 @@
 import DateYMD from "../src/DateYMD";
 
 export interface Event {
-    name: string;
+    details: EventDetails;
     completed: boolean;
+    id: string;
+}
+
+export interface EventDetails {
+    name: string;
     categoryID: CategoryID;
     dueDate: DateYMD | null;
-    id: string;
 }
 
 export type EventTileDimensions = {

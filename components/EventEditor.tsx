@@ -1,5 +1,5 @@
 import React, { useContext } from "react"
-import { Event } from "../types/EventTypes"
+import { Event, EventDetails } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DefaultModal from "./DefaultModal"
 import { useAppDispatch } from '../src/redux/hooks';
@@ -16,7 +16,7 @@ type EventEditorProps = {
 const EventEditor: React.FC<EventEditorProps> = (props) => {
     const dispatch = useAppDispatch();
 
-    function handleOnSubmit(eventDetails: Event) {
+    function handleOnSubmit(details: EventDetails) {
         if (!props.editedEvent) {
             console.error(`Initial edited event was null. Event editor has no idea what event it's supposed to edit.`);
             return;
@@ -24,9 +24,7 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
         
         dispatch(editEvent({
             eventID: props.editedEvent.id,
-            name: eventDetails.name,
-            categoryID: eventDetails.categoryID,
-            dueDate: eventDetails.dueDate,
+            newDetails: details,
         }));
     }
     
@@ -35,9 +33,9 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
             <EventInputModal
                 visible={props.visible}
                 editingEvent
-                initialName={props.editedEvent?.name}
-                initialDueDate={props.editedEvent?.dueDate}
-                initialCategoryID={props.editedEvent?.categoryID}
+                initialName={props.editedEvent?.details.name}
+                initialDueDate={props.editedEvent?.details.dueDate}
+                initialCategoryID={props.editedEvent?.details.categoryID}
                 onRequestClose={props.onRequestClose}
                 onSubmit={handleOnSubmit}
             />

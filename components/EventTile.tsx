@@ -21,25 +21,23 @@ type EventTileProps = {
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
-    const event = useAppSelector(state => state.events.find(item => item.id === props.eventID));
-    if (!event) console.warn(`EventTile: event is undefined`);
-    const eventButNotUndefined: Event = event || {name: 'null', completed: false, id: '', categoryID: null, dueDate: null};
+    const event = useAppSelector(state => state.events.find(item => item.id === props.eventID)) || {details: {name: 'null', categoryID: null, dueDate: null}, completed: false, id: ''};
 
     const categories = useAppSelector(state => state.categories);
 
     const daysPlannedBeforeDue = getDaysPlannedBeforeDue();
 
     function getDaysPlannedBeforeDue() {
-        if (eventButNotUndefined.dueDate) {
-            return DateYMDHelpers.daysBefore(eventButNotUndefined.dueDate, props.plannedDate);
+        if (event.details.dueDate) {
+            return DateYMDHelpers.daysBefore(event.details.dueDate, props.plannedDate);
         }
     }
 
     function getBackgroundColor() {
         let outputColorValue: ColorValue = '#fff';
 
-        if (eventButNotUndefined.categoryID !== null) {
-            const category = getCategoryFromID(categories, eventButNotUndefined.categoryID);
+        if (event.details.categoryID !== null) {
+            const category = getCategoryFromID(categories, event.details.categoryID);
             if (!category) {
                 console.error('EventTile/getBackgroundColor: Could not find category from id');
             }
@@ -73,7 +71,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
                 return `${daysPlannedBeforeDue * -1} ${daysPlannedBeforeDue === -1 ? 'day' : 'days'} late`;
             }
             else {
-                return 'Due Today';
+                return 'On Time';
             }
         }
 
@@ -90,22 +88,22 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
 
     return (
         <Draggable
-            onPress={gesture => props.eventTileCallbacks.onTilePressed?.(gesture, eventButNotUndefined)}
-            onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed?.(gesture, eventButNotUndefined)}
+            onPress={gesture => props.eventTileCallbacks.onTilePressed?.(gesture, event)}
+            onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed?.(gesture, event)}
             onLongPressRelease={() => props.eventTileCallbacks.onTileLongPressRelease?.()}
             onStartDrag={gesture => props.eventTileCallbacks.onTileDragStart?.(gesture)}
-            onDrop={gesture => props.eventTileCallbacks.onTileDropped?.(gesture, eventButNotUndefined)}
+            onDrop={gesture => props.eventTileCallbacks.onTileDropped?.(gesture, event)}
         >
             <View style={styles.mainContainer}>
-                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: eventButNotUndefined.completed ? 0.25 : 1 }]}>
+                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
                     <View style={styles.contentContainer}>
-                        <Text style={styles.eventNameText}>{eventButNotUndefined.name}</Text>
-                        <HideableView hidden={event?.dueDate === null}>
+                        <Text style={styles.eventNameText}>{event.details.name}</Text>
+                        <HideableView hidden={event.details.dueDate === null}>
                             <Text style={[styles.dueDateText, { color: getDueDateTextColor() }]}>{getDueDateText()}</Text>
                         </HideableView>
                     </View>
                 </View>
-                {eventButNotUndefined.completed ? checkmark() : null}
+                {event.completed ? checkmark() : null}
             </View>
         </Draggable>
     );

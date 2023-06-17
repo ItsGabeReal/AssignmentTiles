@@ -21,39 +21,49 @@ export const testCategories: Category[] = [
 
 export const testEvents: Event[] = [
     {
-        name: 'Class',
+        details: {
+            name: 'Class',
+            categoryID: testCategories[2].id,
+            dueDate: DateYMDHelpers.today(),
+        },
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMDHelpers.today(),
-        categoryID: testCategories[2].id,
     },
     {
-        name: 'Quiz',
+        details: {
+            name: 'Quiz',
+            categoryID: null,
+            dueDate: DateYMDHelpers.today(),
+        },
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMDHelpers.today(),
-        categoryID: null,
     },
     {
-        name: 'Homework',
+        details: {
+            name: 'Homework',
+            categoryID: testCategories[1].id,
+            dueDate: DateYMDHelpers.today(),
+        },
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMDHelpers.today(),
-        categoryID: testCategories[1].id,
     },
     {
-        name: 'Discussion Response',
+        details: {
+            name: 'Discussion Response',
+            categoryID: testCategories[0].id,
+            dueDate: DateYMDHelpers.today(),
+        },
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMDHelpers.today(),
-        categoryID: testCategories[0].id,
     },
     {
-        name: 'Discussion Replies',
+        details: {
+            name: 'Discussion Replies',
+            categoryID: testCategories[1].id,
+            dueDate: DateYMDHelpers.today(),
+        },
         completed: false,
         id: Math.random().toString(),
-        dueDate: DateYMDHelpers.today(),
-        categoryID: testCategories[1].id,
     },
 ];
 

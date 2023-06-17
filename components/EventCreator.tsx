@@ -1,11 +1,10 @@
 import React, { useRef } from "react"
-import { CategoryID, Event } from "../types/EventTypes"
-import EventInputModal from "./EventInput"
-import DateYMD from "../src/DateYMD";
+import { CategoryID, Event, EventDetails } from "../types/EventTypes"
+import EventInput, { RepeatSettings } from "./EventInput"
+import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
 import { useAppDispatch } from '../src/redux/hooks';
-import { addEvent } from "../src/redux/features/events/eventsSlice";
-import { getInitialPlannedDateForEvent, insertEventInRowPlans } from "../src/redux/features/rowPlans/rowPlansSlice";
+import { createEvent } from "../src/EventHelpers";
 
 type EventCreatorProps = {
     visible: boolean;
@@ -23,19 +22,30 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
     const lastUsedName = useRef('');
     const lastUsedCategory = useRef<CategoryID>(null);
 
-    function onSubmit(newEvent: Event) {
-        dispatch(addEvent({ event: newEvent }));
+    function onSubmit(details: EventDetails, repeatSettings: RepeatSettings | null) {
+        if (repeatSettings) {
+            for (let i = 0; i < repeatSettings.recurrences; i++) {
+                let dueDate = props.initialDueDate || DateYMDHelpers.today();
+                if (repeatSettings.valueType === 'days') dueDate = DateYMDHelpers.addDays(dueDate, i * repeatSettings.value);
 
-        const plannedDate = props.initialDueDate || getInitialPlannedDateForEvent(newEvent);
-        dispatch(insertEventInRowPlans({ eventID: newEvent.id, plannedDate }));
+                const repeatedEventDetails: EventDetails = {
+                    ...details,
+                    dueDate,
+                }
+                createEvent(dispatch, repeatedEventDetails, dueDate);
+            }
+        }
+        else {
+            createEvent(dispatch, details, props.initialDueDate);
+        }
 
-        lastUsedName.current = newEvent.name;
-        lastUsedCategory.current = newEvent.categoryID;
+        lastUsedName.current = details.name;
+        lastUsedCategory.current = details.categoryID;
     }
 
     return (
         <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
-            <EventInputModal
+            <EventInput
                 visible={props.visible}
                 initialName={lastUsedName.current}
                 initialDueDate={props.initialDueDate}
