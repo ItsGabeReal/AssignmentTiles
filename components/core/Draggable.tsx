@@ -12,6 +12,7 @@ import {
 type DraggableProps = TouchableWithoutFeedbackProps & {
     onLongPressRelease?: (() => void);
     onStartDrag?: ((event: GestureResponderEvent) => void);
+    onDrag?: ((event: GestureResponderEvent) => void);
     onDrop?: ((event: GestureResponderEvent) => void);
 }
 
@@ -38,6 +39,8 @@ const Draggable: React.FC<DraggableProps> = (props) => {
                 if (draggingEnabled.current) {
                     pan.x.setValue(gesture.dx);
                     pan.y.setValue(gesture.dy);
+
+                    props.onDrag?.(event);
                 }
                 else {
                     const dragDistance = Math.sqrt(Math.pow(gesture.dx, 2) + Math.pow(gesture.dy, 2));

@@ -6,7 +6,7 @@ import {
     ColorValue,
 } from "react-native";
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
-import { Event, EventTileCallbacks } from '../types/EventTypes';
+import { EventTileCallbacks } from '../types/EventTypes';
 import Draggable from './core/Draggable';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/Ionicons";
@@ -92,6 +92,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
             onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed?.(gesture, event)}
             onLongPressRelease={() => props.eventTileCallbacks.onTileLongPressRelease?.()}
             onStartDrag={gesture => props.eventTileCallbacks.onTileDragStart?.(gesture)}
+            onDrag={gesture => props.eventTileCallbacks.onTileDrag?.(gesture, event)}
             onDrop={gesture => props.eventTileCallbacks.onTileDropped?.(gesture, event)}
         >
             <View style={styles.mainContainer}>

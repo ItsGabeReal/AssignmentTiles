@@ -8,6 +8,7 @@ import {
     NativeSyntheticEvent,
     NativeScrollEvent,
     TouchableOpacity,
+    useWindowDimensions,
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
@@ -35,8 +36,9 @@ import { deleteEvent } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function MainScreen() {
-    const dispatch = useAppDispatch();
+    const {height, width} = useWindowDimensions();
 
+    const dispatch = useAppDispatch();
     const visibleDays = useAppSelector(state => state.visibleDays);
     const rowPlans = useAppSelector(state => state.rowPlans);
 
@@ -50,6 +52,13 @@ export default function MainScreen() {
     const eventEditor_editedEvent = useRef<Event>();
     const flatListRef = useRef<FlatList<any> | null>(null);
     const contextMenuRef = useRef<ContextMenuContainerRef | null>(null);
+
+    // Refs related to autoscroll while dragging event
+    const draggingEventTile = useRef(false);
+    const lastFrameTime = useRef<Date>();
+    const lastDragPageY = useRef(0);
+    const dragAutoScrollOffset = useRef(0);
+    const scrollYOffsetAtDragStart = useRef(0);
 
 
     useEffect(() => {
@@ -70,11 +79,24 @@ export default function MainScreen() {
         flatListRef.current?.setNativeProps({ scrollEnabled: true });
     }
 
-    function onTileDragStart_cb() {
+    function onTileDragStart_cb(gesture: GestureResponderEvent) {
         contextMenuRef.current?.close();
+
+        scrollYOffsetAtDragStart.current = scrollYOffset.current;
+        dragAutoScrollOffset.current = 0;
+        draggingEventTile.current = true;
+        lastFrameTime.current = new Date();
+        lastDragPageY.current = gesture.nativeEvent.pageY;
+        requestAnimationFrame(dragLoop);
+    }
+
+    function onTileDrag_cb(gesture: GestureResponderEvent) {
+        lastDragPageY.current = gesture.nativeEvent.pageY;
     }
 
     function onTileDropped_cb(gesture: GestureResponderEvent, event: Event) {
+        draggingEventTile.current = false;
+
         const visibleDays_CSR = visibleDays_closureSafeRef.current;
         const rowPlans_CSR = rowPlans_closureSafeRef.current;
 
@@ -93,6 +115,35 @@ export default function MainScreen() {
         const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, gesture);
 
         dispatch(changePlannedDate({eventID: event.id, plannedDate: overlappingRowDate, insertionIndex: insertionIndex}));
+    }
+
+    function dragLoop() {
+        if (!draggingEventTile.current) return;
+
+        if (!lastFrameTime.current) {
+            console.error('MainScreen -> dragLoop: lastFrameTime.current is undefined')
+            return;
+        }
+        
+        const currentTime = new Date();
+        const delta = currentTime.valueOf() - lastFrameTime.current.valueOf();
+        lastFrameTime.current = currentTime;
+        
+        const scrollAmount = delta / 2;
+
+
+        if (lastDragPageY.current < height / 10) {
+            dragAutoScrollOffset.current -= scrollAmount;
+            const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
+            flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
+        }
+        else if (lastDragPageY.current > height - (height / 10)) {
+            dragAutoScrollOffset.current += scrollAmount;
+            const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
+            flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
+        }
+
+        requestAnimationFrame(dragLoop);
     }
 
     function openEventTileContextMenu(selectedEvent: Event) {
@@ -160,6 +211,7 @@ export default function MainScreen() {
         onTileLongPressed: onTileLongPressed_cb,
         onTileLongPressRelease: onTileLongPressRelease_cb,
         onTileDragStart: onTileDragStart_cb,
+        onTileDrag: onTileDrag_cb,
         onTileDropped: onTileDropped_cb,
     }
 

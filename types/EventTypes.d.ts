@@ -28,8 +28,10 @@ export type EventTileCallbacks = {
     onTilePressed?: ((gesture: GestureResponderEvent, event: Event) => void);
     onTileLongPressed?: ((gesture: GestureResponderEvent, event: Event) => void);
     onTileLongPressRelease?: (() => void);
-    onTileDragStart?: ((gesture: PanResponderGestureState) => void);
-    onTileDropped?: ((gesture: PanResponderGestureState, event: Event) => void);
+    onTileDragStart?: ((gesture: GestureResponderEvent) => void);
+    onTileDrag?: ((gesture: GestureResponderEvent, event: Event) => void);
+    onTileDropped?: ((gesture: GestureResponderEvent, event: Event) => void);
+    onTilePressed?: ((gesture: GestureResponderEvent, event: Event) => void);
 }
 
 export type CategoryID = string | null;
