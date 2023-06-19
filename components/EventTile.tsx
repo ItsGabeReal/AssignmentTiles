@@ -6,8 +6,6 @@ import {
     ColorValue,
 } from "react-native";
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
-import { EventTileCallbacks } from '../types/EventTypes';
-import Draggable from './core/Draggable';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/Ionicons";
 import { useAppSelector } from '../src/redux/hooks';
@@ -17,7 +15,6 @@ import HideableView from './core/HideableView';
 type EventTileProps = {
     eventID: string;
     plannedDate: DateYMD;
-    eventTileCallbacks: EventTileCallbacks;
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
@@ -87,26 +84,17 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     }
 
     return (
-        <Draggable
-            onPress={gesture => props.eventTileCallbacks.onTilePressed?.(gesture, event)}
-            onLongPress={gesture => props.eventTileCallbacks.onTileLongPressed?.(gesture, event)}
-            onLongPressRelease={() => props.eventTileCallbacks.onTileLongPressRelease?.()}
-            onStartDrag={gesture => props.eventTileCallbacks.onTileDragStart?.(gesture)}
-            onDrag={gesture => props.eventTileCallbacks.onTileDrag?.(gesture, event)}
-            onDrop={gesture => props.eventTileCallbacks.onTileDropped?.(gesture, event)}
-        >
-            <View style={styles.mainContainer}>
-                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
-                    <View style={styles.contentContainer}>
-                        <Text style={styles.eventNameText}>{event.details.name}</Text>
-                        <HideableView hidden={event.details.dueDate === null}>
-                            <Text style={[styles.dueDateText, { color: getDueDateTextColor() }]}>{getDueDateText()}</Text>
-                        </HideableView>
-                    </View>
+        <View style={styles.mainContainer}>
+            <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
+                <View style={styles.contentContainer}>
+                    <Text style={styles.eventNameText}>{event.details.name}</Text>
+                    <HideableView hidden={event.details.dueDate === null}>
+                        <Text style={[styles.dueDateText, { color: getDueDateTextColor() }]}>{getDueDateText()}</Text>
+                    </HideableView>
                 </View>
-                {event.completed ? checkmark() : null}
             </View>
-        </Draggable>
+            {event.completed ? checkmark() : null}
+        </View>
     );
 }, (prevProps, newProps) => prevProps.eventID === newProps.eventID);
 

@@ -25,13 +25,12 @@ export interface RowPlan {
 }
 
 export type EventTileCallbacks = {
-    onTilePressed?: ((gesture: GestureResponderEvent, event: Event) => void);
-    onTileLongPressed?: ((gesture: GestureResponderEvent, event: Event) => void);
+    onTilePressed?: ((gesture: GestureResponderEvent, eventID: string) => void);
+    onTileLongPressed?: ((gesture: GestureResponderEvent, eventID: string) => void);
     onTileLongPressRelease?: (() => void);
-    onTileDragStart?: ((gesture: GestureResponderEvent) => void);
-    onTileDrag?: ((gesture: GestureResponderEvent, event: Event) => void);
-    onTileDropped?: ((gesture: GestureResponderEvent, event: Event) => void);
-    onTilePressed?: ((gesture: GestureResponderEvent, event: Event) => void);
+    onTileDragStart?: ((gesture: GestureResponderEvent, eventID: string) => void);
+    onTileDrag?: ((gesture: GestureResponderEvent, eventID: string) => void);
+    onTileDropped?: ((gesture: GestureResponderEvent, eventID: string) => void);
 }
 
 export type CategoryID = string | null;

@@ -11,6 +11,7 @@ import { EventTileCallbacks } from "../types/EventTypes";
 import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
 import { useAppSelector } from "../src/redux/hooks";
+import InteractableEventTile from "./InteractableEventTile";
 
 type DayRowProps = {
     date: DateYMD;
@@ -53,7 +54,7 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
     }
 
     function renderItem({item}: { item: string }) {
-        return <EventTile
+        return <InteractableEventTile
             key={item}
             eventID={item}
             plannedDate={props.date}

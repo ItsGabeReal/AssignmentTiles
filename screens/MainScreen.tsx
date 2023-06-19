@@ -13,7 +13,7 @@ import {
 import VisualSettings from "../src/VisualSettings";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import InfiniteScrollFlatList from "../components/core/InfiniteScrollFlatList";
-import { Event, EventTileCallbacks } from "../types/EventTypes";
+import { EventTileCallbacks } from "../types/EventTypes";
 import {
     getDayRowHeight,
     getDayRowYOffset,
@@ -34,6 +34,7 @@ import { changePlannedDate, getEventPlan } from "../src/redux/features/rowPlans/
 import { addDaysToBottom, addDaysToTop } from "../src/redux/features/visibleDays/visibleDaysSlice";
 import { deleteEvent } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/Ionicons';
+import VirtualEventTile, { VirtualEventTileRef } from "../components/VirtualEventTile";
 
 export default function MainScreen() {
     const {height, width} = useWindowDimensions();
@@ -49,7 +50,8 @@ export default function MainScreen() {
     const rowPlans_closureSafeRef = useRef(rowPlans);
     const scrollYOffset = useRef(0);
     const eventCreator_initialDate = useRef<DateYMD>();
-    const eventEditor_editedEvent = useRef<Event>();
+    const eventEditor_editedEventID = useRef('');
+    const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
     const contextMenuRef = useRef<ContextMenuContainerRef | null>(null);
 
@@ -66,43 +68,51 @@ export default function MainScreen() {
         rowPlans_closureSafeRef.current = rowPlans;
     }, [visibleDays, rowPlans]);
 
-    function onTilePressed_cb(gesture: GestureResponderEvent, event: Event) {
-        dispatch(toggleEventComplete({eventID: event.id}));
+    function onTilePressed_cb(gesture: GestureResponderEvent, eventID: string) {
+        dispatch(toggleEventComplete({eventID: eventID}));
     }
 
-    function onTileLongPressed_cb(gesture: GestureResponderEvent, event: Event) {
+    function onTileLongPressed_cb(gesture: GestureResponderEvent, eventID: string) {
         flatListRef.current?.setNativeProps({ scrollEnabled: false });
-        openEventTileContextMenu(event);
+        openEventTileContextMenu(eventID);
     }
 
     function onTileLongPressRelease_cb() {
         flatListRef.current?.setNativeProps({ scrollEnabled: true });
     }
 
-    function onTileDragStart_cb(gesture: GestureResponderEvent) {
+    function onTileDragStart_cb(gesture: GestureResponderEvent, eventID: string) {
         contextMenuRef.current?.close();
 
+        // auto scroll setup
         scrollYOffsetAtDragStart.current = scrollYOffset.current;
         dragAutoScrollOffset.current = 0;
         draggingEventTile.current = true;
         lastFrameTime.current = new Date();
         lastDragPageY.current = gesture.nativeEvent.pageY;
         requestAnimationFrame(dragLoop);
+
+        // show virtual event tile and initialize its position
+        virtualEventTileRef.current?.show(eventID)
+        virtualEventTileRef.current?.setDragPosition(gesture.nativeEvent.pageX, gesture.nativeEvent.pageY);
     }
 
     function onTileDrag_cb(gesture: GestureResponderEvent) {
         lastDragPageY.current = gesture.nativeEvent.pageY;
+
+        virtualEventTileRef.current?.setDragPosition(gesture.nativeEvent.pageX, gesture.nativeEvent.pageY);
     }
 
-    function onTileDropped_cb(gesture: GestureResponderEvent, event: Event) {
+    function onTileDropped_cb(gesture: GestureResponderEvent, eventID: string) {
         draggingEventTile.current = false;
+        virtualEventTileRef.current?.hide();
 
         const visibleDays_CSR = visibleDays_closureSafeRef.current;
         const rowPlans_CSR = rowPlans_closureSafeRef.current;
 
         const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY });
         if (!overlappingRowDate) {
-            console.error('Could not find row overlapping drop position');
+            console.error('MainScreen -> onTileDropped_cb: Could not find row overlapping drop position');
             return;
         }
 
@@ -114,7 +124,7 @@ export default function MainScreen() {
 
         const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, gesture);
 
-        dispatch(changePlannedDate({eventID: event.id, plannedDate: overlappingRowDate, insertionIndex: insertionIndex}));
+        dispatch(changePlannedDate({ eventID: eventID, plannedDate: overlappingRowDate, insertionIndex: insertionIndex}));
     }
 
     function dragLoop() {
@@ -131,13 +141,12 @@ export default function MainScreen() {
         
         const scrollAmount = delta / 2;
 
-
-        if (lastDragPageY.current < height / 10) {
+        if (lastDragPageY.current < height * 0.1) {
             dragAutoScrollOffset.current -= scrollAmount;
             const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
             flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
         }
-        else if (lastDragPageY.current > height - (height / 10)) {
+        else if (lastDragPageY.current > height - (height * 0.1)) {
             dragAutoScrollOffset.current += scrollAmount;
             const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
             flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
@@ -146,8 +155,8 @@ export default function MainScreen() {
         requestAnimationFrame(dragLoop);
     }
 
-    function openEventTileContextMenu(selectedEvent: Event) {
-        const contextMenuPosition = getContextMenuPositionForEventTile(selectedEvent);
+    function openEventTileContextMenu(eventID: string) {
+        const contextMenuPosition = getContextMenuPositionForEventTile(eventID);
         if (!contextMenuPosition) {
             console.error(`MainScreen -> openEventTileContextMenu: Could not get context menu position`);
             return;
@@ -157,13 +166,13 @@ export default function MainScreen() {
             options: [
                 {
                     name: 'Edit',
-                    onPress: () => openEventEditor(selectedEvent),
+                    onPress: () => openEventEditor(eventID),
                     iconName: 'pencil',
                 },
                 {
                     name: 'Delete',
                     onPress: () => {
-                        deleteEvent(dispatch, selectedEvent.id);
+                        deleteEvent(dispatch, eventID);
                     },
                     iconName: 'trash',
                     color: '#d00',
@@ -175,11 +184,11 @@ export default function MainScreen() {
         contextMenuRef.current?.create(contextMenuDetails);
     }
 
-    function getContextMenuPositionForEventTile(event: Event) {
+    function getContextMenuPositionForEventTile(eventID: string) {
         const visibleDays_CSR = visibleDays_closureSafeRef.current;
         const rowPlans_CSR = rowPlans_closureSafeRef.current;
 
-        const eventPlan = getEventPlan(rowPlans_CSR, event.id);
+        const eventPlan = getEventPlan(rowPlans_CSR, eventID);
         if (!eventPlan) {
             console.error(`MainScreen -> getContextMenuPositionForEventTile: Could not get event plan`);
             return;
@@ -252,8 +261,8 @@ export default function MainScreen() {
         setEventCreatorVisible(true);
     }
 
-    function openEventEditor(editedEvent: Event) {
-        eventEditor_editedEvent.current = editedEvent;
+    function openEventEditor(eventID: string) {
+        eventEditor_editedEventID.current = eventID;
         setEventEditorVisible(true);
     }
 
@@ -291,8 +300,9 @@ export default function MainScreen() {
             <EventEditor
                 visible={eventEditorVisible}
                 onRequestClose={() => setEventEditorVisible(false)}
-                editedEvent={eventEditor_editedEvent.current}
+                editedEventID={eventEditor_editedEventID.current}
             />
+            <VirtualEventTile ref={virtualEventTileRef} />
             {/*<TestButton onPress={onTestButtonPressed} />*/}
         </View>
     );
