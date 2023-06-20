@@ -1,18 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Category, CategoryID } from "../../../../types/EventTypes";
-import { testCategories } from '../../../TestData';
 import { ColorValue } from 'react-native';
 
 export type CategoriesState = Category[];
 
 export const categoriesSlice = createSlice({
     name: 'categories',
-    initialState: /*testCategories*/[] as CategoriesState,
+    initialState: [] as CategoriesState,
     reducers: {
-        addCategory(state, action: PayloadAction<{ category: Category }>) {
+        add(state, action: PayloadAction<{ category: Category }>) {
             state.push(action.payload.category);
         },
-        removeCategory(state, action: PayloadAction<{ categoryID: CategoryID }>) {
+        remove(state, action: PayloadAction<{ categoryID: CategoryID }>) {
             // This will remove ALL categories matching the provided id
             for (let i = 0; i < state.length; i++) {
                 const category = state[i];
@@ -23,7 +22,7 @@ export const categoriesSlice = createSlice({
                 }
             }
         },
-        editCategory(state, action: PayloadAction<{ categoryID: CategoryID, newName?: string, newColor?: ColorValue }>) {
+        edit(state, action: PayloadAction<{ categoryID: CategoryID, newName?: string, newColor?: ColorValue }>) {
             const categoryIndex = state.findIndex(item => item.id === action.payload.categoryID);
             if (categoryIndex === -1) {
                 console.error(`categoriesSlice -> edit: Could not find category index`);
@@ -45,6 +44,6 @@ export function getCategoryFromID(categories: CategoriesState, categoryID: strin
     return categories.find(item => item.id == categoryID);
 }
 
-export const { addCategory, removeCategory, editCategory } = categoriesSlice.actions;
+export const categoriesActions = categoriesSlice.actions;
 
 export default categoriesSlice.reducer;

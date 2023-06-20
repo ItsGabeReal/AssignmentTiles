@@ -1,15 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { EventDetails, RowPlan } from "../../../../types/EventTypes";
-import { testRowPlans } from "../../../TestData";
 import DateYMD, { DateYMDHelpers } from '../../../DateYMD';
 
 export type RowPlansState = RowPlan[];
 
 export const rowPlansSlice = createSlice({
     name: 'rowPlans',
-    initialState: /*testRowPlans*/[] as RowPlansState,
+    initialState: [] as RowPlansState,
     reducers: {
-        insertEventInRowPlans(state, action: PayloadAction<{eventID: string, plannedDate: DateYMD, insertionIndex?: number}>) {
+        insertEvent(state, action: PayloadAction<{eventID: string, plannedDate: DateYMD, insertionIndex?: number}>) {
             _insertEventInRowPlans(
                 state,
                 action.payload.eventID,
@@ -17,7 +16,7 @@ export const rowPlansSlice = createSlice({
                 action.payload.insertionIndex
             );
         },
-        removeEventFromRowPlans(state, action: PayloadAction<{eventID: string}>) {
+        removeEvent(state, action: PayloadAction<{eventID: string}>) {
             const removeEventOutput = _removeEventFromRowPlans(state, action.payload.eventID);
             if (!removeEventOutput) {
                 console.warn('rowPlansSlice -> removeEventFromRowPlans: Could not remove event because no events match the provided id');
@@ -154,6 +153,6 @@ export function getInitialPlannedDateForEvent(event: EventDetails) {
     }
 }
 
-export const {insertEventInRowPlans, removeEventFromRowPlans, changePlannedDate} = rowPlansSlice.actions;
+export const rowPlansActions = rowPlansSlice.actions;
 
 export default rowPlansSlice.reducer;

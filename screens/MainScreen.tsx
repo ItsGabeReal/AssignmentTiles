@@ -9,6 +9,7 @@ import {
     NativeScrollEvent,
     TouchableOpacity,
     useWindowDimensions,
+    Platform,
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
@@ -29,12 +30,12 @@ import ContextMenuContainer, { ContextMenuContainerRef } from "../components/Con
 import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMenu";
 import TestButton from "../components/core/TestButton";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
-import { toggleEventComplete } from "../src/redux/features/events/eventsSlice";
-import { changePlannedDate, getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
-import { addDaysToBottom, addDaysToTop } from "../src/redux/features/visibleDays/visibleDaysSlice";
 import { deleteEvent } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/Ionicons';
 import VirtualEventTile, { VirtualEventTileRef } from "../components/VirtualEventTile";
+import { eventActions } from "../src/redux/features/events/eventsSlice";
+import { getEventPlan, rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
+import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
 
 export default function MainScreen() {
     const {height, width} = useWindowDimensions();
@@ -69,7 +70,7 @@ export default function MainScreen() {
     }, [visibleDays, rowPlans]);
 
     function onTilePressed_cb(gesture: GestureResponderEvent, eventID: string) {
-        dispatch(toggleEventComplete({eventID: eventID}));
+        dispatch(eventActions.toggleComplete({eventID}));
     }
 
     function onTileLongPressed_cb(gesture: GestureResponderEvent, eventID: string) {
@@ -85,12 +86,19 @@ export default function MainScreen() {
         contextMenuRef.current?.close();
 
         // auto scroll setup
-        scrollYOffsetAtDragStart.current = scrollYOffset.current;
-        dragAutoScrollOffset.current = 0;
-        draggingEventTile.current = true;
-        lastFrameTime.current = new Date();
-        lastDragPageY.current = gesture.nativeEvent.pageY;
-        requestAnimationFrame(dragLoop);
+        /**
+         * There's a bug on ios where calling scrolTo will terminate
+         * the dragged tile's panresponder, so for now, auto scrolling
+         * is disabled on ios.
+         */
+        if (Platform.OS !== 'ios') {
+            scrollYOffsetAtDragStart.current = scrollYOffset.current;
+            dragAutoScrollOffset.current = 0;
+            draggingEventTile.current = true;
+            lastFrameTime.current = new Date();
+            lastDragPageY.current = gesture.nativeEvent.pageY;
+            requestAnimationFrame(dragLoop);
+        }
 
         // show virtual event tile and initialize its position
         virtualEventTileRef.current?.show(eventID)
@@ -124,7 +132,7 @@ export default function MainScreen() {
 
         const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, gesture);
 
-        dispatch(changePlannedDate({ eventID: eventID, plannedDate: overlappingRowDate, insertionIndex: insertionIndex}));
+        dispatch(rowPlansActions.changePlannedDate({eventID, plannedDate: overlappingRowDate, insertionIndex}));
     }
 
     function dragLoop() {
@@ -249,11 +257,11 @@ export default function MainScreen() {
     }
 
     function onStartReached() {
-        dispatch(addDaysToTop({ numNewDays: 7, removeFromBottom: true}));
+        dispatch(visibleDaysActions.addDaysToTop({numNewDays: 7, removeFromBottom: true}))
     }
 
     function onEndReached() {
-        dispatch(addDaysToBottom({numNewDays: 7, removeFromTop: true}));
+        dispatch(visibleDaysActions.addDaysToBottom({numNewDays: 7, removeFromTop: true}));
     }
 
     function openEventCreator(initialDate?: DateYMD) {

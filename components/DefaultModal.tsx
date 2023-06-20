@@ -8,8 +8,6 @@ type DefaultModalProps = {
 
     children?: React.ReactNode;
 
-    keyboardAvoidingChildren?: React.ReactNode;
-
     onRequestClose?: (() => void);
 }
 
@@ -17,11 +15,11 @@ const DefaultModal: React.FC<DefaultModalProps> = (props) => {
     return (
         <>
             {Platform.OS == 'android' ?
-                <AndroidModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose} keyboardAvoidingChildren={props.keyboardAvoidingChildren}>
+                <AndroidModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose}>
                     {props.children}
                 </AndroidModal>
                 :
-                <IosModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose} keyboardAvoidingChildren={props.keyboardAvoidingChildren}>
+                <IosModal backgroundColor={'#222'} visible={props.visible} onRequestClose={props.onRequestClose}>
                     {props.children}
                 </IosModal>
             }

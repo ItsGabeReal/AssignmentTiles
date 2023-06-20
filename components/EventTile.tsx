@@ -11,6 +11,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { useAppSelector } from '../src/redux/hooks';
 import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
 import HideableView from './core/HideableView';
+import { nullEvnet } from '../src/EventHelpers';
 
 type EventTileProps = {
     eventID: string;
@@ -18,7 +19,7 @@ type EventTileProps = {
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
-    const event = useAppSelector(state => state.events.find(item => item.id === props.eventID)) || {details: {name: 'null', categoryID: null, dueDate: null}, completed: false, id: ''};
+    const event = useAppSelector(state => state.events.find(item => item.id === props.eventID)) || nullEvnet;
 
     const categories = useAppSelector(state => state.categories);
 

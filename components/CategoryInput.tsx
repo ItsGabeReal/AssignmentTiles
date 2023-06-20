@@ -18,7 +18,7 @@ import IosStyleButton from './core/IosStyleButton';
 import { Category } from '../types/EventTypes';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { useAppDispatch } from '../src/redux/hooks';
-import { addCategory, editCategory } from '../src/redux/features/categories/categoriesSlice';
+import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 
 const AVAILABLE_CATEGORY_COLORS: ColorValue[] = [
     '#f44',
@@ -81,7 +81,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 color: selectedColor,
                 id: Math.random().toString(),
             }
-            dispatch(addCategory({category: newCategory}));
+            dispatch(categoriesActions.add({category: newCategory}));
             
             props.onCategoryCreated?.(newCategory);
         }
@@ -90,7 +90,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 console.error(`CategoryInput/handleSubmit: Could not update category because edited category was not provided`);
                 return;
             }
-            dispatch(editCategory({categoryID: props.editedCategory.id, newName: nameInput, newColor: selectedColor}));
+            dispatch(categoriesActions.edit({ categoryID: props.editedCategory.id, newName: nameInput, newColor: selectedColor }));
         }
     }
     

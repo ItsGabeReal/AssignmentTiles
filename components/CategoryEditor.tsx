@@ -17,8 +17,8 @@ import { Category } from '../types/EventTypes';
 import Icon from 'react-native-vector-icons/Ionicons';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
-import { removeCategory } from '../src/redux/features/categories/categoriesSlice';
-import { removeCategoryFromEvents } from '../src/redux/features/events/eventsSlice';
+import { eventActions } from '../src/redux/features/events/eventsSlice';
+import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 
 export type CategoryEditorRef = {
     open: (() => void);
@@ -85,8 +85,8 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
     }
 
     function deleteCategory() {
-        dispatch(removeCategoryFromEvents({categoryID: props.category.id }));
-        dispatch(removeCategory({categoryID: props.category.id}));
+        dispatch(eventActions.removeCategory({categoryID: props.category.id }));
+        dispatch(categoriesActions.remove({categoryID: props.category.id}))
     }
 
     return (

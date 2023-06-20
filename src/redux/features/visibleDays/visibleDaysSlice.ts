@@ -64,6 +64,6 @@ function initializeVisibleDays() {
     return createArrayOfSequentialDates(startDate, totalDays) as VisibleDaysState;
 }
 
-export const { addDaysToBottom, addDaysToTop } = visibleDaysSlice.actions;
+export const visibleDaysActions = visibleDaysSlice.actions;
 
 export default visibleDaysSlice.reducer;

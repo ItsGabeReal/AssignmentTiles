@@ -3,7 +3,7 @@ import { Event, EventDetails } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
-import { editEvent } from "../src/redux/features/events/eventsSlice"
+import { eventActions } from "../src/redux/features/events/eventsSlice";
 
 type EventEditorProps = {
     visible: boolean;
@@ -23,10 +23,10 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
             return;
         }
         
-        dispatch(editEvent({
+        dispatch(eventActions.edit({
             eventID: props.editedEventID,
             newDetails: details,
-        }));
+        }))
     }
     
     return (

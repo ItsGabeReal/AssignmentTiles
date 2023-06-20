@@ -1,7 +1,7 @@
 import { Event, EventDetails } from "../types/EventTypes";
 import DateYMD from "./DateYMD";
-import { addEvent, removeEvent } from "./redux/features/events/eventsSlice";
-import { getInitialPlannedDateForEvent, insertEventInRowPlans, removeEventFromRowPlans } from "./redux/features/rowPlans/rowPlansSlice";
+import { eventActions } from "./redux/features/events/eventsSlice";
+import { getInitialPlannedDateForEvent, rowPlansActions } from "./redux/features/rowPlans/rowPlansSlice";
 import { AppDispatch } from "./redux/store";
 
 // A standardized way to create events and call the proper dispatches
@@ -12,14 +12,26 @@ export function createEvent(dispatch: AppDispatch, details: EventDetails, planne
         completed: false,
     }
 
-    dispatch(addEvent({ event: newEvent }));
+    dispatch(eventActions.add({event: newEvent}));
 
     const _plannedDate = plannedDate || getInitialPlannedDateForEvent(details);
-    dispatch(insertEventInRowPlans({ eventID: newEvent.id, plannedDate: _plannedDate }));
+    dispatch(rowPlansActions.insertEvent({ eventID: newEvent.id, plannedDate: _plannedDate }))
 }
 
 // Makes sure both dispatches get called when deleting an event.
 export function deleteEvent(dispatch: AppDispatch, eventID: string) {
-    dispatch(removeEventFromRowPlans({ eventID: eventID }));
-    dispatch(removeEvent({ eventID: eventID }));
+    dispatch(rowPlansActions.removeEvent({eventID}));
+    dispatch(eventActions.remove({eventID}));
+}
+
+export const nullEventDetails: EventDetails = {
+    name: 'null',
+    categoryID: null,
+    dueDate: null,
+}
+
+export const nullEvnet: Event = {
+    details: nullEventDetails,
+    completed: false,
+    id: '',
 }
