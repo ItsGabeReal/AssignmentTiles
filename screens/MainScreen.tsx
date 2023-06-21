@@ -11,10 +11,11 @@ import {
     useWindowDimensions,
     Platform,
 } from "react-native";
-import VisualSettings from "../src/VisualSettings";
+import Icon from 'react-native-vector-icons/Ionicons';
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
-import InfiniteScrollFlatList from "../components/core/InfiniteScrollFlatList";
 import { EventTileCallbacks } from "../types/EventTypes";
+import VisualSettings from "../src/VisualSettings";
+import { deleteEvent } from "../src/EventHelpers";
 import {
     getDayRowHeight,
     getDayRowYOffset,
@@ -23,16 +24,15 @@ import {
     getEventTileDimensions,
     getDayRowScreenYOffset,
 } from "../src/VisibleDaysHelpers";
+import InfiniteScrollFlatList from "../components/core/InfiniteScrollFlatList";
 import DayRow from "../components/DayRow";
 import EventCreator from "../components/EventCreator";
 import EventEditor from "../components/EventEditor";
 import ContextMenuContainer, { ContextMenuContainerRef } from "../components/ContextMenuContainer";
 import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMenu";
+import VirtualEventTile, { VirtualEventTileRef } from "../components/VirtualEventTile";
 import TestButton from "../components/core/TestButton";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
-import { deleteEvent } from "../src/EventHelpers";
-import Icon from 'react-native-vector-icons/Ionicons';
-import VirtualEventTile, { VirtualEventTileRef } from "../components/VirtualEventTile";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { getEventPlan, rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
@@ -101,7 +101,7 @@ export default function MainScreen() {
         }
 
         // show virtual event tile and initialize its position
-        virtualEventTileRef.current?.show(eventID)
+        virtualEventTileRef.current?.show(eventID);
         virtualEventTileRef.current?.setDragPosition(gesture.nativeEvent.pageX, gesture.nativeEvent.pageY);
     }
 
