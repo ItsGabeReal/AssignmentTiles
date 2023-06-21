@@ -1,7 +1,7 @@
 import React, { useContext } from "react"
 import { Event, EventDetails } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
-import DefaultModal from "./core/DefaultModal"
+import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 
