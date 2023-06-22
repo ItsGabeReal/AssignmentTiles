@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
-import InfiniteScrollFlatList from "../components/core/InfiniteScrollFlatList";
 import { EventTileCallbacks } from "../types/EventTypes";
 import {
     getDayRowHeight,
@@ -244,7 +243,7 @@ export default function MainScreen() {
         return <View style={styles.dayRowSeparater} />;
     }
 
-    function getItemLayout(data: DateYMD[] | null | undefined, index: number) {
+    function getItemLayout(data: ArrayLike<DateYMD> | null | undefined, index: number) {
         return ({
             length: getDayRowHeight(rowPlans, visibleDays[index]),
             offset: getDayRowYOffset(visibleDays, rowPlans, index),
@@ -257,11 +256,13 @@ export default function MainScreen() {
     }
 
     function onStartReached() {
-        dispatch(visibleDaysActions.addDaysToTop({numNewDays: 7, removeFromBottom: true}))
+        console.log('start reached')
+        dispatch(visibleDaysActions.addDaysToTop({numNewDays: 7, removeFromBottom: false}))
     }
 
     function onEndReached() {
-        dispatch(visibleDaysActions.addDaysToBottom({numNewDays: 7, removeFromTop: true}));
+        console.log('end reached')
+        dispatch(visibleDaysActions.addDaysToBottom({numNewDays: 7, removeFromTop: false}));
     }
 
     function openEventCreator(initialDate?: DateYMD) {
@@ -275,13 +276,12 @@ export default function MainScreen() {
     }
 
     function onTestButtonPressed() {
-        
     }
 
     return (
         <View style={styles.container}>
             <StatusBar backgroundColor={'#0008'} barStyle={"light-content"} translucent />
-            <InfiniteScrollFlatList
+            <FlatList
                 ref={flatListRef}
                 data={visibleDays}
                 keyExtractor={item => DateYMDHelpers.toString(item)}
@@ -292,8 +292,9 @@ export default function MainScreen() {
                 //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
                 onScroll={onScroll}
                 onStartReached={onStartReached}
+                onStartReachedThreshold={0.5}
                 onEndReached={onEndReached}
-                maintainVisibleContentPosition={{minIndexForVisible: 0}}
+                maintainVisibleContentPosition={{minIndexForVisible: 2}}
                 showsVerticalScrollIndicator={false}
             />
             <TouchableOpacity style={styles.addButton} onPress={() => openEventCreator()}>

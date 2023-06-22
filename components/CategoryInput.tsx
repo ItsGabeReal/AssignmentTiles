@@ -100,7 +100,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 <Text style={styles.title}>{inputMode == 'edit' ? 'Edit Category' : 'Create Category'}</Text>
             </View>
             <Text style={generalStyles.fieldDescription}>Name:</Text>
-            <TextInput value={nameInput} style={[generalStyles.parameterContainer, styles.textInput]} selectTextOnFocus autoFocus onChangeText={newText => setNameInput(newText)} />
+            <TextInput value={nameInput} style={generalStyles.parameterContainer} selectTextOnFocus autoFocus onChangeText={newText => setNameInput(newText)} />
             <Text style={generalStyles.fieldDescription}>Color:</Text>
             <View style={generalStyles.parameterContainer}>
                 <FlatList
@@ -140,11 +140,7 @@ const styles = StyleSheet.create({
         marginBottom: 15
     },
     title: {
-        color: 'white',
         fontWeight: 'bold',
-    },
-    textInput: {
-        color: 'white',
     },
     colorButton: {
         width: 40,

@@ -153,7 +153,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                         //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
                         onChangeText={setEventNameInput}
                         selectTextOnFocus
-                        style={[generalStyles.parameterContainer, { color: 'white' }]}
+                        style={[generalStyles.parameterContainer]}
                         keyboardAppearance='dark'
                     />
                     <Text style={generalStyles.fieldDescription}>Due:</Text>
@@ -181,28 +181,28 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 <PlatformSpecificDatePicker />
                             </View>
                             <View style={styles.repeatSwitchContainer}>
-                                <Text style={{ color: 'white' }}>Repeats:</Text>
+                                <Text>Repeats:</Text>
                                 <Switch value={repeatSwitchValue} onValueChange={setRepeatSwitchValue} style={{ marginLeft: 10 }} />
                             </View>
                             <HideableView hidden={!repeatSwitchValue}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={{ color: 'white' }}>Every </Text>
+                                    <Text>Every </Text>
                                     <NumberInput
                                         minimimValue={1}
                                         defaultValue={7}
                                         onChangeNumber={setRepeatValueInput}
                                         style={styles.numberInput}
                                     />
-                                    <Text style={{ color: 'white' }}> days</Text>
+                                    <Text> days</Text>
                                 </View>
                                 <View style={{ flexDirection: 'row', marginTop: 10, alignItems: 'center' }}>
-                                    <Text style={{ color: 'white' }}>End after </Text>
+                                    <Text>End after </Text>
                                     <NumberInput
                                         minimimValue={2}
                                         onChangeNumber={setRepeatRecurrences}
                                         style={styles.numberInput}
                                     />
-                                    <Text style={{ color: 'white' }}> recurrences</Text>
+                                    <Text> recurrences</Text>
                                 </View>
                             </HideableView>
                         </HideableView>
@@ -260,7 +260,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        color: 'white',
         fontSize: 20,
         fontWeight: 'bold',
     },
@@ -280,11 +279,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#8888',
         padding: 5,
         minWidth: 30,
-        color: 'white',
         textAlign: 'center',
     },
     androidPickerItem: {
-        backgroundColor: '#333',
+        //backgroundColor: '#333',
     },
     keyboardAttachedView: {
         flexDirection: 'row',
