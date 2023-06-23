@@ -175,6 +175,7 @@ export default function MainScreen() {
                     name: 'Edit',
                     onPress: () => openEventEditor(eventID),
                     iconName: 'pencil',
+                    color: 'black',
                 },
                 {
                     name: 'Delete',
@@ -257,12 +258,12 @@ export default function MainScreen() {
 
     function onStartReached() {
         console.log('start reached')
-        dispatch(visibleDaysActions.addDaysToTop({numNewDays: 7, removeFromBottom: false}))
+        dispatch(visibleDaysActions.addDaysToTop({numNewDays: 7}));
     }
 
     function onEndReached() {
         console.log('end reached')
-        dispatch(visibleDaysActions.addDaysToBottom({numNewDays: 7, removeFromTop: false}));
+        dispatch(visibleDaysActions.addDaysToBottom({numNewDays: 7}));
     }
 
     function openEventCreator(initialDate?: DateYMD) {
@@ -292,8 +293,9 @@ export default function MainScreen() {
                 //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
                 onScroll={onScroll}
                 onStartReached={onStartReached}
-                onStartReachedThreshold={0.5}
+                onStartReachedThreshold={1}
                 onEndReached={onEndReached}
+                onEndReachedThreshold={1}
                 maintainVisibleContentPosition={{minIndexForVisible: 2}}
                 showsVerticalScrollIndicator={false}
             />

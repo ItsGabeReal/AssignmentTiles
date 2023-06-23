@@ -19,6 +19,8 @@ import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
 import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
+import { textStyles } from '../src/GlobalStyles';
+import StdText from './StdText';
 
 export type CategoryEditorRef = {
     open: (() => void);
@@ -42,7 +44,7 @@ const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props
     return (
         <FloatingModal ref={floatingModalRef} style={styles.mainContainer}>
             <View style={styles.titleContainer}>
-                <Text style={styles.title}>Edit Categories:</Text>
+                <StdText>Edit Categories:</StdText>
             </View>
             <FlatList
                 data={categories}
@@ -50,7 +52,7 @@ const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props
                 ListEmptyComponent={() => {
                     return (
                         <View style={{ alignItems: 'center' }}>
-                            <Text style={{ color: '#8888', marginBottom: 5 }}>There are no categories.</Text>
+                            <StdText>There are no categories.</StdText>
                             <Button title='Create Category' />
                         </View>
                     )
@@ -93,7 +95,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
         <>
             <CategoryInput ref={categoryInputRef} mode='edit' editedCategory={props.category} />
             <TouchableOpacity onPress={() => categoryInputRef.current?.open()} style={styles.categoryListItemContainer}>
-                <Text style={{ color: props.category.color, fontSize: 16, marginRight: 'auto' }}>{props.category.name}</Text>
+                <StdText>{props.category.name}</StdText>
                 <TouchableOpacity onPress={showDeletionConfirmation} hitSlop={15}>
                     <Icon name='trash' color='red' size={20} />
                 </TouchableOpacity>

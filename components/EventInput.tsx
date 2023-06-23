@@ -16,12 +16,13 @@ import { CategoryID, EventDetails } from '../types/EventTypes';
 import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
-import generalStyles from '../src/GeneralStyles';
+import { generalStyles, textStyles } from '../src/GlobalStyles';
 import CategoryEditor from './CategoryEditor';
 import { useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
 import HideableView from './core/HideableView';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import StdText from './StdText';
 
 export type RepeatSettings = {
     valueType: RepeatValueType;
@@ -138,25 +139,24 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             <CategoryInput ref={categoryInputRef} onCategoryCreated={category => setSelectedCategory(category.id || 'none')} />
             <CategoryEditor ref={categoryEditorRef} />
             <View style={styles.mainContainer}>
-                {/*<CloseButton onPress={props.onRequestClose} hitSlop={10} size={26} color='white' style={{ position: 'absolute' }} />*/}
                 <View style={styles.titleContainer}>
-                    <Text style={styles.title}>{props.editingEvent ? 'Edit Assignment' : 'Create Assignment'}</Text>
+                    <StdText type='title'>{props.editingEvent ? 'Edit Assignment' : 'Create Assignment'}</StdText>
                 </View>
                 <ScrollView
                     style={styles.inputContainer}
                     //keyboardDismissMode='on-drag'
                 >
-                    <Text style={[generalStyles.fieldDescription, { fontWeight: 'bold' }]}>Name:</Text>
+                    <StdText style={generalStyles.fieldDescription}>Name:</StdText>
                     <TextInput
                         ref={eventNameInputRef}
                         defaultValue={props.initialName}
                         //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
                         onChangeText={setEventNameInput}
                         selectTextOnFocus
-                        style={[generalStyles.parameterContainer]}
+                        style={[generalStyles.parameterContainer, { color: 'white' }]}
                         keyboardAppearance='dark'
                     />
-                    <Text style={generalStyles.fieldDescription}>Due:</Text>
+                    <StdText style={generalStyles.fieldDescription}>Due:</StdText>
                     <View style={generalStyles.parameterContainer}>
                         <SegmentedControl
                             values={['None', 'Before Date']}
@@ -181,33 +181,33 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 <PlatformSpecificDatePicker />
                             </View>
                             <View style={styles.repeatSwitchContainer}>
-                                <Text>Repeats:</Text>
+                                <StdText>Repeats:</StdText>
                                 <Switch value={repeatSwitchValue} onValueChange={setRepeatSwitchValue} style={{ marginLeft: 10 }} />
                             </View>
                             <HideableView hidden={!repeatSwitchValue}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text>Every </Text>
+                                    <StdText>Every </StdText>
                                     <NumberInput
                                         minimimValue={1}
                                         defaultValue={7}
                                         onChangeNumber={setRepeatValueInput}
-                                        style={styles.numberInput}
+                                        style={generalStyles.numberInput}
                                     />
-                                    <Text> days</Text>
+                                    <StdText> days</StdText>
                                 </View>
                                 <View style={{ flexDirection: 'row', marginTop: 10, alignItems: 'center' }}>
-                                    <Text>End after </Text>
+                                    <StdText>End after </StdText>
                                     <NumberInput
                                         minimimValue={2}
                                         onChangeNumber={setRepeatRecurrences}
-                                        style={styles.numberInput}
+                                        style={generalStyles.numberInput}
                                     />
-                                    <Text> recurrences</Text>
+                                    <StdText> recurrences</StdText>
                                 </View>
                             </HideableView>
                         </HideableView>
                     </View>
-                    <Text style={generalStyles.fieldDescription}>Category:</Text>
+                    <StdText style={generalStyles.fieldDescription}>Category:</StdText>
                     <View style={[generalStyles.parameterContainer, { padding: 0, overflow: 'hidden' }]}>
                         <Picker
                             selectedValue={selectedCategory}
@@ -215,9 +215,9 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                             mode='dropdown'
                             dropdownIconColor='white'
                         >
-                            <Picker.Item key='none' label='None' value='none' color='#bbb' style={styles.androidPickerItem} />
+                            <Picker.Item key='none' label='None' value='none' color='#bbb' />
                             {categories.map(item => (
-                                <Picker.Item key={item.id} label={item.name} value={item.id} color={item.color} style={styles.androidPickerItem} />
+                                <Picker.Item key={item.id} label={item.name} value={item.id} color={item.color} />
                                 ))}
                         </Picker>
                     </View>
@@ -260,6 +260,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
+        color: 'white',
         fontSize: 20,
         fontWeight: 'bold',
     },
@@ -274,15 +275,6 @@ const styles = StyleSheet.create({
         marginTop: 15,
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    numberInput: {
-        backgroundColor: '#8888',
-        padding: 5,
-        minWidth: 30,
-        textAlign: 'center',
-    },
-    androidPickerItem: {
-        //backgroundColor: '#333',
     },
     keyboardAttachedView: {
         flexDirection: 'row',

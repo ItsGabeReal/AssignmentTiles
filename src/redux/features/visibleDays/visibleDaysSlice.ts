@@ -7,29 +7,21 @@ export const visibleDaysSlice = createSlice({
     name: 'visibleDays',
     initialState: initializeVisibleDays(),
     reducers: {
-        addDaysToBottom(state, action: PayloadAction<{numNewDays: number, removeFromTop?: boolean}>) {
+        addDaysToBottom(state, action: PayloadAction<{numNewDays: number}>) {
             const currentLastDate = state[state.length - 1];
             const startDate = DateYMDHelpers.addDays(currentLastDate, 1);
             const newDates = createArrayOfSequentialDates(startDate, action.payload.numNewDays);
 
             //state.days = [...days, ...newDates];
             arrayAppendAfter(state, newDates);
-
-            if (action.payload.removeFromTop === true) {
-                state.splice(0, action.payload.numNewDays);
-            }
         },
-        addDaysToTop(state, action: PayloadAction<{numNewDays: number, removeFromBottom?: boolean}>) {
+        addDaysToTop(state, action: PayloadAction<{numNewDays: number}>) {
             const currentFirstDate = state[0];
             const startDate = DateYMDHelpers.subtractDays(currentFirstDate, action.payload.numNewDays);
             const newDates = createArrayOfSequentialDates(startDate, action.payload.numNewDays);
 
             //state.days = [...newDates, ...days];
             arrayAppendBefore(state, newDates);
-
-            if (action.payload.removeFromBottom === true) {
-                state.length = state.length - action.payload.numNewDays;
-            }
         },
     },
 });

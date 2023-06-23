@@ -77,6 +77,7 @@ const NumberInput: React.FC<NumberInputProps> = (props) => {
                 onBlur?.(e);
             }}
             inputMode='numeric'
+            selectTextOnFocus
             {...otherProps}
         />
     )

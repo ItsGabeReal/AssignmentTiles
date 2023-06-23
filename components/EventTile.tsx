@@ -12,6 +12,8 @@ import { useAppSelector } from '../src/redux/hooks';
 import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
 import HideableView from './core/HideableView';
 import { nullEvnet } from '../src/EventHelpers';
+import { textStyles } from '../src/GlobalStyles';
+import StdText from './StdText';
 
 type EventTileProps = {
     eventID: string;
@@ -88,9 +90,9 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         <View style={styles.mainContainer}>
             <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
                 <View style={styles.contentContainer}>
-                    <Text style={styles.eventNameText}>{event.details.name}</Text>
+                    <StdText style={{ textAlign: 'center', fontWeight: 'bold' }}>{event.details.name}</StdText>
                     <HideableView hidden={event.details.dueDate === null}>
-                        <Text style={[styles.dueDateText, { color: getDueDateTextColor() }]}>{getDueDateText()}</Text>
+                        <StdText style={{ marginTop: 5, fontSize: 12, color: getDueDateTextColor() }}>{getDueDateText()}</StdText>
                     </HideableView>
                 </View>
             </View>
@@ -114,6 +116,7 @@ const styles = StyleSheet.create({
     contentContainer: {
         flex: 1,
         justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: '#0005',
         padding: 5,
     },
@@ -122,10 +125,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: 'bold',
         marginBottom: 5,
-    },
-    dueDateText: {
-        textAlign: 'center',
-        fontSize: 12,
     },
     checkmarkOverlayContainer: {
         position: 'absolute',

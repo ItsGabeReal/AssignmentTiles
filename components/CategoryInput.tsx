@@ -13,12 +13,13 @@ import {
     TouchableOpacity,
     ColorValue,
 } from 'react-native';
-import generalStyles from '../src/GeneralStyles';
+import { generalStyles, textStyles } from '../src/GlobalStyles';
 import IosStyleButton from './core/IosStyleButton';
 import { Category } from '../types/EventTypes';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { useAppDispatch } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
+import StdText from './StdText';
 
 const AVAILABLE_CATEGORY_COLORS: ColorValue[] = [
     '#f44',
@@ -97,11 +98,11 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     return (
         <FloatingModal ref={floatingModalRef} style={styles.popup}>
             <View style={styles.titleContainer}>
-                <Text style={styles.title}>{inputMode == 'edit' ? 'Edit Category' : 'Create Category'}</Text>
+                <StdText>{inputMode == 'edit' ? 'Edit Category' : 'Create Category'}</StdText>
             </View>
-            <Text style={generalStyles.fieldDescription}>Name:</Text>
+            <StdText>Name:</StdText>
             <TextInput value={nameInput} style={generalStyles.parameterContainer} selectTextOnFocus autoFocus onChangeText={newText => setNameInput(newText)} />
-            <Text style={generalStyles.fieldDescription}>Color:</Text>
+            <StdText>Color:</StdText>
             <View style={generalStyles.parameterContainer}>
                 <FlatList
                     data={AVAILABLE_CATEGORY_COLORS}

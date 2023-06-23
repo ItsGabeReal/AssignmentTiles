@@ -12,6 +12,8 @@ import VisualSettings from "../src/VisualSettings"
 import EventTile from './EventTile';
 import { useAppSelector } from "../src/redux/hooks";
 import InteractableEventTile from "./InteractableEventTile";
+import { textStyles } from "../src/GlobalStyles";
+import StdText from "./StdText";
 
 type DayRowProps = {
     date: DateYMD;
@@ -66,8 +68,8 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
                 <View style={[styles.dateTextContainer, {backgroundColor: (DateYMDHelpers.isToday(props.date) ? "#44a" : "#444")} ]}>
-                    <Text style={styles.dateText}>{DateYMDHelpers.dayNameAbrev(props.date)}</Text>
-                    <Text style={styles.dateText}>{DateYMDHelpers.monthNameAbrev(props.date)} {props.date.date}</Text>
+                    <StdText type="h2">{DateYMDHelpers.dayNameAbrev(props.date)}</StdText>
+                    <StdText>{DateYMDHelpers.monthNameAbrev(props.date)} {props.date.date}</StdText>
                 </View>
                 <View style={styles.eventsContainer}>
                     {renderEventList()}
@@ -88,9 +90,6 @@ const styles = StyleSheet.create({
         borderColor: '#aaa0',
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    dateText: {
-        color: '#fff',
     },
     eventsContainer: {
         flex: 1,

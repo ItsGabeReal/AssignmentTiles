@@ -12,6 +12,7 @@ import {
     Modal,
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";
+import StdText from './StdText';
 
 export type ContextMenuOptionDetails = {
     name: string;
@@ -82,7 +83,7 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
 
     return (
         <TouchableOpacity onPress={handlePress} style={styles.optionContainer}>
-            <Text style={{ color: props.details.color }}>{props.details.name}</Text>
+            <StdText style={{ color: props.details.color }}>{props.details.name}</StdText>
             <View style={styles.iconContainer}>
                 {drawIcon()}
             </View>
