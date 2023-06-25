@@ -7,9 +7,24 @@ import {
 } from 'react-native';
 
 type NumberInputProps = Omit<TextInputProps, 'value' | 'defaultValue' | 'onChangeText' | 'inputMode'> & {
+    /**
+     * Current value.
+     */
     value?: number;
+
+    /**
+     * Replaces the current value if it's invalid.
+     */
     defaultValue?: number;
+
+    /**
+     * Limits how low the value can be. onChangeNumber will not output a number lower than this.
+     */
     minimimValue?: number;
+
+    /**
+     * Called when the value is changed.
+     */
     onChangeNumber?: ((value: number) => void);
 };
 

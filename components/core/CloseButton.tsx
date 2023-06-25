@@ -3,6 +3,7 @@ import {
     ColorValue,
     TouchableOpacity,
     ViewStyle,
+    StyleProp,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -16,11 +17,20 @@ type CloseButtonProps = {
      */
     hitSlop?: number;
 
+    /**
+     * The size of the close icon.
+     */
     size?: number;
 
+    /**
+     * Color of the close icon.
+     */
     color?: ColorValue;
 
-    style?: ViewStyle;
+    /**
+     * Style of the TouchableOpacity component behind the close icon.
+     */
+    style?: StyleProp<ViewStyle>;
 
     onPress?: (() => void);
 }

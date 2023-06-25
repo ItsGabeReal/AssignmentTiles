@@ -1,17 +1,19 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle, MutableRefObject } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, MutableRefObject } from 'react';
 import ContextMenu, { ContextMenuDetails } from './ContextMenu';
 
 export type ContextMenuContainerRef = {
+    /**
+     * Opens the context menu and passes it the provided details.
+     */
     create: ((details: ContextMenuDetails) => void);
 
+    /**
+     * Close the context menu.
+     */
     close: (() => void);
 }
 
 type ContextMenuContainerProps = {
-    ref?:
-        | ((instance: ContextMenuContainerRef | null) => void)
-        | MutableRefObject<ContextMenuContainerRef | null>
-        | null
 }
 
 const emptyContextMenuDetails: ContextMenuDetails = {
@@ -37,11 +39,9 @@ const ContextMenuContainer = forwardRef<ContextMenuContainerRef, ContextMenuCont
         <ContextMenu
             visible={contextMenuVisible}
             details={menuDetails}
-            onClose={() => setContextMenuVisible(false)}
+            onRequestClose={() => setContextMenuVisible(false)}
         />
     );
-}) as unknown;
+});
 
-export default ContextMenuContainer as ContextMenuContainerType;
-
-type ContextMenuContainerType = (props: ContextMenuContainerProps) => React.ReactElement;
+export default ContextMenuContainer;

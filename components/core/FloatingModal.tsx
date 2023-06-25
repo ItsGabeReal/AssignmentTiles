@@ -13,7 +13,14 @@ import {
 } from 'react-native';
 
 export type FloatingModalRef = {
+    /**
+     * Shows the modal.
+     */
     open: (() => void);
+
+    /**
+     * Closes the modal.
+     */
     close: (() => void);
 }
 

@@ -1,26 +1,41 @@
 import React, { useState } from 'react';
 import {
-    View,
     Text,
     TouchableOpacity,
     StyleSheet,
     ViewStyle,
+    Appearance,
+    StyleProp,
 } from 'react-native';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 
 const MONTH_NAMES_ABREV = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 type AndroidCompactDatePickerProps = {
+
+    /**
+     * The current value.
+     */
     value?: Date;
 
+    /**
+     * Called when a new date is selected.
+     */
     onChange: ((newDate: Date) => void);
 
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
 
+    /**
+     * Override Android theme.
+     */
     themeVariant?: 'light' | 'dark';
 }
 
 const AndroidCompactDatePicker: React.FC<AndroidCompactDatePickerProps> = (props) => {
+    const {
+        themeVariant = Appearance.getColorScheme() || 'light'
+    } = props;
+
     const [dateInput, setDateInput] = useState(props.value || new Date());
 
     function onDateChanged(newDate?: Date) {
@@ -32,39 +47,23 @@ const AndroidCompactDatePicker: React.FC<AndroidCompactDatePickerProps> = (props
 
     function handleOnPress() {
         DateTimePickerAndroid.open({
-            value: dateInput,
+            value: props.value || dateInput,
             onChange: (event, date) => onDateChanged(date)
         });
     }
 
-    function getThemeTextColor() {
-        let useLightMode = true;
-
-        if (props.themeVariant) {
-            if (props.themeVariant == 'dark') useLightMode = false;
-            else if (props.themeVariant == 'light') useLightMode = true;
-            else {
-                console.error(`AndroidCompactDatePicker: ${props.themeVariant} is not a valid value for themeVariant. Must be either 'light' or 'dark'.`);
-            }
-        }
-
-        if (useLightMode) return 'black'
-        else return 'white'
+    function getDateText(date: Date) {
+        return `${MONTH_NAMES_ABREV[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
     }
 
     return (
-        <View pointerEvents='box-none' style={styles.mainContainer}>
-            <TouchableOpacity onPress={handleOnPress} style={[styles.dateTextContainer, props.style]}>
-                <Text style={{color: getThemeTextColor()}}>{MONTH_NAMES_ABREV[dateInput.getMonth()]} {dateInput.getDate()}, {dateInput.getFullYear()}</Text>
-            </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={handleOnPress} style={[styles.dateTextContainer, props.style]}>
+            <Text style={{ color: themeVariant === 'dark' ? 'white' : 'black' }}>{getDateText(props.value || dateInput)}</Text>
+        </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
-    mainContainer: {
-        alignItems: 'flex-end',
-    },
     dateTextContainer: {
         backgroundColor: '#8882',
         padding: 7,

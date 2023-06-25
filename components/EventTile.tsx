@@ -1,7 +1,6 @@
 import React, { memo } from 'react';
 import {
     StyleSheet,
-    Text,
     View,
     ColorValue,
 } from "react-native";
@@ -12,11 +11,17 @@ import { useAppSelector } from '../src/redux/hooks';
 import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
 import HideableView from './core/HideableView';
 import { nullEvnet } from '../src/EventHelpers';
-import { textStyles } from '../src/GlobalStyles';
 import StdText from './StdText';
 
 type EventTileProps = {
+    /**
+     * The id of the event this tile represents.
+     */
     eventID: string;
+
+    /**
+     * The date on which this event is scheduled.
+     */
     plannedDate: DateYMD;
 }
 

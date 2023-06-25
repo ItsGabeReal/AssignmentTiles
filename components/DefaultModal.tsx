@@ -8,6 +8,9 @@ type DefaultModalProps = {
 
     children?: React.ReactNode;
 
+    /**
+     * Called when the modal wants to close. Should set visible to false.
+     */
     onRequestClose?: (() => void);
 }
 

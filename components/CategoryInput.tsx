@@ -7,13 +7,12 @@ import React, {
 import {
     StyleSheet,
     View,
-    Text,
     TextInput,
     FlatList,
     TouchableOpacity,
     ColorValue,
 } from 'react-native';
-import { generalStyles, textStyles } from '../src/GlobalStyles';
+import { generalStyles } from '../src/GlobalStyles';
 import IosStyleButton from './core/IosStyleButton';
 import { Category } from '../types/EventTypes';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
@@ -32,12 +31,31 @@ const AVAILABLE_CATEGORY_COLORS: ColorValue[] = [
 ];
 
 export type CategoryInputRef = {
+    /**
+     * Shows the category input modal.
+     */
     open: (() => void);
 }
 
 type CategoryInputProps = {
+    /**
+     * Specifies the category input mode. If it's set to 'create',
+     * the submit button will create a new event. If it's set to
+     * 'edit', the category provided through editedCategory will be
+     * edited.
+     */
     mode?: 'create' | 'edit';
+
+    /**
+     * If mode is set to 'edit', the input fields will be autofilled
+     * from this category, and once submitted, this category ID will
+     * be edited.
+     */
     editedCategory?: Category;
+
+    /**
+     * Called when a new category is created.
+     */
     onCategoryCreated?: ((category: Category) => void);
 }
 
@@ -98,12 +116,12 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     return (
         <FloatingModal ref={floatingModalRef} style={styles.popup}>
             <View style={styles.titleContainer}>
-                <StdText>{inputMode == 'edit' ? 'Edit Category' : 'Create Category'}</StdText>
+                <StdText type='title'>{inputMode == 'edit' ? 'Edit Category' : 'Create Category'}</StdText>
             </View>
-            <StdText>Name:</StdText>
+            <StdText style={generalStyles.fieldDescription}>Name:</StdText>
             <TextInput value={nameInput} style={generalStyles.parameterContainer} selectTextOnFocus autoFocus onChangeText={newText => setNameInput(newText)} />
-            <StdText>Color:</StdText>
-            <View style={generalStyles.parameterContainer}>
+            <StdText style={generalStyles.fieldDescription}>Color:</StdText>
+            <View style={[generalStyles.parameterContainer, {alignItems: 'center'}]}>
                 <FlatList
                     data={AVAILABLE_CATEGORY_COLORS}
                     renderItem={({ item }) => {
@@ -148,6 +166,7 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 100,
         borderColor: 'white',
+        margin: 3,
     },
     submitButtonContainer: {
         marginTop: 10,

@@ -8,13 +8,24 @@ import EventTile from './EventTile';
 import VisualSettings from '../src/VisualSettings';
 
 export type VirtualEventTileRef = {
+    /**
+     * Sets the screen position of the center of the event tile.
+     */
     setDragPosition: ((pageX: number, pageY: number) => void);
+
+    /**
+     * Show the virtual evnet tile.
+     */
     show: ((eventID: string) => void);
+
+    /**
+     * Hides the virtual event tile.
+     */
     hide: (() => void);
 }
 
 type VirtualEventTileProps = {
-    //plannedDate: DateYMD;
+    //plannedDate: DateYMD; // <- This might get added back to display the correct due date text.
 }
 
 const VirtualEventTile = forwardRef<VirtualEventTileRef, VirtualEventTileProps>((props, ref) => {

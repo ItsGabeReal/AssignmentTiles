@@ -1,29 +1,37 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
     StyleSheet,
     ViewStyle,
     View,
-    Text,
     Pressable,
     TouchableOpacity,
     FlatList,
     ColorValue,
     Dimensions,
-    Modal,
+    BackHandler,
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";
 import StdText from './StdText';
 
 export type ContextMenuOptionDetails = {
+    /**
+     * The name of the option.
+     */
     name: string;
 
     /*
-    * Icon name from the react-native-vector-icons/Ionicons library.
+    * Icon name from the react-native-vector-icons/Ionicons library to appear next to the option name.
     */
     iconName?: string;
 
+    /**
+     * Color of the name text and icon.
+     */
     color?: ColorValue;
 
+    /**
+     * Callback for when this function is pressed.
+     */
     onPress: (() => void);
 }
 
@@ -45,23 +53,44 @@ export type ContextMenuPosition = {
 }
 
 export type ContextMenuDetails = {
+    /**
+     * A list of options that will appear in the context menu.
+     */
     options: ContextMenuOptionDetails[];
 
+    /**
+     * Position information for the dropdown.
+     */
     position: ContextMenuPosition;
 }
 
 type ContextMenuProps = {
+    /**
+     * The selectable options and position. Should be provided when the context menu is created.
+     */
     details: ContextMenuDetails;
 
+    /**
+     * Wether the context menu is shown or not.
+     */
     visible: boolean;
 
-    onClose: (() => void);
+    /**
+     * Callback for when the context menu wants to close. Should set visible state to false.
+     */
+    onRequestClose: (() => void);
 }
 
 type OptionComponentProps = {
+    /**
+     * Details about this context menu option.
+     */
     details: ContextMenuOptionDetails;
 
-    onClose: (() => void);
+    /**
+     * Called after the option is pressed, signaling the context menu to close.
+     */
+    onRequestClose: (() => void);
 }
 
 const CONTEXT_MENU_WIDTH = 100;
@@ -78,7 +107,7 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
 
     function handlePress() {
         props.details.onPress();
-        props.onClose();
+        props.onRequestClose();
     }
 
     return (
@@ -92,6 +121,19 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = (props) => {
+    useEffect(() => {
+        const backAction = () => {
+            if (!props.visible) return false; // Differ to the next back handler
+
+            props.onRequestClose?.();
+            return true;
+        }
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction); // Link back event to props.onClose()
+
+        return () => backHandler.remove(); // Cleanup function
+    }, [props.visible]);
+
     function getPositionStyleProps(): ViewStyle {
         const xPosition = props.details.position.x - CONTEXT_MENU_WIDTH / 2;
         const menuHeight = props.details.options.length * APPROXIMATE_CONTEXT_MENU_OPTION_HEIGHT;
@@ -112,31 +154,22 @@ const ContextMenu: React.FC<ContextMenuProps> = (props) => {
         }
     }
 
-    return (
-        <Modal
-            animationType='none'
-            visible={props.visible}
-            transparent
-            onRequestClose={props.onClose}
-        >
-            <Pressable style={styles.pressOutContainer} onPress={props.onClose}>
+    if (props.visible) {
+        return (
+            <Pressable style={StyleSheet.absoluteFill} onPress={props.onRequestClose}>
                 <View style={[styles.listBackground, styles.dropShadow, getPositionStyleProps()]}>
                     <FlatList<ContextMenuOptionDetails>
                         data={props.details.options}
-                        renderItem={({ item }) => <OptionComponent details={item} onClose={props.onClose} />}
+                        renderItem={({ item }) => <OptionComponent details={item} onRequestClose={props.onRequestClose} />}
                         ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
                     />
                 </View>
             </Pressable>
-        </Modal>
-    );
+        );
+    } else return (<></>);
 }
 
 const styles = StyleSheet.create({
-    pressOutContainer: {
-        width: '100%',
-        height: '100%',
-    },
     listBackground: {
         backgroundColor: '#f4f4f4',
         width: CONTEXT_MENU_WIDTH,

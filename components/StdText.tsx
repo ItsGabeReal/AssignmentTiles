@@ -11,6 +11,9 @@ import {
 import { textStyles } from '../src/GlobalStyles';
 
 export type StdTextProps = TextProps & {
+    /**
+     * Style of text.
+     */
     type?: 'title' | 'h1' | 'h2' | 'h3' | 'p';
 }
 

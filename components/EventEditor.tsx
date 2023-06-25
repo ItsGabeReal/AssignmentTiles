@@ -1,21 +1,28 @@
-import React, { useContext } from "react"
-import { Event, EventDetails } from "../types/EventTypes"
+import React from "react"
+import { EventDetails } from "../types/EventTypes"
 import EventInputModal from "./EventInput"
 import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { eventActions } from "../src/redux/features/events/eventsSlice";
+import { nullEventDetails } from "../src/EventHelpers";
 
 type EventEditorProps = {
     visible: boolean;
 
+    /**
+     * The event ID of the event to be edited.
+     */
     editedEventID?: string;
 
+    /**
+     * When the modal wants to close. Should set visible to false.
+     */
     onRequestClose: (() => void);
 }
 
 const EventEditor: React.FC<EventEditorProps> = (props) => {
     const dispatch = useAppDispatch();
-    const editedEventDetails = useAppSelector(state => state.events.find(item => item.id === props.editedEventID)?.details) || {name: 'null', categoryID: null, dueDate: null};
+    const editedEventDetails = useAppSelector(state => state.events.find(item => item.id === props.editedEventID)?.details) || nullEventDetails;
 
     function handleOnSubmit(details: EventDetails) {
         if (!props.editedEventID) {
@@ -33,7 +40,7 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
         <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
             <EventInputModal
                 visible={props.visible}
-                editingEvent
+                mode='edit'
                 initialName={editedEventDetails.name}
                 initialDueDate={editedEventDetails.dueDate}
                 initialCategoryID={editedEventDetails.categoryID}

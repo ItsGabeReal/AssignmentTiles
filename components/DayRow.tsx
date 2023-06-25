@@ -1,7 +1,6 @@
 import React, { memo } from "react";
 import {
     StyleSheet,
-    Text,
     View,
     TouchableOpacity,
     GestureResponderEvent,
@@ -9,15 +8,24 @@ import {
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import { EventTileCallbacks } from "../types/EventTypes";
 import VisualSettings from "../src/VisualSettings"
-import EventTile from './EventTile';
 import { useAppSelector } from "../src/redux/hooks";
 import InteractableEventTile from "./InteractableEventTile";
-import { textStyles } from "../src/GlobalStyles";
 import StdText from "./StdText";
 
 type DayRowProps = {
+    /**
+     * The date this row represents.
+     */
     date: DateYMD;
+
+    /**
+     * Called when the row is pressed.
+     */
     onPress?: ((gesture: GestureResponderEvent, rowDate: DateYMD) => void);
+
+    /**
+     * Callbacks to pass down to EventTile's in this row.
+     */
     eventTileCallbacks: EventTileCallbacks;
 }
 

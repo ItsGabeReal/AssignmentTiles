@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     StyleSheet,
     View,
-    Text,
     Button,
     TextInput,
     ScrollView,
@@ -16,7 +15,7 @@ import { CategoryID, EventDetails } from '../types/EventTypes';
 import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
-import { generalStyles, textStyles } from '../src/GlobalStyles';
+import { generalStyles } from '../src/GlobalStyles';
 import CategoryEditor from './CategoryEditor';
 import { useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
@@ -25,8 +24,19 @@ import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import StdText from './StdText';
 
 export type RepeatSettings = {
+    /**
+     * Defines the unit of time in value property.
+     */
     valueType: RepeatValueType;
+
+    /**
+     * The quantity of time units as defined by the valueType property.
+     */
     value: number;
+
+    /**
+     * Number of times the event should occur.
+     */
     recurrences: number;
 }
 
@@ -35,18 +45,36 @@ export type RepeatValueType = 'days' | 'weeks' | 'months';
 type DueType = 'none' | 'before-date';
 
 type EventInputProps = {
+    /**
+     * The name to be autofilled when the component is created.
+     */
     initialName?: string;
-    
+
+    /**
+     * The due date to be autofilled when the component is created.
+     */
     initialDueDate?: DateYMD | null;
 
+    /**
+     * The id of the category to be autofilled when the component is created.
+     */
     initialCategoryID?: CategoryID;
+
+    /**
+     * Changes the visuals and behavior of text input.
+    */
+    mode: 'create' | 'edit';
+    
+    /**
+        * Called when the event is submitted (created or edited).
+    */
+    onSubmit: ((eventDetails: EventDetails, repeatSettings: RepeatSettings | null) => void);
 
     visible: boolean;
 
-    editingEvent?: boolean;
-
-    onSubmit: ((eventDetails: EventDetails, repeatSettings: RepeatSettings | null) => void);
-
+    /**
+     * Called when the modal wants to close. Should set visible to false.
+     */
     onRequestClose: (() => void);
 }
 
@@ -68,12 +96,12 @@ const EventInput: React.FC<EventInputProps> = (props) => {
     const categoryEditorRef = useRef<CategoryInputRef | null>(null);
     
     useEffect(() => {
-        /* 
-        * There's a bug on android where enabling autofocus on text
-        * inputs doesn't automatically show the keyboard.
-        * This fixes that.
-        */
-        if (!props.editingEvent) {
+        if (props.mode !== 'edit') {
+            /*
+            * There's a bug on android where enabling autofocus on text
+            * inputs doesn't automatically show the keyboard.
+            * This fixes that.
+            */
             setTimeout(() => { eventNameInputRef.current?.focus(); }, 75);
         }
     }, []);
@@ -140,7 +168,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             <CategoryEditor ref={categoryEditorRef} />
             <View style={styles.mainContainer}>
                 <View style={styles.titleContainer}>
-                    <StdText type='title'>{props.editingEvent ? 'Edit Assignment' : 'Create Assignment'}</StdText>
+                    <StdText type='title'>{props.mode === 'edit' ? 'Edit Assignment' : 'Create Assignment'}</StdText>
                 </View>
                 <ScrollView
                     style={styles.inputContainer}
@@ -237,7 +265,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                 </View>
                 <View style={styles.actionContainer}>
                     <IosStyleButton
-                        title={props.editingEvent ? 'Save' : 'Create'}
+                        title={props.mode === 'edit' ? 'Save' : 'Create'}
                         textStyle={{...styles.actionText, fontWeight: 'bold'}}
                         onPress={onSubmit}
                         disabled={!readyToSubmit()}

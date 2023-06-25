@@ -5,6 +5,10 @@ import {
 } from 'react-native';
 
 type HideableViewProps = ViewProps & {
+    /**
+     * When true, this view will collapse to a width and height
+     * of 0, and overflow is hidden.
+     */
     hidden?: boolean;
 };
 

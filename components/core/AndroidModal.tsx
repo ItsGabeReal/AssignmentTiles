@@ -16,6 +16,9 @@ type AndroidModalProps = {
 
     backgroundColor?: ColorValue;
 
+    /**
+     * Called when the modal wants to close. This should set the visible state to false.
+     */
     onRequestClose?: (() => void);
 }
 

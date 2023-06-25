@@ -6,7 +6,6 @@ import React, {
 import {
     StyleSheet,
     View,
-    Text,
     Button,
     FlatList,
     Alert,
@@ -19,15 +18,16 @@ import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
 import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
-import { textStyles } from '../src/GlobalStyles';
 import StdText from './StdText';
 
 export type CategoryEditorRef = {
+    /**
+     * Open category editor modal.
+     */
     open: (() => void);
 }
 
 type CategoryEditorProps = {
-
 }
 
 const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props, ref) => {
@@ -44,7 +44,7 @@ const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props
     return (
         <FloatingModal ref={floatingModalRef} style={styles.mainContainer}>
             <View style={styles.titleContainer}>
-                <StdText>Edit Categories:</StdText>
+                <StdText type='title' style={{marginVertical: 15}}>Edit Categories:</StdText>
             </View>
             <FlatList
                 data={categories}
@@ -58,6 +58,7 @@ const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props
                     )
                 }}
                 ItemSeparatorComponent={() => <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: '#8888' }} />}
+                style={{backgroundColor: '#0004'}}
             />
         </FloatingModal>
     )
@@ -95,8 +96,8 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
         <>
             <CategoryInput ref={categoryInputRef} mode='edit' editedCategory={props.category} />
             <TouchableOpacity onPress={() => categoryInputRef.current?.open()} style={styles.categoryListItemContainer}>
-                <StdText>{props.category.name}</StdText>
-                <TouchableOpacity onPress={showDeletionConfirmation} hitSlop={15}>
+                <StdText style={{color: props.category.color}}>{props.category.name}</StdText>
+                <TouchableOpacity style={{marginLeft: 'auto'}} onPress={showDeletionConfirmation} hitSlop={15}>
                     <Icon name='trash' color='red' size={20} />
                 </TouchableOpacity>
             </TouchableOpacity>

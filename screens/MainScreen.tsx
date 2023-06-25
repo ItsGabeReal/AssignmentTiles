@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import {
     StyleSheet,
     View,
@@ -40,14 +40,19 @@ export default function MainScreen() {
     const {height, width} = useWindowDimensions();
 
     const dispatch = useAppDispatch();
+
     const visibleDays = useAppSelector(state => state.visibleDays);
+    const visibleDays_closureSafeRef = useRef(visibleDays);
+    visibleDays_closureSafeRef.current = visibleDays;
+
     const rowPlans = useAppSelector(state => state.rowPlans);
+    const rowPlans_closureSafeRef = useRef(rowPlans);
+    rowPlans_closureSafeRef.current = rowPlans;
 
     const [eventCreatorVisible, setEventCreatorVisible] = useState(false);
     const [eventEditorVisible, setEventEditorVisible] = useState(false);
 
-    const visibleDays_closureSafeRef = useRef(visibleDays);
-    const rowPlans_closureSafeRef = useRef(rowPlans);
+
     const scrollYOffset = useRef(0);
     const eventCreator_initialDate = useRef<DateYMD>();
     const eventEditor_editedEventID = useRef('');
@@ -62,11 +67,6 @@ export default function MainScreen() {
     const dragAutoScrollOffset = useRef(0);
     const scrollYOffsetAtDragStart = useRef(0);
 
-
-    useEffect(() => {
-        visibleDays_closureSafeRef.current = visibleDays;
-        rowPlans_closureSafeRef.current = rowPlans;
-    }, [visibleDays, rowPlans]);
 
     function onTilePressed_cb(gesture: GestureResponderEvent, eventID: string) {
         dispatch(eventActions.toggleComplete({eventID}));
@@ -289,7 +289,7 @@ export default function MainScreen() {
                 renderItem={renderItem}
                 ItemSeparatorComponent={DayRowSeparater}
                 getItemLayout={getItemLayout}
-                initialScrollIndex={visibleDays.findIndex(item => DateYMDHelpers.isToday(item))}
+                initialScrollIndex={visibleDays.findIndex(item => DateYMDHelpers.isToday(item)) - 1}
                 //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
                 onScroll={onScroll}
                 onStartReached={onStartReached}

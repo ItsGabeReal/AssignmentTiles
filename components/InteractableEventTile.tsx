@@ -12,8 +12,19 @@ import { EventTileCallbacks } from '../types/EventTypes';
 import EventTile from './EventTile';
 
 type InteractableEventTileProps = {
+    /**
+     * The if of the event this tile represents.
+     */
     eventID: string;
+
+    /**
+     * The date on which this event is scheduled.
+     */
     plannedDate: DateYMD;
+
+    /**
+     * Callbacks to MainScreen to alert it when events occur.
+     */
     eventTileCallbacks: EventTileCallbacks;
 }
 

@@ -9,10 +9,20 @@ import { createEvent } from "../src/EventHelpers";
 type EventCreatorProps = {
     visible: boolean;
 
+    /**
+     * The value due date will be set to when visible is
+     * set to true.
+     */
     initialDueDate?: DateYMD;
 
+    /**
+     * Called when the modal wants to close. Should set visible to false.
+     */
     onRequestClose: (() => void);
 
+    /**
+     * Called when a new event is created.
+     */
     onEventCreated?: ((createdEvent: Event) => void);
 }
 
@@ -47,6 +57,7 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
         <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
             <EventInput
                 visible={props.visible}
+                mode='create'
                 initialName={lastUsedName.current}
                 initialDueDate={props.initialDueDate}
                 initialCategoryID={lastUsedCategory.current}
