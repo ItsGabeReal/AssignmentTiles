@@ -3,7 +3,7 @@ import { CategoryID, Event, EventDetails } from "../types/EventTypes"
 import EventInput, { RepeatSettings } from "./EventInput"
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
-import { useAppDispatch } from '../src/redux/hooks';
+import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { createEvent } from "../src/EventHelpers";
 
 type EventCreatorProps = {
@@ -28,9 +28,7 @@ type EventCreatorProps = {
 
 const EventCreator: React.FC<EventCreatorProps> = (props) => {
     const dispatch = useAppDispatch();
-
-    const lastUsedName = useRef('');
-    const lastUsedCategory = useRef<CategoryID>(null);
+    const memorizedEventInput = useAppSelector(state => state.memorizedInput.eventInput);
 
     function onSubmit(details: EventDetails, repeatSettings: RepeatSettings | null) {
         if (repeatSettings) {
@@ -48,9 +46,6 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
         else {
             createEvent(dispatch, details, props.initialDueDate);
         }
-
-        lastUsedName.current = details.name;
-        lastUsedCategory.current = details.categoryID;
     }
 
     return (
@@ -58,9 +53,9 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
             <EventInput
                 visible={props.visible}
                 mode='create'
-                initialName={lastUsedName.current}
+                initialName={memorizedEventInput.name}
                 initialDueDate={props.initialDueDate}
-                initialCategoryID={lastUsedCategory.current}
+                initialCategoryID={memorizedEventInput.categoryID}
                 onRequestClose={props.onRequestClose}
                 onSubmit={onSubmit}
             />

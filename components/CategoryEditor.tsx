@@ -6,7 +6,6 @@ import React, {
 import {
     StyleSheet,
     View,
-    Button,
     FlatList,
     Alert,
     TouchableOpacity,
@@ -44,7 +43,7 @@ const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props
     return (
         <FloatingModal ref={floatingModalRef} style={styles.mainContainer}>
             <View style={styles.titleContainer}>
-                <StdText type='title' style={{marginVertical: 15}}>Edit Categories:</StdText>
+                <StdText type='title' style={{ marginVertical: 15 }}>Edit Categories:</StdText>
             </View>
             <FlatList
                 data={categories}
@@ -52,19 +51,21 @@ const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props
                 ListEmptyComponent={() => {
                     return (
                         <View style={{ alignItems: 'center' }}>
-                            <StdText>There are no categories.</StdText>
-                            <Button title='Create Category' />
+                            <StdText style={{marginTop: 10, color: '#888'}}>There are no categories.</StdText>
                         </View>
                     )
                 }}
                 ItemSeparatorComponent={() => <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: '#8888' }} />}
-                style={{backgroundColor: '#0004'}}
+                style={{ backgroundColor: '#0004' }}
             />
         </FloatingModal>
     )
 });
 
 type CategoryListItemProps = {
+    /**
+     * The category this list item represents.
+     */
     category: Category;
 }
 const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {

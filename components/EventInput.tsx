@@ -15,13 +15,15 @@ import { CategoryID, EventDetails } from '../types/EventTypes';
 import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
-import { generalStyles } from '../src/GlobalStyles';
+import { generalStyles, textStyles } from '../src/GlobalStyles';
 import CategoryEditor from './CategoryEditor';
-import { useAppSelector } from '../src/redux/hooks';
+import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
 import HideableView from './core/HideableView';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import StdText from './StdText';
+import { memorizedInputActions } from '../src/redux/features/memorizedInput/memorizedInputSlice';
+import TextInputWithClearButton from './core/TextInputWithClearButton';
 
 export type RepeatSettings = {
     /**
@@ -80,6 +82,7 @@ type EventInputProps = {
 
 const EventInput: React.FC<EventInputProps> = (props) => {
     const categories = useAppSelector(state => state.categories);
+    const dispatch = useAppDispatch();
 
     const [eventNameInput, setEventNameInput] = useState(props.initialName || '');
     const [selectedDueTypeIndex, setSelectedDueTypeIndex] = useState(props.initialDueDate != null ? 1 : 0);
@@ -102,7 +105,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             * inputs doesn't automatically show the keyboard.
             * This fixes that.
             */
-            setTimeout(() => { eventNameInputRef.current?.focus(); }, 75);
+            setTimeout(() => { eventNameInputRef.current?.focus(); }, 100);
         }
     }, []);
 
@@ -159,12 +162,14 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             }
 
             props.onSubmit(details, repeatSwitchValue ? repeatSettings : null);
+
+            dispatch(memorizedInputActions.updateMemorizedEventInput({name: details.name, categoryID: details.categoryID}));
         }
     }
 
     return (
         <>
-            <CategoryInput ref={categoryInputRef} onCategoryCreated={category => setSelectedCategory(category.id || 'none')} />
+            <CategoryInput ref={categoryInputRef} mode='create' onCategoryCreated={category => setSelectedCategory(category.id || 'none')} />
             <CategoryEditor ref={categoryEditorRef} />
             <View style={styles.mainContainer}>
                 <View style={styles.titleContainer}>
@@ -172,16 +177,19 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                 </View>
                 <ScrollView
                     style={styles.inputContainer}
-                    //keyboardDismissMode='on-drag'
+                    keyboardDismissMode='on-drag'
+                    keyboardShouldPersistTaps="handled"
                 >
                     <StdText style={generalStyles.fieldDescription}>Name:</StdText>
-                    <TextInput
+                    <TextInputWithClearButton
                         ref={eventNameInputRef}
                         defaultValue={props.initialName}
                         //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
                         onChangeText={setEventNameInput}
-                        selectTextOnFocus
-                        style={[generalStyles.parameterContainer, { color: 'white' }]}
+                        selectTextOnFocus={props.mode !== 'edit'} // Don't autoselect text in edit mode
+                        textInputStyle={[textStyles.p, {padding: 0}]}
+                        containerStyle={generalStyles.parameterContainer}
+                        closeButtonColor='white'
                         keyboardAppearance='dark'
                     />
                     <StdText style={generalStyles.fieldDescription}>Due:</StdText>

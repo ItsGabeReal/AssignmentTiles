@@ -3,6 +3,7 @@ import categoriesSlice from "./features/categories/categoriesSlice";
 import eventsReducer from './features/events/eventsSlice';
 import rowPlansSlice from "./features/rowPlans/rowPlansSlice";
 import visibleDaysSlice from "./features/visibleDays/visibleDaysSlice";
+import memorizedInputSlice from "./features/memorizedInput/memorizedInputSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistReducer, persistStore } from "redux-persist";
 import thunk from 'redux-thunk';
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
     events: eventsReducer,
     rowPlans: rowPlansSlice,
     visibleDays: visibleDaysSlice,
+    memorizedInput: memorizedInputSlice,
 });
 
 const persistConfig = {

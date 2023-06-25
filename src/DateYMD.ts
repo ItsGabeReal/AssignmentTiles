@@ -33,15 +33,20 @@ export namespace DateYMDHelpers {
 
     export function isToday(date: DateYMD) {
         const today = new Date();
-        return date.year == today.getFullYear()
-            && date.month == (today.getMonth() + 1)
-            && date.date == today.getDate();
+        return date.year === today.getFullYear()
+            && date.month === (today.getMonth() + 1)
+            && date.date === today.getDate();
     }
 
-    export function datesEqual(dateA: DateYMD, dateB: DateYMD) {
-        return dateA.year == dateB.year
-            && dateA.month == dateB.month
-            && dateA.date == dateB.date;
+    export function datesEqual(dateA: DateYMD | null | undefined, dateB: DateYMD | null | undefined) {
+        // If one if the dates is undfined, return true if either they're both null, or both undefined.
+        if (!dateA || !dateB) {
+            return (dateA === null && dateB === null) || (dateA === undefined && dateB === undefined);
+        }
+
+        return dateA.year === dateB.year
+            && dateA.month === dateB.month
+            && dateA.date === dateB.date;
     }
 
     export function daysBefore(date: DateYMD, comparedDate: DateYMD) {

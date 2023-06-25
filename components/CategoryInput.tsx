@@ -7,18 +7,18 @@ import React, {
 import {
     StyleSheet,
     View,
-    TextInput,
     FlatList,
     TouchableOpacity,
     ColorValue,
 } from 'react-native';
-import { generalStyles } from '../src/GlobalStyles';
+import { generalStyles, textStyles } from '../src/GlobalStyles';
 import IosStyleButton from './core/IosStyleButton';
 import { Category } from '../types/EventTypes';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { useAppDispatch } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 import StdText from './StdText';
+import TextInputWithClearButton from './core/TextInputWithClearButton';
 
 const AVAILABLE_CATEGORY_COLORS: ColorValue[] = [
     '#f44',
@@ -32,7 +32,7 @@ const AVAILABLE_CATEGORY_COLORS: ColorValue[] = [
 
 export type CategoryInputRef = {
     /**
-     * Shows the category input modal.
+     * Opens the category input modal.
      */
     open: (() => void);
 }
@@ -44,7 +44,7 @@ type CategoryInputProps = {
      * 'edit', the category provided through editedCategory will be
      * edited.
      */
-    mode?: 'create' | 'edit';
+    mode: 'create' | 'edit';
 
     /**
      * If mode is set to 'edit', the input fields will be autofilled
@@ -67,13 +67,11 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
 
     const floatingModalRef = useRef<FloatingModalRef | null>(null);
 
-    const inputMode = props.mode || 'create';
-
     useImperativeHandle(ref, () => ({
         open() {
             floatingModalRef.current?.open();
             
-            if (inputMode == 'edit') {
+            if (props.mode === 'edit') {
                 if (!props.editedCategory) {
                     console.error(`CategoryInput/open: No edited category provided in edit mode`);
                     return;
@@ -94,7 +92,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     function handleSubmit() {
         floatingModalRef.current?.close();
 
-        if (inputMode == 'create') {
+        if (props.mode === 'create') {
             const newCategory = {
                 name: nameInput,
                 color: selectedColor,
@@ -116,10 +114,17 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     return (
         <FloatingModal ref={floatingModalRef} style={styles.popup}>
             <View style={styles.titleContainer}>
-                <StdText type='title'>{inputMode == 'edit' ? 'Edit Category' : 'Create Category'}</StdText>
+                <StdText type='title'>{props.mode === 'edit' ? 'Edit Category' : 'Create Category'}</StdText>
             </View>
             <StdText style={generalStyles.fieldDescription}>Name:</StdText>
-            <TextInput value={nameInput} style={generalStyles.parameterContainer} selectTextOnFocus autoFocus onChangeText={newText => setNameInput(newText)} />
+            <TextInputWithClearButton
+                value={nameInput}
+                textInputStyle={[textStyles.p, { padding: 0 }]}
+                containerStyle={generalStyles.parameterContainer}
+                selectTextOnFocus
+                autoFocus
+                onChangeText={newText => setNameInput(newText)}
+            />
             <StdText style={generalStyles.fieldDescription}>Color:</StdText>
             <View style={[generalStyles.parameterContainer, {alignItems: 'center'}]}>
                 <FlatList
@@ -136,10 +141,11 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                         );
                     }}
                     numColumns={5}
+                    keyboardShouldPersistTaps='handled'
                 />
             </View>
             <View style={styles.submitButtonContainer}>
-                <IosStyleButton title={inputMode == 'edit' ? 'Save' : 'Create'} textStyle={{fontWeight: 'bold', fontSize: 20}} disabled={!readyToSubmit()} onPress={handleSubmit} />
+                <IosStyleButton title={props.mode === 'edit' ? 'Save' : 'Create'} textStyle={{fontWeight: 'bold', fontSize: 20}} disabled={!readyToSubmit()} onPress={handleSubmit} />
             </View>
         </FloatingModal>
     );

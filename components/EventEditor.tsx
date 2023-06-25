@@ -5,6 +5,8 @@ import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { nullEventDetails } from "../src/EventHelpers";
+import { DateYMDHelpers } from "../src/DateYMD";
+import { rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
 
 type EventEditorProps = {
     visible: boolean;
@@ -29,11 +31,17 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
             console.error(`Initial edited event was null. Event editor has no idea what event it's supposed to edit.`);
             return;
         }
+
+        // Change planned date if the due date updated
+        const dueDateChanged = !DateYMDHelpers.datesEqual(editedEventDetails.dueDate, details.dueDate);
+        if (dueDateChanged && details.dueDate !== null) {
+            dispatch(rowPlansActions.changePlannedDate({eventID: props.editedEventID, plannedDate: details.dueDate}));
+        }
         
         dispatch(eventActions.edit({
             eventID: props.editedEventID,
             newDetails: details,
-        }))
+        }));
     }
     
     return (
