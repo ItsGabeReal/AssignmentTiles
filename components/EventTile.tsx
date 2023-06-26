@@ -2,16 +2,17 @@ import React, { memo } from 'react';
 import {
     StyleSheet,
     View,
+    Text,
     ColorValue,
 } from "react-native";
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import VisualSettings from '../src/VisualSettings';
-import Icon from "react-native-vector-icons/Ionicons";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
 import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
 import HideableView from './core/HideableView';
 import { nullEvnet } from '../src/EventHelpers';
-import StdText from './StdText';
+import { colors, fontSizes } from '../src/GlobalStyles';
 
 type EventTileProps = {
     /**
@@ -54,19 +55,6 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         return outputColorValue;
     }
 
-    function getDueDateTextColor() {
-        if (daysPlannedBeforeDue != undefined) {
-            if (daysPlannedBeforeDue > 0) {
-                return '#0f0';
-            }
-            else if (daysPlannedBeforeDue < 0) {
-                return '#f00';
-            }
-        }
-
-        return '#fff';
-    }
-
     function getDueDateText() {
         if (daysPlannedBeforeDue != undefined) {
             if (daysPlannedBeforeDue > 0) {
@@ -86,7 +74,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     function checkmark() {
         return (
             <View style={styles.checkmarkOverlayContainer}>
-                <Icon name='ios-checkmark' size={60} color='#0d0' />
+                <Icon name='check' size={60} color='#0d0' />
             </View>
         );
     }
@@ -94,10 +82,10 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     return (
         <View style={styles.mainContainer}>
             <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
-                <View style={styles.contentContainer}>
-                    <StdText style={{ textAlign: 'center', fontWeight: 'bold' }}>{event.details.name}</StdText>
+                <View style={styles.colorDimmer}>
+                    <Text style={styles.eventNameText}>{event.details.name}</Text>
                     <HideableView hidden={event.details.dueDate === null}>
-                        <StdText style={{ marginTop: 5, fontSize: 12, color: getDueDateTextColor() }}>{getDueDateText()}</StdText>
+                        <Text style={styles.dueDateText}>{getDueDateText()}</Text>
                     </HideableView>
                 </View>
             </View>
@@ -118,18 +106,23 @@ const styles = StyleSheet.create({
     tileBackground: {
         flex: 1,
     },
-    contentContainer: {
+    colorDimmer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#0005',
+        backgroundColor: '#0004',
         padding: 5,
     },
     eventNameText: {
-        color: '#fff',
+        color: 'white',
         textAlign: 'center',
         fontWeight: 'bold',
+        fontSize: fontSizes.p,
         marginBottom: 5,
+    },
+    dueDateText: {
+        fontSize: fontSizes.small,
+        color: '#fff8',
     },
     checkmarkOverlayContainer: {
         position: 'absolute',

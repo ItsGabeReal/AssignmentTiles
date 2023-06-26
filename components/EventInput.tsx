@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     StyleSheet,
     View,
+    Text,
     Button,
     TextInput,
     ScrollView,
@@ -15,15 +16,14 @@ import { CategoryID, EventDetails } from '../types/EventTypes';
 import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
-import { generalStyles, textStyles } from '../src/GlobalStyles';
 import CategoryEditor from './CategoryEditor';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
 import HideableView from './core/HideableView';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
-import StdText from './StdText';
 import { memorizedInputActions } from '../src/redux/features/memorizedInput/memorizedInputSlice';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
+import { colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 
 export type RepeatSettings = {
     /**
@@ -173,27 +173,26 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             <CategoryEditor ref={categoryEditorRef} />
             <View style={styles.mainContainer}>
                 <View style={styles.titleContainer}>
-                    <StdText type='title'>{props.mode === 'edit' ? 'Edit Assignment' : 'Create Assignment'}</StdText>
+                    <Text style={styles.title}>{props.mode === 'edit' ? 'Edit Assignment' : 'Create Assignment'}</Text>
                 </View>
                 <ScrollView
                     style={styles.inputContainer}
                     keyboardDismissMode='on-drag'
                     keyboardShouldPersistTaps="handled"
                 >
-                    <StdText style={generalStyles.fieldDescription}>Name:</StdText>
+                    <Text style={globalStyles.fieldDescription}>Name:</Text>
                     <TextInputWithClearButton
                         ref={eventNameInputRef}
                         defaultValue={props.initialName}
                         //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
                         onChangeText={setEventNameInput}
                         selectTextOnFocus={props.mode !== 'edit'} // Don't autoselect text in edit mode
-                        textInputStyle={[textStyles.p, {padding: 0}]}
-                        containerStyle={generalStyles.parameterContainer}
-                        closeButtonColor='white'
+                        textInputStyle={styles.eventNameInput}
+                        containerStyle={globalStyles.parameterContainer}
                         keyboardAppearance='dark'
                     />
-                    <StdText style={generalStyles.fieldDescription}>Due:</StdText>
-                    <View style={generalStyles.parameterContainer}>
+                    <Text style={globalStyles.fieldDescription}>Due:</Text>
+                    <View style={globalStyles.parameterContainer}>
                         <SegmentedControl
                             values={['None', 'Before Date']}
                             selectedIndex={selectedDueTypeIndex}
@@ -217,34 +216,34 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 <PlatformSpecificDatePicker />
                             </View>
                             <View style={styles.repeatSwitchContainer}>
-                                <StdText>Repeats:</StdText>
+                                <Text style={styles.regularText}>Repeats:</Text>
                                 <Switch value={repeatSwitchValue} onValueChange={setRepeatSwitchValue} style={{ marginLeft: 10 }} />
                             </View>
                             <HideableView hidden={!repeatSwitchValue}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <StdText>Every </StdText>
+                                <View style={styles.horizontalContainer}>
+                                    <Text style={styles.regularText}>Every </Text>
                                     <NumberInput
                                         minimimValue={1}
                                         defaultValue={7}
                                         onChangeNumber={setRepeatValueInput}
-                                        style={generalStyles.numberInput}
+                                        style={globalStyles.numberInput}
                                     />
-                                    <StdText> days</StdText>
+                                    <Text style={styles.regularText}> days</Text>
                                 </View>
-                                <View style={{ flexDirection: 'row', marginTop: 10, alignItems: 'center' }}>
-                                    <StdText>End after </StdText>
+                                <View style={styles.horizontalContainerWithMargin}>
+                                    <Text style={styles.regularText}>End after </Text>
                                     <NumberInput
                                         minimimValue={2}
                                         onChangeNumber={setRepeatRecurrences}
-                                        style={generalStyles.numberInput}
+                                        style={globalStyles.numberInput}
                                     />
-                                    <StdText> recurrences</StdText>
+                                    <Text style={styles.regularText}> occurrences</Text>
                                 </View>
                             </HideableView>
                         </HideableView>
                     </View>
-                    <StdText style={generalStyles.fieldDescription}>Category:</StdText>
-                    <View style={[generalStyles.parameterContainer, { padding: 0, overflow: 'hidden' }]}>
+                    <Text style={globalStyles.fieldDescription}>Category:</Text>
+                    <View style={[globalStyles.parameterContainer, { padding: 0, overflow: 'hidden' }]}>
                         <Picker
                             selectedValue={selectedCategory}
                             onValueChange={setSelectedCategory}
@@ -296,12 +295,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        color: 'white',
-        fontSize: 20,
+        color: colors.text,
+        fontSize: fontSizes.title,
         fontWeight: 'bold',
     },
     inputContainer: {
         flex: 1,
+    },
+    eventNameInput: {
+        fontSize: fontSizes.p,
+        color: colors.text,
+        padding: 0,
     },
     dueDateContainer: {
         flexDirection: 'row',
@@ -311,6 +315,19 @@ const styles = StyleSheet.create({
         marginTop: 15,
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    regularText: {
+        fontSize: fontSizes.p,
+        color: colors.text,
+    },
+    horizontalContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    horizontalContainerWithMargin: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10,
     },
     keyboardAttachedView: {
         flexDirection: 'row',
@@ -324,7 +341,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     actionText: {
-        fontSize: 20,
+        fontSize: fontSizes.h2,
     }
 });
 

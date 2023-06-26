@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import {
     StyleSheet,
     View,
+    Text,
     TouchableOpacity,
     GestureResponderEvent,
 } from "react-native";
@@ -10,7 +11,7 @@ import { EventTileCallbacks } from "../types/EventTypes";
 import VisualSettings from "../src/VisualSettings"
 import { useAppSelector } from "../src/redux/hooks";
 import InteractableEventTile from "./InteractableEventTile";
-import StdText from "./StdText";
+import { colors, fontSizes } from "../src/GlobalStyles";
 
 type DayRowProps = {
     /**
@@ -75,11 +76,11 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
-                <View style={[styles.dateTextContainer, {backgroundColor: (DateYMDHelpers.isToday(props.date) ? "#44a" : "#444")} ]}>
-                    <StdText type="h2">{DateYMDHelpers.dayNameAbrev(props.date)}</StdText>
-                    <StdText>{DateYMDHelpers.monthNameAbrev(props.date)} {props.date.date}</StdText>
+                <View style={[styles.dateTextContainer, {backgroundColor: (DateYMDHelpers.isToday(props.date) ? colors.todayL2 : colors.l2)} ]}>
+                    <Text style={styles.dayNameText}>{DateYMDHelpers.dayNameAbrev(props.date)}</Text>
+                    <Text style={styles.dateText}>{DateYMDHelpers.monthNameAbrev(props.date)} {props.date.date}</Text>
                 </View>
-                <View style={styles.eventsContainer}>
+                <View style={[styles.eventsContainer, {backgroundColor: (DateYMDHelpers.isToday(props.date) ? colors.todayL1 : colors.l1)} ]}>
                     {renderEventList()}
                 </View>
             </View>
@@ -95,9 +96,16 @@ const styles = StyleSheet.create({
     },
     dateTextContainer: {
         width: VisualSettings.DayRow.dateTextContainer.width,
-        borderColor: '#aaa0',
-        justifyContent: 'center',
-        alignItems: 'center',
+        padding: 8,
+    },
+    dayNameText: {
+        fontSize: fontSizes.title,
+        color: colors.text,
+        fontWeight: 'bold',
+    },
+    dateText: {
+        fontSize: fontSizes.h3,
+        color: '#fff8'
     },
     eventsContainer: {
         flex: 1,

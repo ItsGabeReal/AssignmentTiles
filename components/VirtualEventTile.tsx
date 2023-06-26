@@ -3,7 +3,7 @@ import {
     StyleSheet,
     Animated,
 } from 'react-native';
-import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
+import { DateYMDHelpers } from '../src/DateYMD';
 import EventTile from './EventTile';
 import VisualSettings from '../src/VisualSettings';
 

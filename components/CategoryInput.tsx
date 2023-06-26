@@ -7,28 +7,17 @@ import React, {
 import {
     StyleSheet,
     View,
+    Text,
     FlatList,
     TouchableOpacity,
-    ColorValue,
 } from 'react-native';
-import { generalStyles, textStyles } from '../src/GlobalStyles';
 import IosStyleButton from './core/IosStyleButton';
 import { Category } from '../types/EventTypes';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { useAppDispatch } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
-import StdText from './StdText';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
-
-const AVAILABLE_CATEGORY_COLORS: ColorValue[] = [
-    '#f44',
-    '#f84',
-    '#ff4',
-    '#4f4',
-    '#4ff',
-    '#48f',
-    '#a4f',
-];
+import { categoryColorPalette, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 
 export type CategoryInputRef = {
     /**
@@ -63,7 +52,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     const dispatch = useAppDispatch();
     
     const [nameInput, setNameInput] = useState('');
-    const [selectedColor, setSelectedColor] = useState(AVAILABLE_CATEGORY_COLORS[0]);
+    const [selectedColor, setSelectedColor] = useState(categoryColorPalette[0]);
 
     const floatingModalRef = useRef<FloatingModalRef | null>(null);
 
@@ -114,21 +103,21 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     return (
         <FloatingModal ref={floatingModalRef} style={styles.popup}>
             <View style={styles.titleContainer}>
-                <StdText type='title'>{props.mode === 'edit' ? 'Edit Category' : 'Create Category'}</StdText>
+                <Text style={styles.title}>{props.mode === 'edit' ? 'Edit Category' : 'Create Category'}</Text>
             </View>
-            <StdText style={generalStyles.fieldDescription}>Name:</StdText>
+            <Text style={globalStyles.fieldDescription}>Name:</Text>
             <TextInputWithClearButton
                 value={nameInput}
-                textInputStyle={[textStyles.p, { padding: 0 }]}
-                containerStyle={generalStyles.parameterContainer}
+                textInputStyle={styles.inputText}
+                containerStyle={globalStyles.parameterContainer}
                 selectTextOnFocus
                 autoFocus
                 onChangeText={newText => setNameInput(newText)}
             />
-            <StdText style={generalStyles.fieldDescription}>Color:</StdText>
-            <View style={[generalStyles.parameterContainer, {alignItems: 'center'}]}>
+            <Text style={globalStyles.fieldDescription}>Color:</Text>
+            <View style={styles.colorPaletteContainer}>
                 <FlatList
-                    data={AVAILABLE_CATEGORY_COLORS}
+                    data={categoryColorPalette}
                     renderItem={({ item }) => {
                         return (
                             <TouchableOpacity
@@ -140,12 +129,12 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                             />
                         );
                     }}
-                    numColumns={5}
+                    numColumns={4}
                     keyboardShouldPersistTaps='handled'
                 />
             </View>
             <View style={styles.submitButtonContainer}>
-                <IosStyleButton title={props.mode === 'edit' ? 'Save' : 'Create'} textStyle={{fontWeight: 'bold', fontSize: 20}} disabled={!readyToSubmit()} onPress={handleSubmit} />
+                <IosStyleButton title={props.mode === 'edit' ? 'Save' : 'Done'} textStyle={styles.submitButton} disabled={!readyToSubmit()} onPress={handleSubmit} />
             </View>
         </FloatingModal>
     );
@@ -156,16 +145,25 @@ const styles = StyleSheet.create({
         width: 300,
         padding: 15,
         borderRadius: 10,
-        backgroundColor: '#222',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#888'
+        backgroundColor: colors.l1,
     },
     titleContainer: {
         alignItems: 'center',
         marginBottom: 15
     },
     title: {
+        fontSize: fontSizes.title,
         fontWeight: 'bold',
+        color: colors.text,
+    },
+    inputText: {
+        padding: 0,
+        fontSize: fontSizes.p,
+        color: colors.text,
+    },
+    colorPaletteContainer: {
+        ...globalStyles.parameterContainer,
+        alignItems: 'center',
     },
     colorButton: {
         width: 40,
@@ -177,6 +175,10 @@ const styles = StyleSheet.create({
     submitButtonContainer: {
         marginTop: 10,
         alignItems: 'center',
+    },
+    submitButton: {
+        fontSize: fontSizes.h1,
+        fontWeight: 'bold',
     }
 });
 

@@ -11,7 +11,7 @@ import {
     TextStyle,
     Pressable,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export type TextInputWithClearButtonProps = Omit<TextInputProps, 'style' | 'clearButtonMode'> & {
     /**
@@ -47,7 +47,7 @@ export type TextInputWithClearButtonProps = Omit<TextInputProps, 'style' | 'clea
 const TextInputWithClearButton = forwardRef<TextInput, TextInputWithClearButtonProps>((props, parentRef) => {
     const {
         closeButtonSize = 16,
-        closeButtonColor,
+        closeButtonColor = 'white',
         closeButtonHitSlop = 20,
         textInputStyle,
         containerStyle,

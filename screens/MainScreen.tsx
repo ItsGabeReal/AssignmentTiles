@@ -30,11 +30,12 @@ import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMe
 import TestButton from "../components/core/TestButton";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
 import { deleteEvent } from "../src/EventHelpers";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import VirtualEventTile, { VirtualEventTileRef } from "../components/VirtualEventTile";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { getEventPlan, rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
+import { colors } from "../src/GlobalStyles";
 
 export default function MainScreen() {
     const {height, width} = useWindowDimensions();
@@ -174,15 +175,15 @@ export default function MainScreen() {
                 {
                     name: 'Edit',
                     onPress: () => openEventEditor(eventID),
-                    iconName: 'pencil',
-                    color: 'black',
+                    iconName: 'edit',
+                    color: colors.text,
                 },
                 {
                     name: 'Delete',
                     onPress: () => {
                         deleteEvent(dispatch, eventID);
                     },
-                    iconName: 'trash',
+                    iconName: 'delete',
                     color: '#d00',
                 },
             ],
@@ -321,12 +322,12 @@ export default function MainScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#222",
+        backgroundColor: colors.l0,
         flex: 1
     },
     addButton: {
         position: 'absolute',
-        width: 70, 
+        width: 70,
         height: 70,
         right: 15,
         bottom: 15,
@@ -336,7 +337,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     dayRowSeparater: {
-        backgroundColor: '#666',
         height: VisualSettings.App.dayRowSeparater.height,
         zIndex: 1,
     }

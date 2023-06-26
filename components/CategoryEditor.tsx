@@ -6,18 +6,19 @@ import React, {
 import {
     StyleSheet,
     View,
+    Text,
     FlatList,
     Alert,
     TouchableOpacity,
 } from 'react-native';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { Category } from '../types/EventTypes';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
 import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
-import StdText from './StdText';
+import { colors, fontSizes } from '../src/GlobalStyles';
 
 export type CategoryEditorRef = {
     /**
@@ -43,20 +44,19 @@ const CategoryEditor = forwardRef<CategoryEditorRef, CategoryEditorProps>((props
     return (
         <FloatingModal ref={floatingModalRef} style={styles.mainContainer}>
             <View style={styles.titleContainer}>
-                <StdText type='title' style={{ marginVertical: 15 }}>Edit Categories:</StdText>
+                <Text style={styles.title}>Edit Categories:</Text>
             </View>
             <FlatList
                 data={categories}
                 renderItem={({ item }) => <CategoryListItem category={item} />}
                 ListEmptyComponent={() => {
                     return (
-                        <View style={{ alignItems: 'center' }}>
-                            <StdText style={{marginTop: 10, color: '#888'}}>There are no categories.</StdText>
+                        <View style={styles.emptyListMessageContainer}>
+                            <Text style={styles.emptyListMessage}></Text>
                         </View>
                     )
                 }}
                 ItemSeparatorComponent={() => <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: '#8888' }} />}
-                style={{ backgroundColor: '#0004' }}
             />
         </FloatingModal>
     )
@@ -97,7 +97,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
         <>
             <CategoryInput ref={categoryInputRef} mode='edit' editedCategory={props.category} />
             <TouchableOpacity onPress={() => categoryInputRef.current?.open()} style={styles.categoryListItemContainer}>
-                <StdText style={{color: props.category.color}}>{props.category.name}</StdText>
+                <Text style={[styles.categoryText, {color: props.category.color}]}>{props.category.name}</Text>
                 <TouchableOpacity style={{marginLeft: 'auto'}} onPress={showDeletionConfirmation} hitSlop={15}>
                     <Icon name='trash' color='red' size={20} />
                 </TouchableOpacity>
@@ -111,23 +111,33 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         width: 250,
         height: 300,
-        backgroundColor: '#222',
+        backgroundColor: colors.l1,
         borderRadius: 15,
-        borderColor: '#888',
-        borderWidth: StyleSheet.hairlineWidth,
     },
     titleContainer: {
         alignItems: 'center',
     },
     title: {
         fontWeight: 'bold',
-        marginTop: 15,
-        marginBottom: 20,
+        marginVertical: 15,
+        fontSize: fontSizes.title,
+        color: colors.text,
+    },
+    emptyListMessageContainer: {
+        alignItems: 'center'
+    },
+    emptyListMessage: {
+        marginTop: 10,
+        color: colors.dimText,
+        fontSize: fontSizes.p,
     },
     categoryListItemContainer: {
         flexDirection: 'row',
         padding: 15,
         alignItems: 'center',
+    },
+    categoryText: {
+        fontSize: fontSizes.p,
     },
 });
 

@@ -44,7 +44,7 @@ export function getDayRowAtScreenPosition(visibleDays: DateYMD[], rowPlans: RowP
     for (let i = 0; i < visibleDays.length; i++) {
         const rowScreenYOffset = getDayRowScreenYOffset(visibleDays, rowPlans, scrollYOffset, i);
         const rowHeight = getDayRowHeight(rowPlans, visibleDays[i]);
-        if (screenPosition.y > rowScreenYOffset && screenPosition.y < rowScreenYOffset + rowHeight) {
+        if (screenPosition.y < rowScreenYOffset + rowHeight) {
             return visibleDays[i];
         }
     }

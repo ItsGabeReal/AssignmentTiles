@@ -34,7 +34,6 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     const listeningToMoveEvents = useRef(false);
     const panResponderGranted = useRef(false);
     const draggingEnabled = useRef(false);
-    const [hidden, setHidden] = useState(false);
 
     const panResponder = useRef(
         PanResponder.create({

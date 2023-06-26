@@ -1,18 +1,16 @@
-import { StyleSheet } from "react-native";
-
 const VisualSettings = {
     App: {
         dayRowSeparater: {
-            height: StyleSheet.hairlineWidth,
+            height: 5,
         },
     },
     DayRow: {
         dateTextContainer: {
-            width: 80,
+            width: 70,
         },
         flatListContainer: {
-            paddingLeft: 5,
-            paddingTop: 5,
+            paddingLeft: 8,
+            paddingTop: 8,
         },
         numEventTileColumns: 3,
     },
@@ -20,8 +18,8 @@ const VisualSettings = {
         mainContainer: {
             height: 90,
             width: 90,
-            marginRight: 5,
-            marginBottom: 5,
+            marginRight: 8,
+            marginBottom: 8,
         },
     },
 }

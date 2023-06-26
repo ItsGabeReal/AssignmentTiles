@@ -1,4 +1,9 @@
 {
   "name": "AssignmentTiles",
-  "displayName": "AssignmentTiles"
+  "displayName": "AssignmentTiles",
+  "extra": {
+    "eas": {
+      "projectId": "fa1420b4-794d-4bee-b54d-dc883f337b78"
+    }
+  }
 }

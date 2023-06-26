@@ -3,6 +3,7 @@ import {
     StyleSheet,
     ViewStyle,
     View,
+    Text,
     Pressable,
     TouchableOpacity,
     FlatList,
@@ -10,9 +11,8 @@ import {
     Dimensions,
     BackHandler,
 } from 'react-native';
-import Icon from "react-native-vector-icons/Ionicons";
-import StdText from './StdText';
-
+import Icon from "react-native-vector-icons/MaterialIcons";
+import { colors, fontSizes } from '../src/GlobalStyles';
 export type ContextMenuOptionDetails = {
     /**
      * The name of the option.
@@ -20,7 +20,7 @@ export type ContextMenuOptionDetails = {
     name: string;
 
     /*
-    * Icon name from the react-native-vector-icons/Ionicons library to appear next to the option name.
+    * Icon name from the react-native-vector-icons/MaterialIcons library to appear next to the option name.
     */
     iconName?: string;
 
@@ -93,7 +93,7 @@ type OptionComponentProps = {
     onRequestClose: (() => void);
 }
 
-const CONTEXT_MENU_WIDTH = 100;
+const CONTEXT_MENU_WIDTH = 90;
 const APPROXIMATE_CONTEXT_MENU_OPTION_HEIGHT = 40; // paddingTop (10) + iconSize (20) + paddingBottom (10)
 
 const OptionComponent: React.FC<OptionComponentProps> = (props) => {
@@ -112,7 +112,7 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
 
     return (
         <TouchableOpacity onPress={handlePress} style={styles.optionContainer}>
-            <StdText style={{ color: props.details.color }}>{props.details.name}</StdText>
+            <Text style={[styles.optionText, { color: props.details.color }]}>{props.details.name}</Text>
             <View style={styles.iconContainer}>
                 {drawIcon()}
             </View>
@@ -157,43 +157,35 @@ const ContextMenu: React.FC<ContextMenuProps> = (props) => {
     if (props.visible) {
         return (
             <Pressable style={StyleSheet.absoluteFill} onPress={props.onRequestClose}>
-                <View style={[styles.listBackground, styles.dropShadow, getPositionStyleProps()]}>
-                    <FlatList<ContextMenuOptionDetails>
-                        data={props.details.options}
-                        renderItem={({ item }) => <OptionComponent details={item} onRequestClose={props.onRequestClose} />}
-                        ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
-                    />
-                </View>
+                <FlatList<ContextMenuOptionDetails>
+                    data={props.details.options}
+                    renderItem={({ item }) => <OptionComponent details={item} onRequestClose={props.onRequestClose} />}
+                    style={[styles.mainContainer, getPositionStyleProps()]}
+                />
             </Pressable>
         );
     } else return (<></>);
 }
 
 const styles = StyleSheet.create({
-    listBackground: {
-        backgroundColor: '#f4f4f4',
+    mainContainer: {
         width: CONTEXT_MENU_WIDTH,
-        borderRadius: 10,
-    },
-    dropShadow: {
-        shadowRadius: 10,
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
     },
     optionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 10,
+        borderRadius: 8,
+        marginTop: 5,
+        backgroundColor: colors.l4,
+    },
+    optionText: {
+        fontSize: fontSizes.p,
+        fontWeight: 'bold',
     },
     iconContainer: {
         flex: 1,
         alignItems: 'flex-end',
-    },
-    itemSeparator: {
-        borderColor: '#888',
-        borderBottomWidth: StyleSheet.hairlineWidth,
     },
 });
 
