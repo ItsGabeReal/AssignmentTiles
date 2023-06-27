@@ -1,4 +1,8 @@
-import {StyleSheet, ColorValue} from 'react-native';
+import {
+    StyleSheet,
+    ColorValue,
+    Appearance,
+} from 'react-native';
 
 export const fontSizes = {
     title: 22,
@@ -9,7 +13,19 @@ export const fontSizes = {
     small: 10,
 };
 
-export const colors = {
+export type ColorScheme = {
+    l0: ColorValue;
+    l1: ColorValue;
+    l2: ColorValue;
+    l3: ColorValue;
+    l4: ColorValue;
+    todayL1: ColorValue;
+    todayL2: ColorValue;
+    dimText: ColorValue;
+    text: ColorValue;
+}
+
+const darkTheme: ColorScheme = {
     l0: '#101010',
     l1: '#202020', todayL1: '#002448',
     l2: '#303030', todayL2: '#0066CD',
@@ -18,6 +34,18 @@ export const colors = {
     dimText: '#A0A0A0',
     text: 'white',
 }
+
+const lightTheme: ColorScheme = {
+    l0: '#c0c0c0',
+    l1: '#d0d0d0', todayL1: '#81BFFF',
+    l2: '#e0e0e0', todayL2: '#A7D4FF',
+    l3: '#f0f0f0',
+    l4: '#ffffff',
+    dimText: '#808080',
+    text: 'black',
+}
+
+export const colors = Appearance.getColorScheme() === 'light' ? lightTheme : darkTheme;
 
 export const categoryColorPalette: ColorValue[] = [
     '#F00000',

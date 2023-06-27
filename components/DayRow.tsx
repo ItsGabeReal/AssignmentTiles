@@ -105,7 +105,8 @@ const styles = StyleSheet.create({
     },
     dateText: {
         fontSize: fontSizes.h3,
-        color: '#fff8'
+        color: colors.text,
+        opacity: 0.5,
     },
     eventsContainer: {
         flex: 1,

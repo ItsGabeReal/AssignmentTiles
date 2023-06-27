@@ -12,7 +12,7 @@ import { useAppSelector } from '../src/redux/hooks';
 import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
 import HideableView from './core/HideableView';
 import { nullEvnet } from '../src/EventHelpers';
-import { colors, fontSizes } from '../src/GlobalStyles';
+import { colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 
 type EventTileProps = {
     /**

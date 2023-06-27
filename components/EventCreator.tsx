@@ -5,6 +5,7 @@ import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { createEvent } from "../src/EventHelpers";
+import { colors } from "../src/GlobalStyles";
 
 type EventCreatorProps = {
     visible: boolean;
@@ -49,7 +50,7 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
     }
 
     return (
-        <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
+        <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose} backgroundColor={colors.l1}>
             <EventInput
                 visible={props.visible}
                 mode='create'
