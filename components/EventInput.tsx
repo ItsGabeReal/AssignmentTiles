@@ -223,18 +223,19 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 },
                             ]}
                             onChange={setDueTypeInput}
-                            style={styles.dotPicker}
+                            style={styles.recessedView}
                             textStyle={styles.dotPickerText}
                             initialValue={dueTypeInput}
+                            hitSlop={10}
                         />
                     </View>
-                    <View style={globalStyles.parameterContainer}>
+                    <HideableView hidden={dueTypeInput !== 'before-date'} style={globalStyles.parameterContainer}>
                         <View style={globalStyles.flexRow}>
                             <Text style={globalStyles.fieldDescription}>Repeat:</Text>
                             <Switch value={repeatSwitchValue} onValueChange={setRepeatSwitchValue} />
                         </View>
-                        <HideableView hidden={!repeatSwitchValue}>
-                            <View style={styles.horizontalContainer}>
+                        <HideableView hidden={!repeatSwitchValue} style={styles.recessedView}>
+                            <View style={styles.repeatOptions}>
                                 <Text style={styles.regularText}>Every </Text>
                                 <NumberInput
                                     minimimValue={1}
@@ -244,7 +245,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 />
                                 <Text style={styles.regularText}> days</Text>
                             </View>
-                            <View style={styles.horizontalContainerWithMargin}>
+                            <View style={styles.repeatOptions}>
                                 <Text style={styles.regularText}>End after </Text>
                                 <NumberInput
                                     minimimValue={2}
@@ -254,7 +255,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 <Text style={styles.regularText}> occurrences</Text>
                             </View>
                         </HideableView>
-                    </View>
+                    </HideableView>
                 </ScrollView>
             </View>
         </>
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
     categoryText: {
         fontSize: fontSizes.h2,
     },
-    dotPicker: {
+    recessedView: {
         marginLeft: 10,
     },
     dotPickerOption: {
@@ -322,13 +323,8 @@ const styles = StyleSheet.create({
         fontSize: fontSizes.p,
         color: colors.text,
     },
-    horizontalContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    horizontalContainerWithMargin: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    repeatOptions: {
+        ...globalStyles.flexRow,
         marginTop: 10,
     },
 });

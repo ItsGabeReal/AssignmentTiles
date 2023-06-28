@@ -50,6 +50,11 @@ type DotPickerProps = ViewProps & {
      * The option initially selected upon loading.
      */
     initialValue?: string;
+
+    /**
+     * Then amount of hit slop when pressing an option.
+     */
+    hitSlop?: number;
 };
 
 const DotPicker: React.FC<DotPickerProps> = (props) => {
@@ -71,6 +76,7 @@ const DotPicker: React.FC<DotPickerProps> = (props) => {
                     selected={selectedValue === item.value}
                     onSelected={handleSelection}
                     textStyle={props.textStyle}
+                    hitSlop={props.hitSlop}
                 />
             )}
         </View>
@@ -85,12 +91,14 @@ type DotPickerItemProps = {
     onSelected?: ((value: string) => void);
 
     textStyle?: StyleProp<TextStyle>;
+
+    hitSlop?: number;
 };
 
 const DotPickerItem: React.FC<DotPickerItemProps> = (props) => {
     return (
         <View style={props.details.containerStyle}>
-            <Pressable onPress={() => props.onSelected?.(props.details.value)} style={styles.flexRow}>
+            <Pressable onPress={() => props.onSelected?.(props.details.value)} style={styles.flexRow} hitSlop={props.hitSlop}>
                 <View style={styles.outerDot}>
                     {props.selected ? <View style={styles.innerDot} /> : <></>}
                 </View>
