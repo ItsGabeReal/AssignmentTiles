@@ -7,6 +7,7 @@ import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { nullEventDetails } from "../src/EventHelpers";
 import { DateYMDHelpers } from "../src/DateYMD";
 import { rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
+import { colors } from "../src/GlobalStyles";
 
 type EventEditorProps = {
     visible: boolean;
@@ -45,7 +46,7 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
     }
     
     return (
-        <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose}>
+        <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose} backgroundColor={colors.l1}>
             <EventInputModal
                 visible={props.visible}
                 mode='edit'

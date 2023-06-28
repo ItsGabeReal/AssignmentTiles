@@ -3,27 +3,24 @@ import {
     StyleSheet,
     View,
     Text,
-    Button,
     TextInput,
     ScrollView,
     Switch,
+    Pressable,
+    ColorValue,
 } from 'react-native';
-import RNDateTimePicker from '@react-native-community/datetimepicker';
-import AndroidCompactDatePicker from './core/AndroidCompactDatePicker';
+import CompactDatePicker from './core/CompactDatePicker';
 import IosStyleButton from './core/IosStyleButton';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import { CategoryID, EventDetails } from '../types/EventTypes';
-import { Platform } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import CategoryInput, { CategoryInputRef } from './CategoryInput';
-import CategoryEditor from './CategoryEditor';
+import CategoryPicker, { CategoryPickerRef } from './CategoryPicker';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
 import HideableView from './core/HideableView';
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { memorizedInputActions } from '../src/redux/features/memorizedInput/memorizedInputSlice';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
 import { colors, fontSizes, globalStyles } from '../src/GlobalStyles';
+import DotPicker from './core/DotPicker';
 
 export type RepeatSettings = {
     /**
@@ -43,8 +40,6 @@ export type RepeatSettings = {
 }
 
 export type RepeatValueType = 'days' | 'weeks' | 'months';
-
-type DueType = 'none' | 'before-date';
 
 type EventInputProps = {
     /**
@@ -86,17 +81,16 @@ const EventInput: React.FC<EventInputProps> = (props) => {
 
     const [eventNameInput, setEventNameInput] = useState(props.initialName || '');
     const [selectedDueTypeIndex, setSelectedDueTypeIndex] = useState(props.initialDueDate != null ? 1 : 0);
-    const [dueTypeInput, setDueTypeInput] = useState<DueType>(props.initialDueDate != null ? 'before-date' : 'none');
+    const [dueTypeInput, setDueTypeInput] = useState(props.initialDueDate != null ? 'before-date' : 'none');
     const [dueDateInput, setDueDateInput] = useState(DateYMDHelpers.toDate(props.initialDueDate || DateYMDHelpers.today()));
     const [repeatSwitchValue, setRepeatSwitchValue] = useState(false);
     const [repeatRecurrences, setRepeatRecurrences] = useState(2);
     const [repeatValueInput, setRepeatValueInput] = useState(7);
     const [repeatValueTypeInput, setRepeatValueTypeInput] = useState<RepeatValueType>('days');
-    const [selectedCategory, setSelectedCategory] = useState(props.initialCategoryID ? props.initialCategoryID : 'none');
+    const [selectedCategory, setSelectedCategory] = useState<CategoryID>(props.initialCategoryID || null);
     
     const eventNameInputRef = useRef<TextInput>(null);
-    const categoryInputRef = useRef<CategoryInputRef | null>(null);
-    const categoryEditorRef = useRef<CategoryInputRef | null>(null);
+    const categoryPickerRef = useRef<CategoryPickerRef | null>(null);
     
     useEffect(() => {
         if (props.mode !== 'edit') {
@@ -109,35 +103,25 @@ const EventInput: React.FC<EventInputProps> = (props) => {
         }
     }, []);
 
+    function getCategoryColor(): ColorValue {
+        if (!selectedCategory) return colors.dimText;
+
+        const categoryDetails = categories.find(item => item.id === selectedCategory);
+
+        return categoryDetails?.color || colors.text;
+    }
+
+    function getCategoryName() {
+        if (!selectedCategory) return 'None';
+
+        const categoryDetails = categories.find(item => item.id === selectedCategory);
+
+        return categoryDetails?.name || 'null';
+    }
+
     function onDateChanged(newDate?: Date) {
         if (newDate) {
             setDueDateInput(newDate);
-        }
-    }
-
-    function PlatformSpecificDatePicker() {
-        if (Platform.OS == 'android') {
-            return (
-                <AndroidCompactDatePicker
-                    value={dueDateInput}
-                    onChange={onDateChanged}
-                    themeVariant='dark'
-                />
-            );
-        }
-        else if (Platform.OS == 'ios') {
-            return (
-                <RNDateTimePicker
-                    mode='date'
-                    value={dueDateInput}
-                    onChange={(event, date) => onDateChanged(date)}
-                    themeVariant='dark'
-                />
-            );
-        }
-        else {
-            console.error(`EventInput -> showDatePicker: ${Platform.OS} is not supported yet.`);
-            return (<></>);
         }
     }
 
@@ -152,7 +136,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             const details: EventDetails = {
                 name: eventNameInput,
                 dueDate: dueTypeInput === 'before-date' ? DateYMDHelpers.fromDate(dueDateInput) : null,
-                categoryID: selectedCategory === 'none' ? null : selectedCategory,
+                categoryID: selectedCategory,
             };
 
             const repeatSettings: RepeatSettings = {
@@ -167,118 +151,111 @@ const EventInput: React.FC<EventInputProps> = (props) => {
         }
     }
 
+    function handleCategoryDeleted(deletedCategoryID: CategoryID) {
+        if (deletedCategoryID === selectedCategory) {
+            setSelectedCategory(null);
+        }
+
+        /**
+         * Set remembered category id to null so there's no issue
+         * autofilling a category that doesn't exist anymore.
+         */
+        dispatch(memorizedInputActions.updateMemorizedEventInput({categoryID: null}));
+    }
+
     return (
         <>
-            <CategoryInput ref={categoryInputRef} mode='create' onCategoryCreated={category => setSelectedCategory(category.id || 'none')} />
-            <CategoryEditor ref={categoryEditorRef} />
+            <CategoryPicker ref={categoryPickerRef} onSelect={categoryID => setSelectedCategory(categoryID)} onDelete={handleCategoryDeleted} />
             <View style={styles.mainContainer}>
-                <View style={styles.titleContainer}>
+                <View style={styles.headerContainer}>
                     <Text style={styles.title}>{props.mode === 'edit' ? 'Edit Assignment' : 'Create Assignment'}</Text>
+                    <IosStyleButton
+                        title='Cancel'
+                        color='#888'
+                        textStyle={styles.cancelButtonText}
+                        onPress={props.onRequestClose}
+                        hitSlop={30}
+                    />
+                    <IosStyleButton
+                        title={props.mode === 'edit' ? 'Save' : 'Done'}
+                        textStyle={styles.submitButtonText}
+                        containerStyle={styles.submitButtonContainer}
+                        onPress={onSubmit}
+                        disabled={!readyToSubmit()}
+                        hitSlop={30}
+                    />
                 </View>
                 <ScrollView
                     style={styles.inputContainer}
                     keyboardDismissMode='on-drag'
                     keyboardShouldPersistTaps="handled"
                 >
-                    <Text style={globalStyles.fieldDescription}>Name:</Text>
-                    <TextInputWithClearButton
-                        ref={eventNameInputRef}
-                        defaultValue={props.initialName}
-                        //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
-                        onChangeText={setEventNameInput}
-                        selectTextOnFocus={props.mode !== 'edit'} // Don't autoselect text in edit mode
-                        textInputStyle={styles.eventNameInput}
-                        containerStyle={globalStyles.parameterContainer}
-                        keyboardAppearance='dark'
-                    />
-                    <Text style={globalStyles.fieldDescription}>Due:</Text>
-                    <View style={globalStyles.parameterContainer}>
-                        <SegmentedControl
-                            values={['None', 'Before Date']}
-                            selectedIndex={selectedDueTypeIndex}
-                            onChange={(event) => {
-                                const index = event.nativeEvent.selectedSegmentIndex;
-                                setSelectedDueTypeIndex(index);
-
-                                switch (index) {
-                                    case 0:
-                                        setDueTypeInput('none');
-                                        break;
-                                    case 1:
-                                        setDueTypeInput('before-date');
-                                        break;
-                                }
-                            }}
-                            appearance='dark'
+                    <Pressable style={[globalStyles.parameterContainer, globalStyles.flexRow]} onPress={() => eventNameInputRef.current?.focus()}>
+                        <Text style={globalStyles.fieldDescription}>Name:</Text>
+                        <TextInputWithClearButton
+                            ref={eventNameInputRef}
+                            defaultValue={props.initialName}
+                            //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
+                            onChangeText={setEventNameInput}
+                            selectTextOnFocus={props.mode !== 'edit'} // Don't autoselect text in edit mode
+                            textInputStyle={styles.eventNameInput}
+                            containerStyle={styles.eventNameContainer}
                         />
-                        <HideableView hidden={dueTypeInput !== 'before-date'}>
-                            <View style={[styles.dueDateContainer, { marginTop: 15 }]}>
-                                <PlatformSpecificDatePicker />
+                    </Pressable>
+                    <Pressable style={[globalStyles.parameterContainer, globalStyles.flexRow]} onPress={() => categoryPickerRef.current?.open()}>
+                        <Text style={globalStyles.fieldDescription}>Category:</Text>
+                        <Text style={[styles.categoryText, {color: getCategoryColor()}]}>{getCategoryName()}</Text>
+                    </Pressable>
+                    <View style={globalStyles.parameterContainer}>
+                        <Text style={globalStyles.fieldDescription}>Due:</Text>
+                        <DotPicker
+                            options={[
+                                {
+                                    value: 'none',
+                                    displayName: 'None',
+                                    containerStyle: styles.dotPickerOption,
+                                },
+                                {
+                                    value: 'before-date',
+                                    displayName: 'By Date:',
+                                    containerStyle: [styles.dotPickerOption, globalStyles.flexRow],
+                                    children: <CompactDatePicker value={dueDateInput} onChange={onDateChanged} style={styles.datePickerContainer} />,
+                                },
+                            ]}
+                            onChange={setDueTypeInput}
+                            style={styles.dotPicker}
+                            textStyle={styles.dotPickerText}
+                            initialValue={dueTypeInput}
+                        />
+                    </View>
+                    <View style={globalStyles.parameterContainer}>
+                        <View style={globalStyles.flexRow}>
+                            <Text style={globalStyles.fieldDescription}>Repeat:</Text>
+                            <Switch value={repeatSwitchValue} onValueChange={setRepeatSwitchValue} />
+                        </View>
+                        <HideableView hidden={!repeatSwitchValue}>
+                            <View style={styles.horizontalContainer}>
+                                <Text style={styles.regularText}>Every </Text>
+                                <NumberInput
+                                    minimimValue={1}
+                                    defaultValue={7}
+                                    onChangeNumber={setRepeatValueInput}
+                                    style={globalStyles.numberInput}
+                                />
+                                <Text style={styles.regularText}> days</Text>
                             </View>
-                            <View style={styles.repeatSwitchContainer}>
-                                <Text style={styles.regularText}>Repeats:</Text>
-                                <Switch value={repeatSwitchValue} onValueChange={setRepeatSwitchValue} style={{ marginLeft: 10 }} />
+                            <View style={styles.horizontalContainerWithMargin}>
+                                <Text style={styles.regularText}>End after </Text>
+                                <NumberInput
+                                    minimimValue={2}
+                                    onChangeNumber={setRepeatRecurrences}
+                                    style={globalStyles.numberInput}
+                                />
+                                <Text style={styles.regularText}> occurrences</Text>
                             </View>
-                            <HideableView hidden={!repeatSwitchValue}>
-                                <View style={styles.horizontalContainer}>
-                                    <Text style={styles.regularText}>Every </Text>
-                                    <NumberInput
-                                        minimimValue={1}
-                                        defaultValue={7}
-                                        onChangeNumber={setRepeatValueInput}
-                                        style={globalStyles.numberInput}
-                                    />
-                                    <Text style={styles.regularText}> days</Text>
-                                </View>
-                                <View style={styles.horizontalContainerWithMargin}>
-                                    <Text style={styles.regularText}>End after </Text>
-                                    <NumberInput
-                                        minimimValue={2}
-                                        onChangeNumber={setRepeatRecurrences}
-                                        style={globalStyles.numberInput}
-                                    />
-                                    <Text style={styles.regularText}> occurrences</Text>
-                                </View>
-                            </HideableView>
                         </HideableView>
                     </View>
-                    <Text style={globalStyles.fieldDescription}>Category:</Text>
-                    <View style={[globalStyles.parameterContainer, { padding: 0, overflow: 'hidden' }]}>
-                        <Picker
-                            selectedValue={selectedCategory}
-                            onValueChange={setSelectedCategory}
-                            mode='dropdown'
-                            dropdownIconColor='white'
-                        >
-                            <Picker.Item key='none' label='None' value='none' color='#bbb' />
-                            {categories.map(item => (
-                                <Picker.Item key={item.id} label={item.name} value={item.id} color={item.color} />
-                                ))}
-                        </Picker>
-                    </View>
-                    <Button title='New Category' onPress={() => categoryInputRef.current?.open()} />
-                    <Button title='Edit Categories' onPress={() => categoryEditorRef.current?.open()} />
                 </ScrollView>
-            </View>
-            <View style={styles.keyboardAttachedView}>
-                <View style={styles.actionContainer}>
-                    <IosStyleButton
-                        title='Cancel'
-                        color='#aaa'
-                        textStyle={styles.actionText}
-                        onPress={props.onRequestClose}
-                        hitSlop={30}
-                    />
-                </View>
-                <View style={styles.actionContainer}>
-                    <IosStyleButton
-                        title={props.mode === 'edit' ? 'Save' : 'Create'}
-                        textStyle={{...styles.actionText, fontWeight: 'bold'}}
-                        onPress={onSubmit}
-                        disabled={!readyToSubmit()}
-                        hitSlop={30}
-                    />
-                </View>
             </View>
         </>
     );
@@ -290,14 +267,28 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 20,
     },
-    titleContainer: {
+    headerContainer: {
         marginBottom: 25,
+        flexDirection: 'row',
         alignItems: 'center',
     },
     title: {
+        position: 'absolute',
+        width: '100%',
+        textAlign: 'center',
         color: colors.text,
         fontSize: fontSizes.title,
         fontWeight: 'bold',
+    },
+    cancelButtonText: {
+        fontSize: fontSizes.h2,
+    },
+    submitButtonText: {
+        fontSize: fontSizes.h2,
+        fontWeight: 'bold',
+    },
+    submitButtonContainer: {
+        marginLeft: 'auto',
     },
     inputContainer: {
         flex: 1,
@@ -307,14 +298,25 @@ const styles = StyleSheet.create({
         color: colors.text,
         padding: 0,
     },
-    dueDateContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    eventNameContainer: {
+        flex: 1,
     },
-    repeatSwitchContainer: {
-        marginTop: 15,
-        flexDirection: 'row',
-        alignItems: 'center',
+    categoryText: {
+        fontSize: fontSizes.h2,
+    },
+    dotPicker: {
+        marginLeft: 10,
+    },
+    dotPickerOption: {
+        marginTop: 10,
+    },
+    dotPickerText: {
+        marginLeft: 10,
+        color: colors.text,
+        fontSize: fontSizes.h3,
+    },
+    datePickerContainer: {
+        marginLeft: 5,
     },
     regularText: {
         fontSize: fontSizes.p,
@@ -329,20 +331,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 10,
     },
-    keyboardAttachedView: {
-        flexDirection: 'row',
-        bottom: 0,
-        width: '100%',
-        backgroundColor: '#000'
-    },
-    actionContainer: {
-        flex: 1,
-        padding: 10,
-        alignItems: 'center',
-    },
-    actionText: {
-        fontSize: fontSizes.h2,
-    }
 });
 
 export default EventInput;

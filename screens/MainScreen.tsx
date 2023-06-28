@@ -10,6 +10,7 @@ import {
     TouchableOpacity,
     useWindowDimensions,
     Platform,
+    Appearance,
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
@@ -258,12 +259,10 @@ export default function MainScreen() {
     }
 
     function onStartReached() {
-        console.log('start reached')
         dispatch(visibleDaysActions.addDaysToTop({numNewDays: 7}));
     }
 
     function onEndReached() {
-        console.log('end reached')
         dispatch(visibleDaysActions.addDaysToBottom({numNewDays: 7}));
     }
 
@@ -282,7 +281,11 @@ export default function MainScreen() {
 
     return (
         <View style={styles.container}>
-            <StatusBar backgroundColor={'#0008'} barStyle={"light-content"} translucent />
+            <StatusBar
+                backgroundColor={Appearance.getColorScheme() === 'light' ? '#fff8' : '#0008'}
+                barStyle={Appearance.getColorScheme() === 'light' ? 'dark-content' : 'light-content'}
+                translucent
+            />
             <FlatList
                 ref={flatListRef}
                 data={visibleDays}

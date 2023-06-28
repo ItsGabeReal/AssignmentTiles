@@ -12,7 +12,7 @@ import { useAppSelector } from '../src/redux/hooks';
 import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
 import HideableView from './core/HideableView';
 import { nullEvnet } from '../src/EventHelpers';
-import { colors, fontSizes, globalStyles } from '../src/GlobalStyles';
+import { fontSizes } from '../src/GlobalStyles';
 
 type EventTileProps = {
     /**
@@ -56,7 +56,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     }
 
     function getDueDateText() {
-        if (daysPlannedBeforeDue != undefined) {
+        if (daysPlannedBeforeDue !== undefined) {
             if (daysPlannedBeforeDue > 0) {
                 return `${daysPlannedBeforeDue} ${daysPlannedBeforeDue === 1 ? 'day' : 'days'} early`;
             }
@@ -69,6 +69,13 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         }
 
         return '';
+    }
+
+    function getDueDateTextColor() {
+        if (daysPlannedBeforeDue === undefined) return '#fff8';
+
+        if (daysPlannedBeforeDue < 0) return '#f00';
+        else return '#fff8';
     }
 
     function checkmark() {
@@ -84,9 +91,10 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
             <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
                 <View style={styles.colorDimmer}>
                     <Text style={styles.eventNameText}>{event.details.name}</Text>
-                    <HideableView hidden={event.details.dueDate === null}>
-                        <Text style={styles.dueDateText}>{getDueDateText()}</Text>
-                    </HideableView>
+                    {event.details.dueDate ?
+                        <Text style={[styles.dueDateText, { color: getDueDateTextColor()}]}>{getDueDateText()}</Text>
+                        : <></>
+                    }
                 </View>
             </View>
             {event.completed ? checkmark() : null}
@@ -118,11 +126,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: 'bold',
         fontSize: fontSizes.p,
-        marginBottom: 5,
     },
     dueDateText: {
+        marginTop: 0,
         fontSize: fontSizes.small,
-        color: '#fff8',
     },
     checkmarkOverlayContainer: {
         position: 'absolute',

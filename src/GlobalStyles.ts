@@ -60,16 +60,16 @@ export const categoryColorPalette: ColorValue[] = [
 
 export const globalStyles = StyleSheet.create({
     fieldDescription: {
-        marginLeft: 10,
-        marginBottom: 5,
+        marginRight: 8,
         fontSize: fontSizes.h3,
+        fontWeight: 'bold',
         color: colors.dimText,
     },
     parameterContainer: {
         padding: 15,
         backgroundColor: colors.l2,
         borderRadius: 10,
-        marginBottom: 15,
+        marginBottom: 25,
     },
     numberInput: {
         fontSize: fontSizes.p,
@@ -85,5 +85,9 @@ export const globalStyles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.3,
+    },
+    flexRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 });

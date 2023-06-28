@@ -40,7 +40,7 @@ export const categoriesSlice = createSlice({
     }
 });
 
-export function getCategoryFromID(categories: CategoriesState, categoryID: string) {
+export function getCategoryFromID(categories: CategoriesState, categoryID: CategoryID) {
     return categories.find(item => item.id == categoryID);
 }
 

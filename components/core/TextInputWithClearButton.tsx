@@ -10,6 +10,7 @@ import {
     ViewStyle,
     TextStyle,
     Pressable,
+    Appearance,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -47,7 +48,7 @@ export type TextInputWithClearButtonProps = Omit<TextInputProps, 'style' | 'clea
 const TextInputWithClearButton = forwardRef<TextInput, TextInputWithClearButtonProps>((props, parentRef) => {
     const {
         closeButtonSize = 16,
-        closeButtonColor = 'white',
+        closeButtonColor = Appearance.getColorScheme() === 'light' ? 'black' : 'white',
         closeButtonHitSlop = 20,
         textInputStyle,
         containerStyle,
@@ -70,8 +71,8 @@ const TextInputWithClearButton = forwardRef<TextInput, TextInputWithClearButtonP
 
     return (
         <Pressable style={containerStyle} onPress={() => textInputRef.current?.focus()}>
-            <View style={styles.mainContainer}>
-                <TextInput ref={setRef} style={[textInputStyle, {flex: 1}]} {...otherProps} />
+            <View style={styles.subcontainer}>
+                <TextInput ref={setRef} style={[textInputStyle, styles.textInput]} {...otherProps} />
                 <TouchableOpacity onPress={onClearButtonPressed} hitSlop={closeButtonHitSlop}>
                     <Icon name='close' size={closeButtonSize} color={closeButtonColor} />
                 </TouchableOpacity>
@@ -81,9 +82,12 @@ const TextInputWithClearButton = forwardRef<TextInput, TextInputWithClearButtonP
 });
 
 const styles = StyleSheet.create({
-    mainContainer: {
+    subcontainer: {
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    textInput: {
+        flex: 1,
     },
     closeButtonContainer: {
         position: 'absolute',

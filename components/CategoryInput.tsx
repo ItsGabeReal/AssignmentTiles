@@ -10,6 +10,8 @@ import {
     Text,
     FlatList,
     TouchableOpacity,
+    Pressable,
+    TextInput,
 } from 'react-native';
 import IosStyleButton from './core/IosStyleButton';
 import { Category } from '../types/EventTypes';
@@ -55,6 +57,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     const [selectedColor, setSelectedColor] = useState(categoryColorPalette[0]);
 
     const floatingModalRef = useRef<FloatingModalRef | null>(null);
+    const categoryNameInputRef = useRef<TextInput>(null);
 
     useImperativeHandle(ref, () => ({
         open() {
@@ -105,33 +108,43 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
             <View style={styles.titleContainer}>
                 <Text style={styles.title}>{props.mode === 'edit' ? 'Edit Category' : 'Create Category'}</Text>
             </View>
-            <Text style={globalStyles.fieldDescription}>Name:</Text>
-            <TextInputWithClearButton
-                value={nameInput}
-                textInputStyle={styles.inputText}
-                containerStyle={globalStyles.parameterContainer}
-                selectTextOnFocus
-                autoFocus
-                onChangeText={newText => setNameInput(newText)}
-            />
-            <Text style={globalStyles.fieldDescription}>Color:</Text>
-            <View style={styles.colorPaletteContainer}>
-                <FlatList
-                    data={categoryColorPalette}
-                    renderItem={({ item }) => {
-                        return (
-                            <TouchableOpacity
-                                style={[styles.colorButton, {
-                                    backgroundColor: item,
-                                    borderWidth: item == selectedColor ? 3 : 0,
-                                }]}
-                                onPress={() => setSelectedColor(item)}
-                            />
-                        );
-                    }}
-                    numColumns={4}
-                    keyboardShouldPersistTaps='handled'
+            <Pressable
+                style={[globalStyles.parameterContainer, globalStyles.flexRow]}
+                onPress={() => {
+                    categoryNameInputRef.current?.focus();
+                }}
+            >
+                <Text style={globalStyles.fieldDescription}>Name:</Text>
+                <TextInputWithClearButton
+                    ref={categoryNameInputRef}
+                    value={nameInput}
+                    textInputStyle={styles.inputText}
+                    containerStyle={{borderRadius: 1, flex: 1}}
+                    selectTextOnFocus
+                    autoFocus
+                    onChangeText={newText => setNameInput(newText)}
                 />
+            </Pressable>
+            <View style={globalStyles.parameterContainer}>
+                <Text style={globalStyles.fieldDescription}>Color:</Text>
+                <View style={styles.colorPaletteContainer}>
+                    <FlatList
+                        data={categoryColorPalette}
+                        renderItem={({ item }) => {
+                            return (
+                                <TouchableOpacity
+                                    style={[styles.colorButton, {
+                                        backgroundColor: item,
+                                        borderWidth: item == selectedColor ? 3 : 0,
+                                    }]}
+                                    onPress={() => setSelectedColor(item)}
+                                />
+                            );
+                        }}
+                        numColumns={4}
+                        keyboardShouldPersistTaps='handled'
+                    />
+                </View>
             </View>
             <View style={styles.submitButtonContainer}>
                 <IosStyleButton title={props.mode === 'edit' ? 'Save' : 'Done'} textStyle={styles.submitButton} disabled={!readyToSubmit()} onPress={handleSubmit} />
@@ -162,18 +175,17 @@ const styles = StyleSheet.create({
         color: colors.text,
     },
     colorPaletteContainer: {
-        ...globalStyles.parameterContainer,
         alignItems: 'center',
+        marginTop: 10,
     },
     colorButton: {
-        width: 40,
-        height: 40,
+        width: 46,
+        height: 46,
         borderRadius: 100,
         borderColor: 'white',
-        margin: 3,
+        margin: 5,
     },
     submitButtonContainer: {
-        marginTop: 10,
         alignItems: 'center',
     },
     submitButton: {

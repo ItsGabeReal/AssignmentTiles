@@ -1,7 +1,7 @@
 const VisualSettings = {
     App: {
         dayRowSeparater: {
-            height: 5,
+            height: 6,
         },
     },
     DayRow: {
