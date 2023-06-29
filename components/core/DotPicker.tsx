@@ -58,17 +58,21 @@ type DotPickerProps = ViewProps & {
 };
 
 const DotPicker: React.FC<DotPickerProps> = (props) => {
+    const {
+        onChange,
+        ...otherProps
+    } = props;
     const [selectedValue, setSelectedValue] = useState(props.initialValue || props.options[0].value);
 
     function handleSelection(newValue: string) {
         if (newValue === selectedValue) return;
 
         setSelectedValue(newValue);
-        props.onChange?.(newValue);
+        onChange?.(newValue);
     }
 
     return (
-        <View {...props}>
+        <View {...otherProps}>
             {props.options.map(item =>
                 <DotPickerItem
                     key={item.value}
