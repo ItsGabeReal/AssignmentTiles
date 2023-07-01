@@ -1,12 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { CategoryID } from "../../../../types/EventTypes";
-
-export type MemorizedInputState = {
-    eventInput: {
-        name: string;
-        categoryID: CategoryID;
-    },
-};
+import { CategoryID, MemorizedInputState } from "../../../../types/v0";
 
 const initialState: MemorizedInputState = {
     eventInput: {

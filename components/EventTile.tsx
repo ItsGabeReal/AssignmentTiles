@@ -10,7 +10,6 @@ import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
 import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
-import HideableView from './core/HideableView';
 import { nullEvnet } from '../src/EventHelpers';
 import { fontSizes } from '../src/GlobalStyles';
 

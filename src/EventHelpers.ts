@@ -1,4 +1,4 @@
-import { Event, EventDetails } from "../types/EventTypes";
+import { Event, EventDetails } from "../types/v0";
 import DateYMD from "./DateYMD";
 import { eventActions } from "./redux/features/events/eventsSlice";
 import { getInitialPlannedDateForEvent, rowPlansActions } from "./redux/features/rowPlans/rowPlansSlice";

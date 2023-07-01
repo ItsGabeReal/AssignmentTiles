@@ -7,23 +7,28 @@ import memorizedInputSlice from "./features/memorizedInput/memorizedInputSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistReducer, persistStore } from "redux-persist";
 import thunk from 'redux-thunk';
+import migrate from "./migration";
 
 const rootReducer = combineReducers({
     categories: categoriesSlice,
     events: eventsReducer,
+    memorizedInput: memorizedInputSlice,
     rowPlans: rowPlansSlice,
     visibleDays: visibleDaysSlice,
-    memorizedInput: memorizedInputSlice,
 });
+
+export const latestStoreVersion = 0;
 
 const persistConfig = {
     key: 'root',
+    version: latestStoreVersion,
     storage: AsyncStorage,
     whitelist: [
         'categories',
         'events',
         'rowPlans',
     ],
+    migrate: migrate,
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

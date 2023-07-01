@@ -1,7 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CategoryID, Event, EventDetails } from '../../../../types/EventTypes';
-
-export type EventsState = Event[];
+import { CategoryID, Event, EventDetails, EventsState } from '../../../../types/v0';
 
 export const eventsSlice = createSlice({
     name: 'events',

@@ -1,6 +1,6 @@
-import React, { useRef } from "react"
-import { CategoryID, Event, EventDetails } from "../types/EventTypes"
-import EventInput, { RepeatSettings } from "./EventInput"
+import React from "react";
+import { Event, EventDetails } from "../types/v0";
+import EventInput, { RepeatSettings } from "./EventInput";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';

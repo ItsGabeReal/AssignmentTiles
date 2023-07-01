@@ -1,5 +1,5 @@
 import React from "react"
-import { EventDetails } from "../types/EventTypes"
+import { EventDetails } from "../types/v0"
 import EventInputModal from "./EventInput"
 import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';

@@ -1,4 +1,4 @@
-import React, { useState, forwardRef, useImperativeHandle, MutableRefObject } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import ContextMenu, { ContextMenuDetails } from './ContextMenu';
 
 export type ContextMenuContainerRef = {

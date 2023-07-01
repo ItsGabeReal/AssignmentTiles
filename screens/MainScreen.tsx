@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
-import { EventTileCallbacks } from "../types/EventTypes";
+import { EventTileCallbacks } from "../types/v0";
 import {
     getDayRowHeight,
     getDayRowYOffset,
@@ -28,7 +28,6 @@ import EventCreator from "../components/EventCreator";
 import EventEditor from "../components/EventEditor";
 import ContextMenuContainer, { ContextMenuContainerRef } from "../components/ContextMenuContainer";
 import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMenu";
-import TestButton from "../components/core/TestButton";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
 import { deleteEvent } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -276,9 +275,6 @@ export default function MainScreen() {
         setEventEditorVisible(true);
     }
 
-    function onTestButtonPressed() {
-    }
-
     return (
         <View style={styles.container}>
             <StatusBar
@@ -318,7 +314,6 @@ export default function MainScreen() {
                 editedEventID={eventEditor_editedEventID.current}
             />
             <VirtualEventTile ref={virtualEventTileRef} />
-            {/*<TestButton onPress={onTestButtonPressed} />*/}
         </View>
     );
 }
@@ -341,6 +336,5 @@ const styles = StyleSheet.create({
     },
     dayRowSeparater: {
         height: VisualSettings.App.dayRowSeparater.height,
-        zIndex: 1,
     }
 });

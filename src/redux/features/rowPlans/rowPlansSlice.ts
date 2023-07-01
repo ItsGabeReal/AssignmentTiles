@@ -1,8 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { EventDetails, RowPlan } from "../../../../types/EventTypes";
+import { EventDetails, RowPlansState } from "../../../../types/v0";
 import DateYMD, { DateYMDHelpers } from '../../../DateYMD';
-
-export type RowPlansState = RowPlan[];
 
 export const rowPlansSlice = createSlice({
     name: 'rowPlans',

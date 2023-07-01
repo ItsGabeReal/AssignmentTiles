@@ -1,6 +1,6 @@
 import { GestureResponderEvent } from "react-native";
 import DateYMD from "./DateYMD";
-import { EventTileDimensions, RowPlan } from "../types/EventTypes";
+import { EventTileDimensions, RowPlan } from "../types/v0";
 import VisualSettings from "./VisualSettings";
 import { getRowPlan } from "./redux/features/rowPlans/rowPlansSlice";
 

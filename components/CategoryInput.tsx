@@ -14,7 +14,7 @@ import {
     TextInput,
 } from 'react-native';
 import IosStyleButton from './core/IosStyleButton';
-import { Category } from '../types/EventTypes';
+import { Category } from '../types/v0';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { useAppDispatch } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';

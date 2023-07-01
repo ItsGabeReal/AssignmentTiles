@@ -12,7 +12,7 @@ import {
     ScrollView,
 } from 'react-native';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
-import { Category, CategoryID } from '../types/EventTypes';
+import { Category, CategoryID } from '../types/v0';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';

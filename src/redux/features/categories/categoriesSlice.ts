@@ -1,8 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Category, CategoryID } from "../../../../types/EventTypes";
+import { CategoriesState, Category, CategoryID } from "../../../../types/v0";
 import { ColorValue } from 'react-native';
-
-export type CategoriesState = Category[];
 
 export const categoriesSlice = createSlice({
     name: 'categories',

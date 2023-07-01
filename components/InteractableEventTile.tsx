@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import {
     View,
     TouchableOpacity,
@@ -8,7 +8,7 @@ import {
     PanResponder,
 } from 'react-native';
 import DateYMD from '../src/DateYMD';
-import { EventTileCallbacks } from '../types/EventTypes';
+import { EventTileCallbacks } from '../types/v0';
 import EventTile from './EventTile';
 
 type InteractableEventTileProps = {
