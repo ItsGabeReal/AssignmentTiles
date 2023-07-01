@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
-import { EventTileCallbacks } from "../types/v0";
 import {
     getDayRowHeight,
     getDayRowYOffset,
@@ -36,6 +35,7 @@ import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { getEventPlan, rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
 import { colors } from "../src/GlobalStyles";
+import { EventTileCallbacks } from "../types/EventTile";
 
 export default function MainScreen() {
     const {height, width} = useWindowDimensions();

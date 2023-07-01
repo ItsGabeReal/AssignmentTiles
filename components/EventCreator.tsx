@@ -4,7 +4,7 @@ import EventInput, { RepeatSettings } from "./EventInput";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
-import { createEvent } from "../src/EventHelpers";
+import { createEvent, createRepeatedEvent } from "../src/EventHelpers";
 import { colors } from "../src/GlobalStyles";
 
 type EventCreatorProps = {
@@ -33,16 +33,7 @@ const EventCreator: React.FC<EventCreatorProps> = (props) => {
 
     function onSubmit(details: EventDetails, repeatSettings: RepeatSettings | null) {
         if (repeatSettings) {
-            for (let i = 0; i < repeatSettings.recurrences; i++) {
-                let dueDate = details.dueDate || DateYMDHelpers.today();
-                if (repeatSettings.valueType === 'days') dueDate = DateYMDHelpers.addDays(dueDate, i * repeatSettings.value);
-
-                const repeatedEventDetails: EventDetails = {
-                    ...details,
-                    dueDate,
-                }
-                createEvent(dispatch, repeatedEventDetails, dueDate);
-            }
+            createRepeatedEvent(dispatch, details, repeatSettings);
         }
         else {
             createEvent(dispatch, details, props.initialDueDate);

@@ -8,8 +8,8 @@ import {
     PanResponder,
 } from 'react-native';
 import DateYMD from '../src/DateYMD';
-import { EventTileCallbacks } from '../types/v0';
 import EventTile from './EventTile';
+import { EventTileCallbacks } from '../types/EventTile';
 
 type InteractableEventTileProps = {
     /**

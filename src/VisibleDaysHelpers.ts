@@ -1,8 +1,15 @@
 import { GestureResponderEvent } from "react-native";
 import DateYMD from "./DateYMD";
-import { EventTileDimensions, RowPlan } from "../types/v0";
+import { RowPlan } from "../types/v0";
 import VisualSettings from "./VisualSettings";
 import { getRowPlan } from "./redux/features/rowPlans/rowPlansSlice";
+
+export type EventTileDimensions = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
 export function getDayRowHeight(rowPlans: RowPlan[], date: DateYMD) {
     const eventTileHeight = VisualSettings.EventTile.mainContainer.height;

@@ -1,10 +1,10 @@
 import React from "react"
 import { EventDetails } from "../types/v0"
-import EventInputModal from "./EventInput"
+import EventInputModal, { RepeatSettings } from "./EventInput"
 import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { eventActions } from "../src/redux/features/events/eventsSlice";
-import { nullEventDetails } from "../src/EventHelpers";
+import { createRepeatedEvent, nullEventDetails } from "../src/EventHelpers";
 import { DateYMDHelpers } from "../src/DateYMD";
 import { rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { colors } from "../src/GlobalStyles";
@@ -27,7 +27,7 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
     const dispatch = useAppDispatch();
     const editedEventDetails = useAppSelector(state => state.events.find(item => item.id === props.editedEventID)?.details) || nullEventDetails;
 
-    function handleOnSubmit(details: EventDetails) {
+    function handleOnSubmit(details: EventDetails, repeatSettings: RepeatSettings | null) {
         if (!props.editedEventID) {
             console.error(`Initial edited event was null. Event editor has no idea what event it's supposed to edit.`);
             return;
@@ -43,6 +43,10 @@ const EventEditor: React.FC<EventEditorProps> = (props) => {
             eventID: props.editedEventID,
             newDetails: details,
         }));
+
+        if (repeatSettings) {
+            createRepeatedEvent(dispatch, details, repeatSettings, true);
+        }
     }
     
     return (
