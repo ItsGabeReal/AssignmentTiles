@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import {
     TextInput,
     TextInputProps,
@@ -23,16 +23,22 @@ type NumberInputProps = Omit<TextInputProps, 'value' | 'defaultValue' | 'onChang
     minimimValue?: number;
 
     /**
+     * Limits how high the value can be. onChangeNumber will not output a number lower than this.
+     */
+    maximumValue?: number;
+
+    /**
      * Called when the value is changed.
      */
     onChangeNumber?: ((value: number) => void);
 };
 
-const NumberInput: React.FC<NumberInputProps> = (props) => {
+const NumberInput = forwardRef<TextInput, NumberInputProps>((props, ref) => {
     const {
         value,
         defaultValue,
         minimimValue,
+        maximumValue,
         onChangeNumber,
         onBlur,
         ...otherProps} = props;
@@ -63,17 +69,18 @@ const NumberInput: React.FC<NumberInputProps> = (props) => {
     }
 
     function getOutputValue(value: number) {
-        if (minimimValue !== undefined && value < minimimValue) {
-            return minimimValue;
-        }
+        if (minimimValue !== undefined && value < minimimValue) return minimimValue;
+        else if (maximumValue !== undefined && value > maximumValue) return maximumValue;
         else return value;
     }
 
     return (
         <TextInput
+            ref={ref}
             value={textInputValue}
             onChangeText={value => {
                 if (value.length === 0) setTextInputValue(value); // Allow the text box to be empty
+                else if (value === '-') setTextInputValue(value); // Don't delete negative sign if it's the only thing in the box
                 else { // Otherwise, don't save the value if a non-number was typed
                     const numericValue = stringToInt(value);
                     if (numericValue !== undefined) {
@@ -96,6 +103,6 @@ const NumberInput: React.FC<NumberInputProps> = (props) => {
             {...otherProps}
         />
     )
-}
+});
 
 export default NumberInput;

@@ -58,6 +58,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
             onPanResponderTerminate: (e) => {
                 console.warn('InteractableEventTile: pan responder terminated');
                 panResponderGranted.current = false;
+                props.eventTileCallbacks.onTileDragTerminated?.(e, props.eventID);
                 handleRelease(e);
             },
         })

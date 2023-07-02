@@ -33,7 +33,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import VirtualEventTile, { VirtualEventTileRef } from "../components/VirtualEventTile";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { getEventPlan, rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
-import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
+import { createArrayOfSequentialDates, visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
 import { colors } from "../src/GlobalStyles";
 import { EventTileCallbacks } from "../types/EventTile";
 
@@ -135,6 +135,11 @@ export default function MainScreen() {
         dispatch(rowPlansActions.changePlannedDate({eventID, plannedDate: overlappingRowDate, insertionIndex}));
     }
 
+    function onTileDragTerminated_cb() {
+        // Make sure the context menu gets closed
+        contextMenuRef.current?.close();
+    }
+
     function dragLoop() {
         if (!draggingEventTile.current) return;
 
@@ -231,6 +236,7 @@ export default function MainScreen() {
         onTileDragStart: onTileDragStart_cb,
         onTileDrag: onTileDrag_cb,
         onTileDropped: onTileDropped_cb,
+        onTileDragTerminated: onTileDragTerminated_cb,
     }
 
     function renderItem({ item }: { item: DateYMD }) {
@@ -257,12 +263,20 @@ export default function MainScreen() {
         scrollYOffset.current = event.nativeEvent.contentOffset.y;
     }
 
+    const NUM_NEW_DAYS = 14;
     function onStartReached() {
-        dispatch(visibleDaysActions.addDaysToTop({numNewDays: 7}));
+        dispatch(visibleDaysActions.addDaysToTop({ numNewDays: NUM_NEW_DAYS }));
+
+        // If autoscrolling while dragging a tile, apply offset to dragAutoScrollOffset
+        if (draggingEventTile.current) {
+            const addedDays = createArrayOfSequentialDates(DateYMDHelpers.subtractDays(visibleDays[0], NUM_NEW_DAYS), NUM_NEW_DAYS);
+            const heightOfNewRows = getDayRowYOffset(addedDays, rowPlans, NUM_NEW_DAYS);
+            dragAutoScrollOffset.current += heightOfNewRows;
+        }
     }
 
     function onEndReached() {
-        dispatch(visibleDaysActions.addDaysToBottom({numNewDays: 7}));
+        dispatch(visibleDaysActions.addDaysToBottom({ numNewDays: NUM_NEW_DAYS }));
     }
 
     function openEventCreator(initialDate?: DateYMD) {

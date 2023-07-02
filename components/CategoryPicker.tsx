@@ -65,7 +65,10 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
                     <Text style={styles.title}>Select Category</Text>
                 </View>
                 <View style={styles.scrollViewContainer}>
-                    <ScrollView style={styles.scrollView}>
+                    <ScrollView
+                        style={styles.scrollView}
+                        keyboardShouldPersistTaps='always'
+                    >
                         <CategoryListItem key='none' hideCategoryActions onSelect={handleOnSelect} />
                         {categories.map(item =>
                             <CategoryListItem key={item.id} category={item} onSelect={handleOnSelect} onDeleted={props.onDelete} />

@@ -4,6 +4,7 @@ import {
     View,
     Text,
     ColorValue,
+    TextStyle,
 } from "react-native";
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import VisualSettings from '../src/VisualSettings';
@@ -31,6 +32,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     const categories = useAppSelector(state => state.categories);
 
     const daysPlannedBeforeDue = getDaysPlannedBeforeDue();
+    const overdue = daysPlannedBeforeDue !== undefined ? (daysPlannedBeforeDue < 0) : false;
 
     function getDaysPlannedBeforeDue() {
         if (event.details.dueDate) {
@@ -70,13 +72,6 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         return '';
     }
 
-    function getDueDateTextColor() {
-        if (daysPlannedBeforeDue === undefined) return '#fff8';
-
-        if (daysPlannedBeforeDue < 0) return '#f00';
-        else return '#fff8';
-    }
-
     function checkmark() {
         return (
             <View style={styles.checkmarkOverlayContainer}>
@@ -85,13 +80,25 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         );
     }
 
+    function getDueDateStyle(): TextStyle {
+        if (overdue) return {
+            color: '#f00',
+            fontSize: fontSizes.p,
+            fontWeight: 'bold',
+        }
+        else return {
+            color: '#fff8',
+            fontSize: fontSizes.small,
+        }
+    }
+
     return (
         <View style={styles.mainContainer}>
             <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
                 <View style={styles.colorDimmer}>
                     <Text style={styles.eventNameText}>{event.details.name}</Text>
                     {event.details.dueDate ?
-                        <Text style={[styles.dueDateText, { color: getDueDateTextColor()}]}>{getDueDateText()}</Text>
+                        <Text style={[styles.dueDateText, getDueDateStyle()]}>{getDueDateText()}</Text>
                         : <></>
                     }
                 </View>
@@ -128,7 +135,6 @@ const styles = StyleSheet.create({
     },
     dueDateText: {
         marginTop: 0,
-        fontSize: fontSizes.small,
     },
     checkmarkOverlayContainer: {
         position: 'absolute',

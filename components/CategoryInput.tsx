@@ -20,6 +20,7 @@ import { useAppDispatch } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
 import { categoryColorPalette, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
+import { focusTextInput } from '../src/GlobalHelpers';
 
 export type CategoryInputRef = {
     /**
@@ -110,9 +111,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
             </View>
             <Pressable
                 style={[globalStyles.parameterContainer, globalStyles.flexRow]}
-                onPress={() => {
-                    categoryNameInputRef.current?.focus();
-                }}
+                onPress={() => focusTextInput(categoryNameInputRef)}
             >
                 <Text style={globalStyles.fieldDescription}>Name:</Text>
                 <TextInputWithClearButton

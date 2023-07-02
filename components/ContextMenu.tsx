@@ -94,7 +94,8 @@ type OptionComponentProps = {
 }
 
 const CONTEXT_MENU_WIDTH = 90;
-const APPROXIMATE_CONTEXT_MENU_OPTION_HEIGHT = 40; // paddingTop (10) + iconSize (20) + paddingBottom (10)
+const APPROX_OPTION_HEIGHT = 40; // paddingTop (10) + iconSize (20) + paddingBottom (10)
+const OPTION_SPACING = 5;
 
 const OptionComponent: React.FC<OptionComponentProps> = (props) => {
     function drawIcon() {
@@ -136,7 +137,8 @@ const ContextMenu: React.FC<ContextMenuProps> = (props) => {
 
     function getPositionStyleProps(): ViewStyle {
         const xPosition = props.details.position.x - CONTEXT_MENU_WIDTH / 2;
-        const menuHeight = props.details.options.length * APPROXIMATE_CONTEXT_MENU_OPTION_HEIGHT;
+        const numOptions = props.details.options.length;
+        const menuHeight = APPROX_OPTION_HEIGHT * numOptions + OPTION_SPACING * (numOptions + 1);
         const windowHeight = Dimensions.get('window').height;
 
         const shouldShowMenuOnBottom = props.details.position.bottomY + menuHeight < windowHeight;
@@ -176,7 +178,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 10,
         borderRadius: 8,
-        marginTop: 5,
+        marginTop: OPTION_SPACING,
         backgroundColor: colors.l4,
     },
     optionText: {

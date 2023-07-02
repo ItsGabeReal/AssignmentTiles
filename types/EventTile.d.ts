@@ -5,4 +5,5 @@ export type EventTileCallbacks = {
     onTileDragStart?: ((gesture: GestureResponderEvent, eventID: string) => void);
     onTileDrag?: ((gesture: GestureResponderEvent, eventID: string) => void);
     onTileDropped?: ((gesture: GestureResponderEvent, eventID: string) => void);
+    onTileDragTerminated?: ((gesture: GestureResponderEvent, eventID: string) => void);
 }

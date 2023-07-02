@@ -21,6 +21,7 @@ import { memorizedInputActions } from '../src/redux/features/memorizedInput/memo
 import TextInputWithClearButton from './core/TextInputWithClearButton';
 import { colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 import DotPicker from './core/DotPicker';
+import { focusTextInput } from '../src/GlobalHelpers';
 
 export type RepeatSettings = {
     /**
@@ -174,7 +175,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                         color='#888'
                         textStyle={styles.cancelButtonText}
                         onPress={props.onRequestClose}
-                        hitSlop={30}
+                        hitSlop={20}
                     />
                     <IosStyleButton
                         title={props.mode === 'edit' ? 'Save' : 'Done'}
@@ -182,15 +183,15 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                         containerStyle={styles.submitButtonContainer}
                         onPress={onSubmit}
                         disabled={!readyToSubmit()}
-                        hitSlop={30}
+                        hitSlop={20}
                     />
                 </View>
                 <ScrollView
                     style={styles.inputContainer}
-                    keyboardDismissMode='on-drag'
+                    //keyboardDismissMode='on-drag'
                     keyboardShouldPersistTaps="handled"
                 >
-                    <Pressable style={[globalStyles.parameterContainer, globalStyles.flexRow]} onPress={() => eventNameInputRef.current?.focus()}>
+                    <Pressable style={[globalStyles.parameterContainer, globalStyles.flexRow]} onPress={() => focusTextInput(eventNameInputRef)}>
                         <Text style={globalStyles.fieldDescription}>Name:</Text>
                         <TextInputWithClearButton
                             ref={eventNameInputRef}
@@ -239,6 +240,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 <Text style={styles.regularText}>Every </Text>
                                 <NumberInput
                                     minimimValue={1}
+                                    maximumValue={9999}
                                     defaultValue={7}
                                     onChangeNumber={setRepeatValueInput}
                                     style={globalStyles.numberInput}
@@ -249,6 +251,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 <Text style={styles.regularText}>End after </Text>
                                 <NumberInput
                                     minimimValue={2}
+                                    maximumValue={100}
                                     onChangeNumber={setRepeatRecurrences}
                                     style={globalStyles.numberInput}
                                 />

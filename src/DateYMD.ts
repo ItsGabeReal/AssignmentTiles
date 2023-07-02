@@ -74,6 +74,16 @@ export namespace DateYMDHelpers {
     export function fromDate(date: Date) {
         return { year: date.getFullYear(), month: date.getMonth() + 1, date: date.getDate() } as DateYMD;
     }
+
+    export function createSequentialDateArray(startDate: DateYMD, numDays: number) {
+        const outputDates: DateYMD[] = [];
+
+        for (let i = 0; i < numDays; i++) {
+            outputDates.push(addDays(startDate, i));
+        }
+
+        return outputDates;
+    }
 }
 
 export type DateYMD = { year: number, month: number, date: number };
