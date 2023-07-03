@@ -3,6 +3,7 @@ import DateYMD from "./DateYMD";
 import { RowPlan } from "../types/v0";
 import VisualSettings from "./VisualSettings";
 import { getRowPlan } from "./redux/features/rowPlans/rowPlansSlice";
+import { Vector2D } from "../types/General";
 
 export type EventTileDimensions = {
     x: number;
@@ -95,7 +96,7 @@ export function getEventTileDimensions(rowYOffset: number, eventRowOrder: number
     return outputDimensions;
 }
 
-export function getInsertionIndexFromGesture(visibleDays: DateYMD[], rowPlans: RowPlan[], scrollYOffset: number, visibleDaysIndex: number, gesture: GestureResponderEvent) {
+export function getInsertionIndexFromGesture(visibleDays: DateYMD[], rowPlans: RowPlan[], scrollYOffset: number, visibleDaysIndex: number, position: Vector2D) {
     const dimensionsForAllTiles = getDimensionsForAllTilesInRow(visibleDays, rowPlans, scrollYOffset, visibleDaysIndex);
     
     for (let i = 0; i < dimensionsForAllTiles.length; i++) {
@@ -106,11 +107,9 @@ export function getInsertionIndexFromGesture(visibleDays: DateYMD[], rowPlans: R
         const eventTileRightEdgePlusMargin = tileDimeions.x + tileDimeions.width + VisualSettings.EventTile.mainContainer.marginRight;
 
         // Overlap checks
-        const pageX = gesture.nativeEvent.pageX;
-        const pageY = gesture.nativeEvent.pageY;
-        const gestureYOverlapsTile = pageY > tileDimeions.y && pageY < tileDimeions.y + tileDimeions.width;
-        const gestureXOverlapsLeftHalf = pageX > tileDimeions.x && pageX < tileXMidpoint;
-        const gestureXOverlapsRightHalf = pageX > tileXMidpoint && pageX < eventTileRightEdgePlusMargin;
+        const gestureYOverlapsTile = position.y > tileDimeions.y && position.y < tileDimeions.y + tileDimeions.width;
+        const gestureXOverlapsLeftHalf = position.x > tileDimeions.x && position.x < tileXMidpoint;
+        const gestureXOverlapsRightHalf = position.x > tileXMidpoint && position.x < eventTileRightEdgePlusMargin;
 
         // If gesture overlaps with left side, insert to the left
         if (gestureXOverlapsLeftHalf && gestureYOverlapsTile) return i;

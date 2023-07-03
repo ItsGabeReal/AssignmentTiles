@@ -41,12 +41,15 @@ export type CategoriesState = Category[];
 
 export type EventsState = Event[];
 
-export type MemorizedInputState = {
-    eventInput: {
+export type GeneralState = {
+    memorizedEventInput: {
         name: string;
         categoryID: CategoryID;
     },
-};
+    draggedEvent: {
+        eventID: string;
+    } | null;
+}
 
 export type RowPlansState = RowPlan[];
 

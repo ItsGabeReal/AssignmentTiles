@@ -7,11 +7,11 @@ import {
     GestureResponderEvent,
 } from "react-native";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
-import { EventTileCallbacks } from "../types/v0";
 import VisualSettings from "../src/VisualSettings"
 import { useAppSelector } from "../src/redux/hooks";
 import InteractableEventTile from "./InteractableEventTile";
 import { colors, fontSizes } from "../src/GlobalStyles";
+import { EventTileCallbacks } from "../types/EventTile";
 
 type DayRowProps = {
     /**

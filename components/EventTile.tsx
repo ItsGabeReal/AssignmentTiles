@@ -28,7 +28,6 @@ type EventTileProps = {
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
     const event = useAppSelector(state => state.events.find(item => item.id === props.eventID)) || nullEvnet;
-
     const categories = useAppSelector(state => state.categories);
 
     const daysPlannedBeforeDue = getDaysPlannedBeforeDue();

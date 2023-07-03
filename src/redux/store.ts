@@ -3,16 +3,16 @@ import categoriesSlice from "./features/categories/categoriesSlice";
 import eventsReducer from './features/events/eventsSlice';
 import rowPlansSlice from "./features/rowPlans/rowPlansSlice";
 import visibleDaysSlice from "./features/visibleDays/visibleDaysSlice";
-import memorizedInputSlice from "./features/memorizedInput/memorizedInputSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistReducer, persistStore } from "redux-persist";
 import thunk from 'redux-thunk';
 import migrate from "./migration";
+import generalSlice from "./features/general/generalSlice";
 
 const rootReducer = combineReducers({
     categories: categoriesSlice,
     events: eventsReducer,
-    memorizedInput: memorizedInputSlice,
+    general: generalSlice,
     rowPlans: rowPlansSlice,
     visibleDays: visibleDaysSlice,
 });

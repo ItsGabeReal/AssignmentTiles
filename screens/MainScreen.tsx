@@ -33,9 +33,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import VirtualEventTile, { VirtualEventTileRef } from "../components/VirtualEventTile";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { getEventPlan, rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
-import { createArrayOfSequentialDates, visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
+import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
 import { colors } from "../src/GlobalStyles";
 import { EventTileCallbacks } from "../types/EventTile";
+import { generalStateActions } from "../src/redux/features/general/generalSlice";
+import { Vector2D } from "../types/General";
 
 export default function MainScreen() {
     const {height, width} = useWindowDimensions();
@@ -53,7 +55,6 @@ export default function MainScreen() {
     const [eventCreatorVisible, setEventCreatorVisible] = useState(false);
     const [eventEditorVisible, setEventEditorVisible] = useState(false);
 
-
     const scrollYOffset = useRef(0);
     const eventCreator_initialDate = useRef<DateYMD>();
     const eventEditor_editedEventID = useRef('');
@@ -62,9 +63,9 @@ export default function MainScreen() {
     const contextMenuRef = useRef<ContextMenuContainerRef | null>(null);
 
     // Refs related to autoscroll while dragging event
-    const draggingEventTile = useRef(false);
+    const currentDraggedEvent = useRef<string | null>(null);
     const lastFrameTime = useRef<Date>();
-    const lastDragPageY = useRef(0);
+    const lastDragPosition = useRef<Vector2D>({x: 0, y: 0});
     const dragAutoScrollOffset = useRef(0);
     const scrollYOffsetAtDragStart = useRef(0);
 
@@ -86,36 +87,29 @@ export default function MainScreen() {
         contextMenuRef.current?.close();
 
         // auto scroll setup
-        /**
-         * There's a bug on ios where calling scrolTo will terminate
-         * the dragged tile's panresponder, so for now, auto scrolling
-         * is disabled on ios.
-         */
-        if (Platform.OS !== 'ios') {
-            scrollYOffsetAtDragStart.current = scrollYOffset.current;
-            dragAutoScrollOffset.current = 0;
-            draggingEventTile.current = true;
-            lastFrameTime.current = new Date();
-            lastDragPageY.current = gesture.nativeEvent.pageY;
-            requestAnimationFrame(dragLoop);
-        }
+        scrollYOffsetAtDragStart.current = scrollYOffset.current;
+        dragAutoScrollOffset.current = 0;
+        currentDraggedEvent.current = eventID;
+        lastFrameTime.current = new Date();
+        lastDragPosition.current = {x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY};
+        requestAnimationFrame(dragLoop);
 
         // show virtual event tile and initialize its position
-        virtualEventTileRef.current?.show(eventID)
-        virtualEventTileRef.current?.setDragPosition(gesture.nativeEvent.pageX, gesture.nativeEvent.pageY);
+        virtualEventTileRef.current?.show(eventID, {x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY});
+
+        // update dragged event state so that the event will be hidden while dragging
+        dispatch(generalStateActions.setDraggedEvent({eventID}));
     }
 
     function onTileDrag_cb(gesture: GestureResponderEvent) {
-        lastDragPageY.current = gesture.nativeEvent.pageY;
-
-        virtualEventTileRef.current?.setDragPosition(gesture.nativeEvent.pageX, gesture.nativeEvent.pageY);
+        lastDragPosition.current = { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY };
     }
 
-    function onTileDropped_cb(gesture: GestureResponderEvent, eventID: string) {
-        draggingEventTile.current = false;
+    function onTileDropped_cb() {
+        currentDraggedEvent.current = null;
         virtualEventTileRef.current?.hide();
 
-        const visibleDays_CSR = visibleDays_closureSafeRef.current;
+        /*const visibleDays_CSR = visibleDays_closureSafeRef.current;
         const rowPlans_CSR = rowPlans_closureSafeRef.current;
 
         const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY });
@@ -130,9 +124,12 @@ export default function MainScreen() {
             return;
         }
 
-        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, gesture);
+        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, lastDragPosition.current);
 
-        dispatch(rowPlansActions.changePlannedDate({eventID, plannedDate: overlappingRowDate, insertionIndex}));
+        dispatch(rowPlansActions.changePlannedDate({eventID, plannedDate: overlappingRowDate, insertionIndex}));*/
+        
+        // make the dropped event tile visible again by clearing the dragged event state
+        dispatch(generalStateActions.clearDraggedEvent());
     }
 
     function onTileDragTerminated_cb() {
@@ -141,31 +138,87 @@ export default function MainScreen() {
     }
 
     function dragLoop() {
-        if (!draggingEventTile.current) return;
+        // Loop while an event is being dragged
+        if (currentDraggedEvent.current) requestAnimationFrame(dragLoop);
+        else return;
 
         if (!lastFrameTime.current) {
             console.error('MainScreen -> dragLoop: lastFrameTime.current is undefined')
             return;
         }
         
-        const currentTime = new Date();
-        const delta = currentTime.valueOf() - lastFrameTime.current.valueOf();
-        lastFrameTime.current = currentTime;
-        
-        const scrollAmount = delta / 2;
+        // Auto scroll
+        /**
+         * There's a bug on ios where calling scrolTo will terminate
+         * the dragged tile's panresponder, so for now, auto scrolling
+         * is disabled on ios.
+         */
+        if (Platform.OS !== 'ios') {
+            const currentTime = new Date();
+            const delta = currentTime.valueOf() - lastFrameTime.current.valueOf();
+            lastFrameTime.current = currentTime;
+            
+            const scrollAmount = delta / 2;
 
-        if (lastDragPageY.current < height * 0.1) {
-            dragAutoScrollOffset.current -= scrollAmount;
-            const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
-            flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
-        }
-        else if (lastDragPageY.current > height - (height * 0.1)) {
-            dragAutoScrollOffset.current += scrollAmount;
-            const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
-            flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
+            if (lastDragPosition.current.y < height * 0.1) {
+                dragAutoScrollOffset.current -= scrollAmount;
+                const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
+                flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
+            }
+            else if (lastDragPosition.current.y > height - (height * 0.1)) {
+                dragAutoScrollOffset.current += scrollAmount;
+                const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
+                flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
+            }
         }
 
-        requestAnimationFrame(dragLoop);
+        // update event plan
+        //updateEventWhileDragging();
+    }
+
+    function updateEventWhileDragging() {
+        if (!currentDraggedEvent.current) return;
+
+        let eventPlanChanged = false;
+        const visibleDays_CSR = visibleDays_closureSafeRef.current;
+        const rowPlans_CSR = rowPlans_closureSafeRef.current;
+
+        const currentEventPlans = getEventPlan(rowPlans_CSR, currentDraggedEvent.current);
+        if (!currentEventPlans) {
+            console.warn('MainScreen -> dragLoop: Could not get event plan');
+            return;
+        }
+
+        const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, lastDragPosition.current);
+        if (!overlappingRowDate) {
+            console.error('MainScreen -> onTileDropped_cb: Could not find row overlapping drop position');
+            return;
+        }
+
+        if (!DateYMDHelpers.datesEqual(currentEventPlans.plannedDate, overlappingRowDate)) {
+            eventPlanChanged = true;
+        }
+
+        const targetVisibleDaysIndex = visibleDays_CSR.findIndex(item => DateYMDHelpers.datesEqual(item, overlappingRowDate));
+        if (targetVisibleDaysIndex == -1) {
+            console.error('onTileDropped: Could not find visible day with date matching', DateYMDHelpers.toString(overlappingRowDate));
+            return;
+        }
+
+        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, lastDragPosition.current);
+
+        /**
+         * If the insertion index is anything other than the event's current
+         * row order or row order +1, then the insertion index has changed.
+         */
+        if (insertionIndex !== currentEventPlans.rowOrder && insertionIndex !== currentEventPlans.rowOrder + 1) {
+            eventPlanChanged = true;
+        }
+
+        if (eventPlanChanged) {
+            console.log('plan updated');
+            dispatch(rowPlansActions.changePlannedDate({ eventID: currentDraggedEvent.current, plannedDate: overlappingRowDate, insertionIndex }));
+        }
     }
 
     function openEventTileContextMenu(eventID: string) {
@@ -268,8 +321,8 @@ export default function MainScreen() {
         dispatch(visibleDaysActions.addDaysToTop({ numNewDays: NUM_NEW_DAYS }));
 
         // If autoscrolling while dragging a tile, apply offset to dragAutoScrollOffset
-        if (draggingEventTile.current) {
-            const addedDays = createArrayOfSequentialDates(DateYMDHelpers.subtractDays(visibleDays[0], NUM_NEW_DAYS), NUM_NEW_DAYS);
+        if (currentDraggedEvent.current) {
+            const addedDays = DateYMDHelpers.createSequentialDateArray(DateYMDHelpers.subtractDays(visibleDays[0], NUM_NEW_DAYS), NUM_NEW_DAYS);
             const heightOfNewRows = getDayRowYOffset(addedDays, rowPlans, NUM_NEW_DAYS);
             dragAutoScrollOffset.current += heightOfNewRows;
         }
@@ -327,7 +380,7 @@ export default function MainScreen() {
                 onRequestClose={() => setEventEditorVisible(false)}
                 editedEventID={eventEditor_editedEventID.current}
             />
-            <VirtualEventTile ref={virtualEventTileRef} />
+            <VirtualEventTile ref={virtualEventTileRef} onDrag={onTileDrag_cb} onDrop={onTileDropped_cb} />
         </View>
     );
 }

@@ -17,11 +17,11 @@ import CategoryPicker, { CategoryPickerRef } from './CategoryPicker';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
 import HideableView from './core/HideableView';
-import { memorizedInputActions } from '../src/redux/features/memorizedInput/memorizedInputSlice';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
 import { colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 import DotPicker from './core/DotPicker';
 import { focusTextInput } from '../src/GlobalHelpers';
+import { generalStateActions } from '../src/redux/features/general/generalSlice';
 
 export type RepeatSettings = {
     /**
@@ -148,7 +148,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
 
             props.onSubmit(details, repeatSwitchValue ? repeatSettings : null);
 
-            dispatch(memorizedInputActions.updateMemorizedEventInput({name: details.name, categoryID: details.categoryID}));
+            dispatch(generalStateActions.updateMemorizedEventInput({name: details.name, categoryID: details.categoryID}));
         }
     }
 
@@ -161,7 +161,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
          * Set remembered category id to null so there's no issue
          * autofilling a category that doesn't exist anymore.
          */
-        dispatch(memorizedInputActions.updateMemorizedEventInput({categoryID: null}));
+        dispatch(generalStateActions.updateMemorizedEventInput({categoryID: null}));
     }
 
     return (

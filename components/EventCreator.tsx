@@ -29,7 +29,7 @@ type EventCreatorProps = {
 
 const EventCreator: React.FC<EventCreatorProps> = (props) => {
     const dispatch = useAppDispatch();
-    const memorizedEventInput = useAppSelector(state => state.memorizedInput.eventInput);
+    const memorizedEventInput = useAppSelector(state => state.general.memorizedEventInput);
 
     function onSubmit(details: EventDetails, repeatSettings: RepeatSettings | null) {
         if (repeatSettings) {
