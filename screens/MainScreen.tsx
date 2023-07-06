@@ -30,14 +30,13 @@ import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMe
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
 import { deleteEvent } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import VirtualEventTile, { VirtualEventTileRef } from "../components/VirtualEventTile";
+import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { getEventPlan, rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
 import { colors } from "../src/GlobalStyles";
-import { EventTileCallbacks } from "../types/EventTile";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
-import { Vector2D } from "../types/General";
+import { EventTileCallbacks, Vector2D } from "../types/General";
 
 export default function MainScreen() {
     const {height, width} = useWindowDimensions();
@@ -75,12 +74,7 @@ export default function MainScreen() {
     }
 
     function onTileLongPressed_cb(gesture: GestureResponderEvent, eventID: string) {
-        flatListRef.current?.setNativeProps({ scrollEnabled: false });
         openEventTileContextMenu(eventID);
-    }
-
-    function onTileLongPressRelease_cb() {
-        flatListRef.current?.setNativeProps({ scrollEnabled: true });
     }
 
     function onTileDragStart_cb(gesture: GestureResponderEvent, eventID: string) {
@@ -95,7 +89,7 @@ export default function MainScreen() {
         requestAnimationFrame(dragLoop);
 
         // show virtual event tile and initialize its position
-        virtualEventTileRef.current?.show(eventID, {x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY});
+        virtualEventTileRef.current?.enable(gesture, eventID);
 
         // update dragged event state so that the event will be hidden while dragging
         dispatch(generalStateActions.setDraggedEvent({eventID}));
@@ -107,34 +101,9 @@ export default function MainScreen() {
 
     function onTileDropped_cb() {
         currentDraggedEvent.current = null;
-        virtualEventTileRef.current?.hide();
 
-        /*const visibleDays_CSR = visibleDays_closureSafeRef.current;
-        const rowPlans_CSR = rowPlans_closureSafeRef.current;
-
-        const overlappingRowDate = getDayRowAtScreenPosition(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY });
-        if (!overlappingRowDate) {
-            console.error('MainScreen -> onTileDropped_cb: Could not find row overlapping drop position');
-            return;
-        }
-
-        const targetVisibleDaysIndex = visibleDays_CSR.findIndex(item => DateYMDHelpers.datesEqual(item, overlappingRowDate));
-        if (targetVisibleDaysIndex == -1) {
-            console.error('onTileDropped: Could not find visible day with date matching', DateYMDHelpers.toString(overlappingRowDate));
-            return;
-        }
-
-        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, lastDragPosition.current);
-
-        dispatch(rowPlansActions.changePlannedDate({eventID, plannedDate: overlappingRowDate, insertionIndex}));*/
-        
         // make the dropped event tile visible again by clearing the dragged event state
         dispatch(generalStateActions.clearDraggedEvent());
-    }
-
-    function onTileDragTerminated_cb() {
-        // Make sure the context menu gets closed
-        contextMenuRef.current?.close();
     }
 
     function dragLoop() {
@@ -148,32 +117,25 @@ export default function MainScreen() {
         }
         
         // Auto scroll
-        /**
-         * There's a bug on ios where calling scrolTo will terminate
-         * the dragged tile's panresponder, so for now, auto scrolling
-         * is disabled on ios.
-         */
-        if (Platform.OS !== 'ios') {
-            const currentTime = new Date();
-            const delta = currentTime.valueOf() - lastFrameTime.current.valueOf();
-            lastFrameTime.current = currentTime;
-            
-            const scrollAmount = delta / 2;
+        const currentTime = new Date();
+        const delta = currentTime.valueOf() - lastFrameTime.current.valueOf();
+        lastFrameTime.current = currentTime;
 
-            if (lastDragPosition.current.y < height * 0.1) {
-                dragAutoScrollOffset.current -= scrollAmount;
-                const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
-                flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
-            }
-            else if (lastDragPosition.current.y > height - (height * 0.1)) {
-                dragAutoScrollOffset.current += scrollAmount;
-                const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
-                flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
-            }
+        const scrollAmount = delta / 2;
+
+        if (lastDragPosition.current.y < height * 0.1) {
+            dragAutoScrollOffset.current -= scrollAmount;
+            const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
+            flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
+        }
+        else if (lastDragPosition.current.y > height - (height * 0.1)) {
+            dragAutoScrollOffset.current += scrollAmount;
+            const scrollPosition = scrollYOffsetAtDragStart.current + dragAutoScrollOffset.current;
+            flatListRef.current?.scrollToOffset({ animated: false, offset: scrollPosition });
         }
 
         // update event plan
-        //updateEventWhileDragging();
+        updateEventWhileDragging();
     }
 
     function updateEventWhileDragging() {
@@ -216,7 +178,6 @@ export default function MainScreen() {
         }
 
         if (eventPlanChanged) {
-            console.log('plan updated');
             dispatch(rowPlansActions.changePlannedDate({ eventID: currentDraggedEvent.current, plannedDate: overlappingRowDate, insertionIndex }));
         }
     }
@@ -285,11 +246,7 @@ export default function MainScreen() {
     const eventTileCallbacks: EventTileCallbacks = {
         onTilePressed: onTilePressed_cb,
         onTileLongPressed: onTileLongPressed_cb,
-        onTileLongPressRelease: onTileLongPressRelease_cb,
         onTileDragStart: onTileDragStart_cb,
-        onTileDrag: onTileDrag_cb,
-        onTileDropped: onTileDropped_cb,
-        onTileDragTerminated: onTileDragTerminated_cb,
     }
 
     function renderItem({ item }: { item: DateYMD }) {
@@ -349,23 +306,25 @@ export default function MainScreen() {
                 barStyle={Appearance.getColorScheme() === 'light' ? 'dark-content' : 'light-content'}
                 translucent
             />
-            <FlatList
-                ref={flatListRef}
-                data={visibleDays}
-                keyExtractor={item => DateYMDHelpers.toString(item)}
-                renderItem={renderItem}
-                ItemSeparatorComponent={DayRowSeparater}
-                getItemLayout={getItemLayout}
-                initialScrollIndex={visibleDays.findIndex(item => DateYMDHelpers.isToday(item)) - 1}
-                //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
-                onScroll={onScroll}
-                onStartReached={onStartReached}
-                onStartReachedThreshold={1}
-                onEndReached={onEndReached}
-                onEndReachedThreshold={1}
-                maintainVisibleContentPosition={{minIndexForVisible: 2}}
-                showsVerticalScrollIndicator={false}
-            />
+            <VETContainer ref={virtualEventTileRef} onDrag={onTileDrag_cb} onDrop={onTileDropped_cb}>
+                <FlatList
+                    ref={flatListRef}
+                    data={visibleDays}
+                    keyExtractor={item => DateYMDHelpers.toString(item)}
+                    renderItem={renderItem}
+                    ItemSeparatorComponent={DayRowSeparater}
+                    getItemLayout={getItemLayout}
+                    initialScrollIndex={visibleDays.findIndex(item => DateYMDHelpers.isToday(item)) - 1}
+                    //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
+                    onScroll={onScroll}
+                    onStartReached={onStartReached}
+                    onStartReachedThreshold={1}
+                    onEndReached={onEndReached}
+                    onEndReachedThreshold={1}
+                    maintainVisibleContentPosition={{ minIndexForVisible: 2 }}
+                    showsVerticalScrollIndicator={false}
+                />
+            </VETContainer>
             <TouchableOpacity style={styles.addButton} onPress={() => openEventCreator()}>
                 <Icon name="add" color={'white'} size={40} />
             </TouchableOpacity>
@@ -380,7 +339,6 @@ export default function MainScreen() {
                 onRequestClose={() => setEventEditorVisible(false)}
                 editedEventID={eventEditor_editedEventID.current}
             />
-            <VirtualEventTile ref={virtualEventTileRef} onDrag={onTileDrag_cb} onDrop={onTileDropped_cb} />
         </View>
     );
 }
