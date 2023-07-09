@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import {
     StyleSheet,
     ViewStyle,
@@ -7,79 +7,118 @@ import {
     Pressable,
     TouchableOpacity,
     FlatList,
-    ColorValue,
     Dimensions,
     BackHandler,
 } from 'react-native';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { colors, fontSizes } from '../src/GlobalStyles';
-export type ContextMenuOptionDetails = {
-    /**
-     * The name of the option.
-     */
-    name: string;
+import { ContextMenuDetails, ContextMenuOptionDetails } from '../types/ContextMenu';
 
-    /*
-    * Icon name from the react-native-vector-icons/MaterialIcons library to appear next to the option name.
-    */
-    iconName?: string;
+export type ContextMenuRef = {
+    /**
+     * Opens the context menu and passes it the provided details.
+     */
+    create: ((details: ContextMenuDetails) => void);
 
     /**
-     * Color of the name text and icon.
+     * Close the context menu.
      */
-    color?: ColorValue;
-
-    /**
-     * Callback for when this function is pressed.
-     */
-    onPress: (() => void);
-}
-
-export type ContextMenuPosition = {
-    /**
-     * The screen x position.
-     */
-    x: number;
-
-    /**
-     * The screen Y position of the top of the content you don't want to be overlapped.
-     */
-    topY: number;
-
-    /**
-     * The screen Y position of the bottom of the content you don't want to be overlapped.
-     */
-    bottomY: number;
-}
-
-export type ContextMenuDetails = {
-    /**
-     * A list of options that will appear in the context menu.
-     */
-    options: ContextMenuOptionDetails[];
-
-    /**
-     * Position information for the dropdown.
-     */
-    position: ContextMenuPosition;
+    close: (() => void);
 }
 
 type ContextMenuProps = {
     /**
-     * The selectable options and position. Should be provided when the context menu is created.
+     * If a scrollview is a child of ContextMenu, then scrolling
+     * will dismiss the context menu.
      */
-    details: ContextMenuDetails;
-
-    /**
-     * Wether the context menu is shown or not.
-     */
-    visible: boolean;
-
-    /**
-     * Callback for when the context menu wants to close. Should set visible state to false.
-     */
-    onRequestClose: (() => void);
+    children?: React.ReactNode;
 }
+
+const CONTEXT_MENU_WIDTH = 90;
+const APPROX_OPTION_HEIGHT = 40; // paddingTop (10) + iconSize (20) + paddingBottom (10)
+const OPTION_SPACING = 5;
+
+const emptyContextMenuDetails: ContextMenuDetails = {
+    options: [],
+    position: { x: 0, topY: 0, bottomY: 0 },
+}
+
+const ContextMenu = forwardRef<ContextMenuRef, ContextMenuProps>((props, ref) => {
+    const [visible, setVisible] = useState(false);
+    const [details, setDetails] = useState(emptyContextMenuDetails);
+
+    useImperativeHandle(ref, () => ({
+        create(details: ContextMenuDetails) {
+            setDetails(details);
+            setVisible(true);
+        },
+        close() {
+            if (visible) close();
+        }
+    }));
+    
+    useEffect(() => {
+        // Close context menu when back button is pressed on Android
+        const backAction = () => {
+            if (!visible) return false; // Differ to the next back handler
+
+            setVisible(false);
+            return true;
+        }
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction); // Link back event to props.onClose()
+
+        return () => backHandler.remove(); // Cleanup function
+    }, [visible]);
+
+    function getPositionStyleProps(): ViewStyle {
+        const xPosition = details.position.x - CONTEXT_MENU_WIDTH / 2;
+        const numOptions = details.options.length;
+        const menuHeight = APPROX_OPTION_HEIGHT * numOptions + OPTION_SPACING * (numOptions + 1);
+        const windowHeight = Dimensions.get('window').height;
+
+        const shouldShowMenuOnBottom = details.position.bottomY + menuHeight < windowHeight;
+        if (shouldShowMenuOnBottom) {
+            return {
+                left: xPosition,
+                top: details.position.bottomY
+            };
+        }
+        else {
+            return {
+                left: xPosition,
+                top: details.position.topY - menuHeight
+            };
+        }
+    }
+
+    function close() {
+        setVisible(false);
+    }
+
+    function onGestureStart() {
+        // When any gesture comes through, close the context menu and do not become the responder.
+        if (visible) close();
+        return false;
+    }
+
+    return (
+        <>
+            <Pressable onStartShouldSetResponderCapture={onGestureStart}>
+                {props.children}
+            </Pressable>
+            {visible ?
+                <FlatList<ContextMenuOptionDetails>
+                    data={details.options}
+                    renderItem={({ item }) => <OptionComponent details={item} onRequestClose={close} />}
+                    style={[styles.mainContainer, getPositionStyleProps()]}
+                />
+                : <></>
+            }
+        </>
+        
+    );
+});
 
 type OptionComponentProps = {
     /**
@@ -92,10 +131,6 @@ type OptionComponentProps = {
      */
     onRequestClose: (() => void);
 }
-
-const CONTEXT_MENU_WIDTH = 90;
-const APPROX_OPTION_HEIGHT = 40; // paddingTop (10) + iconSize (20) + paddingBottom (10)
-const OPTION_SPACING = 5;
 
 const OptionComponent: React.FC<OptionComponentProps> = (props) => {
     function drawIcon() {
@@ -121,56 +156,9 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
     );
 }
 
-const ContextMenu: React.FC<ContextMenuProps> = (props) => {
-    useEffect(() => {
-        const backAction = () => {
-            if (!props.visible) return false; // Differ to the next back handler
-
-            props.onRequestClose?.();
-            return true;
-        }
-
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction); // Link back event to props.onClose()
-
-        return () => backHandler.remove(); // Cleanup function
-    }, [props.visible]);
-
-    function getPositionStyleProps(): ViewStyle {
-        const xPosition = props.details.position.x - CONTEXT_MENU_WIDTH / 2;
-        const numOptions = props.details.options.length;
-        const menuHeight = APPROX_OPTION_HEIGHT * numOptions + OPTION_SPACING * (numOptions + 1);
-        const windowHeight = Dimensions.get('window').height;
-
-        const shouldShowMenuOnBottom = props.details.position.bottomY + menuHeight < windowHeight;
-        if (shouldShowMenuOnBottom) {
-            return {
-                left: xPosition,
-                top: props.details.position.bottomY
-            };
-        }
-        else {
-            return {
-                left: xPosition,
-                top: props.details.position.topY - menuHeight
-            };
-        }
-    }
-
-    if (props.visible) {
-        return (
-            <Pressable style={StyleSheet.absoluteFill} onPress={props.onRequestClose}>
-                <FlatList<ContextMenuOptionDetails>
-                    data={props.details.options}
-                    renderItem={({ item }) => <OptionComponent details={item} onRequestClose={props.onRequestClose} />}
-                    style={[styles.mainContainer, getPositionStyleProps()]}
-                />
-            </Pressable>
-        );
-    } else return (<></>);
-}
-
 const styles = StyleSheet.create({
     mainContainer: {
+        position: 'absolute',
         width: CONTEXT_MENU_WIDTH,
     },
     optionContainer: {

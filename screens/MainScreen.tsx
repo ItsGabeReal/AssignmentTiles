@@ -25,8 +25,6 @@ import {
 import DayRow from "../components/DayRow";
 import EventCreator from "../components/EventCreator";
 import EventEditor from "../components/EventEditor";
-import ContextMenuContainer, { ContextMenuContainerRef } from "../components/ContextMenuContainer";
-import { ContextMenuDetails, ContextMenuPosition } from "../components/ContextMenu";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
 import { deleteEvent } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -37,9 +35,11 @@ import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDay
 import { colors } from "../src/GlobalStyles";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
 import { EventTileCallbacks, Vector2D } from "../types/General";
+import ContextMenu, { ContextMenuRef } from "../components/ContextMenu";
+import { ContextMenuDetails, ContextMenuPosition } from "../types/ContextMenu";
 
 export default function MainScreen() {
-    const {height, width} = useWindowDimensions();
+    const { height } = useWindowDimensions();
 
     const dispatch = useAppDispatch();
 
@@ -59,7 +59,7 @@ export default function MainScreen() {
     const eventEditor_editedEventID = useRef('');
     const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
-    const contextMenuRef = useRef<ContextMenuContainerRef | null>(null);
+    const contextMenuRef = useRef<ContextMenuRef | null>(null);
 
     // Refs related to autoscroll while dragging event
     const currentDraggedEvent = useRef<string | null>(null);
@@ -157,7 +157,8 @@ export default function MainScreen() {
             return;
         }
 
-        if (!DateYMDHelpers.datesEqual(currentEventPlans.plannedDate, overlappingRowDate)) {
+        const samePlannedDate = DateYMDHelpers.datesEqual(currentEventPlans.plannedDate, overlappingRowDate);
+        if (!samePlannedDate) {
             eventPlanChanged = true;
         }
 
@@ -167,13 +168,20 @@ export default function MainScreen() {
             return;
         }
 
-        const insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, lastDragPosition.current);
+        let insertionIndex = getInsertionIndexFromGesture(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, targetVisibleDaysIndex, lastDragPosition.current);
+
+        const numEventsInRow = rowPlans_CSR[currentEventPlans.rowPlansIndex].orderedEventIDs.length;
 
         /**
-         * If the insertion index is anything other than the event's current
-         * row order or row order +1, then the insertion index has changed.
-         */
-        if (insertionIndex !== currentEventPlans.rowOrder && insertionIndex !== currentEventPlans.rowOrder + 1) {
+         * If a tile is dragged to the end of a row, the insertion index will
+         * equal the index for the next element to be added. However, if the tile
+         * is already in the row, this could cause a lot of unnecesary rerenders,
+         * so whenever that's the case, decrement it back down to rowPlans.length - 1.
+         */ 
+        if (samePlannedDate && insertionIndex > numEventsInRow-1) insertionIndex--;
+        
+        if (insertionIndex !== currentEventPlans.rowOrder) {
+
             eventPlanChanged = true;
         }
 
@@ -307,28 +315,29 @@ export default function MainScreen() {
                 translucent
             />
             <VETContainer ref={virtualEventTileRef} onDrag={onTileDrag_cb} onDrop={onTileDropped_cb}>
-                <FlatList
-                    ref={flatListRef}
-                    data={visibleDays}
-                    keyExtractor={item => DateYMDHelpers.toString(item)}
-                    renderItem={renderItem}
-                    ItemSeparatorComponent={DayRowSeparater}
-                    getItemLayout={getItemLayout}
-                    initialScrollIndex={visibleDays.findIndex(item => DateYMDHelpers.isToday(item)) - 1}
-                    //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
-                    onScroll={onScroll}
-                    onStartReached={onStartReached}
-                    onStartReachedThreshold={1}
-                    onEndReached={onEndReached}
-                    onEndReachedThreshold={1}
-                    maintainVisibleContentPosition={{ minIndexForVisible: 2 }}
-                    showsVerticalScrollIndicator={false}
-                />
+                <ContextMenu ref={contextMenuRef}>
+                    <FlatList
+                        ref={flatListRef}
+                        data={visibleDays}
+                        keyExtractor={item => DateYMDHelpers.toString(item)}
+                        renderItem={renderItem}
+                        ItemSeparatorComponent={DayRowSeparater}
+                        getItemLayout={getItemLayout}
+                        initialScrollIndex={visibleDays.findIndex(item => DateYMDHelpers.isToday(item)) - 1}
+                        //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
+                        onScroll={onScroll}
+                        onStartReached={onStartReached}
+                        onStartReachedThreshold={1}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={1}
+                        maintainVisibleContentPosition={{ minIndexForVisible: 2 }}
+                        showsVerticalScrollIndicator={false}
+                    />
+                </ContextMenu>
             </VETContainer>
             <TouchableOpacity style={styles.addButton} onPress={() => openEventCreator()}>
                 <Icon name="add" color={'white'} size={40} />
             </TouchableOpacity>
-            <ContextMenuContainer ref={contextMenuRef} />
             <EventCreator
                 visible={eventCreatorVisible}
                 onRequestClose={() => setEventCreatorVisible(false)}

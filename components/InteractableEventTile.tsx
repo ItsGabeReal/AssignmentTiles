@@ -52,13 +52,11 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
                 }
             },
             onPanResponderRelease() {
-                // Reactive one time event for drag start.
-                calledDragStart.current = false;
+                handleRelease();
 
             },
             onPanResponderTerminate() {
-                // Reactive one time event for drag start.
-                calledDragStart.current = false;
+                handleRelease();
             },
             onPanResponderTerminationRequest(e, gestureState) {
                 return calledDragStart.current;
@@ -70,6 +68,11 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
         listeningToMoveEvents.current = true;
         if (Platform.OS == 'android') Vibration.vibrate(10);
         props.eventTileCallbacks.onTileLongPressed?.(e, props.eventID);
+    }
+
+    function handleRelease() {
+        listeningToMoveEvents.current = false;
+        calledDragStart.current = false; // Reactive one time event for drag start.
     }
 
     function handleDragStart(e: GestureResponderEvent) {

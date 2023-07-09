@@ -49,15 +49,6 @@ export const rowPlansSlice = createSlice({
                 return;
             }
 
-            // Decrement actual insertion index if necessary
-            const eventMovedToSameDate = DateYMDHelpers.datesEqual(removeEventOutput.removedFromDate, action.payload.plannedDate);
-            if (eventMovedToSameDate) {
-                const eventRemovedBeforeInsertionIndex = removeEventOutput.removedFromIndex < actualInsertionIndex;
-                if (eventRemovedBeforeInsertionIndex) {
-                    actualInsertionIndex--;
-                }
-            }
-
             // Add event back in
             _insertEventInRowPlans(
                 state,

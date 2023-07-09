@@ -100,22 +100,26 @@ export function getInsertionIndexFromGesture(visibleDays: DateYMD[], rowPlans: R
     const dimensionsForAllTiles = getDimensionsForAllTilesInRow(visibleDays, rowPlans, scrollYOffset, visibleDaysIndex);
     
     for (let i = 0; i < dimensionsForAllTiles.length; i++) {
-        const tileDimeions = dimensionsForAllTiles[i];
+        const tileDimensions = dimensionsForAllTiles[i];
 
         // Intermediate variables
-        const tileXMidpoint = tileDimeions.x + tileDimeions.width / 2;
-        const eventTileRightEdgePlusMargin = tileDimeions.x + tileDimeions.width + VisualSettings.EventTile.mainContainer.marginRight;
-
+        const tileRightEdgePlusMargin = tileDimensions.x + tileDimensions.width + VisualSettings.EventTile.mainContainer.marginRight;
+        const tileYMargin = VisualSettings.EventTile.mainContainer.marginBottom;
+        const isFirstInRow = (i % VisualSettings.DayRow.numEventTileColumns) === 0;
+        
         // Overlap checks
-        const gestureYOverlapsTile = position.y > tileDimeions.y && position.y < tileDimeions.y + tileDimeions.width;
-        const gestureXOverlapsLeftHalf = position.x > tileDimeions.x && position.x < tileXMidpoint;
-        const gestureXOverlapsRightHalf = position.x > tileXMidpoint && position.x < eventTileRightEdgePlusMargin;
-
-        // If gesture overlaps with left side, insert to the left
-        if (gestureXOverlapsLeftHalf && gestureYOverlapsTile) return i;
-
-        // If gesture overlaps with right side, insert to the right
-        if (gestureXOverlapsRightHalf && gestureYOverlapsTile) return (i + 1);
+        const gestureYOverlapsTile = position.y > tileDimensions.y - tileYMargin && position.y < tileDimensions.y + tileDimensions.width + tileYMargin;
+        const gestureXOverlapsTile = position.x > tileDimensions.x && position.x < tileRightEdgePlusMargin;
+        
+        // Return insert index
+        if (gestureYOverlapsTile) {
+            if (gestureXOverlapsTile) {
+                return i;
+            }
+            else if (isFirstInRow && (position.x < tileDimensions.x)) {
+                return i;
+            }
+        }
     }
 
     // Default return case
