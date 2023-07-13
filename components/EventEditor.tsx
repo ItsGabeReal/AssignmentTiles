@@ -1,68 +1,90 @@
-import React from "react"
-import { EventDetails } from "../types/v0"
+import React, {useState, useRef, forwardRef, useImperativeHandle} from "react"
+import { DueDate, EventDetails } from "../types/v0"
 import EventInputModal, { RepeatSettings } from "./EventInput"
 import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
-import { eventActions } from "../src/redux/features/events/eventsSlice";
-import { createRepeatedEvent, nullEventDetails } from "../src/EventHelpers";
+import { eventActions, getEventFromID, selectEventFromID } from "../src/redux/features/events/eventsSlice";
+import { createRepeatedEvents, nullEventDetails } from "../src/EventHelpers";
 import { DateYMDHelpers } from "../src/DateYMD";
 import { rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { colors } from "../src/GlobalStyles";
 
-type EventEditorProps = {
-    visible: boolean;
-
+export type EventEditorRef = {
     /**
-     * The event ID of the event to be edited.
+     * Opens the event editor modal with the id of the event to be edited.
      */
-    editedEventID?: string;
-
-    /**
-     * When the modal wants to close. Should set visible to false.
-     */
-    onRequestClose: (() => void);
+    open: ((editedEventID: string) => void);
 }
 
-const EventEditor: React.FC<EventEditorProps> = (props) => {
+type EventEditorProps = {
+}
+
+const EventEditor = forwardRef<EventEditorRef, EventEditorProps>((props, ref) => {
     const dispatch = useAppDispatch();
-    const editedEventDetails = useAppSelector(state => state.events.find(item => item.id === props.editedEventID)?.details) || nullEventDetails;
+    
+    const [visible, setVisible] = useState(false);
+    const [editedEventID, setEditedEventID] = useState<string>('');
+
+    const editedEventDetails = useAppSelector(selectEventFromID(editedEventID)) || nullEventDetails;
+
+    useImperativeHandle(ref, () => ({
+        open(_editedEventID: string) {
+            setEditedEventID(_editedEventID);
+            setVisible(true);
+        }
+    }));
 
     function handleOnSubmit(details: EventDetails, repeatSettings: RepeatSettings | null) {
-        if (!props.editedEventID) {
-            console.error(`Initial edited event was null. Event editor has no idea what event it's supposed to edit.`);
+        if (editedEventIsUndefined()) {
+            console.error(`Edited event id was not defined. Event editor has no idea what event it's supposed to edit.`);
             return;
         }
 
-        // Change planned date if the due date updated
-        const dueDateChanged = !DateYMDHelpers.datesEqual(editedEventDetails.dueDate, details.dueDate);
-        if (dueDateChanged && details.dueDate !== null) {
-            dispatch(rowPlansActions.changePlannedDate({eventID: props.editedEventID, plannedDate: details.dueDate}));
-        }
+        changePlannedDateIfDueDateWasChanged(editedEventDetails.dueDate, details.dueDate);
         
-        dispatch(eventActions.edit({
-            eventID: props.editedEventID,
-            newDetails: details,
-        }));
+        applyEventEdits(details);
 
         if (repeatSettings) {
-            createRepeatedEvent(dispatch, details, repeatSettings, true);
+            createRepeatedEvents(dispatch, details, repeatSettings, true);
         }
+    }
+
+    function editedEventIsUndefined() {
+        return editedEventID === '';
+    }
+
+    function changePlannedDateIfDueDateWasChanged(before: DueDate, after: DueDate) {
+        const dueDateIsDifferent = !DateYMDHelpers.datesEqual(before, after);
+        const newDateIsValid = after !== null;
+
+        if (dueDateIsDifferent && newDateIsValid) {
+            dispatch(rowPlansActions.changePlannedDate({ eventID: editedEventID, plannedDate: after }));
+        }
+    }
+
+    function applyEventEdits(newDetails: EventDetails) {
+        dispatch(eventActions.edit({
+            eventID: editedEventID,
+            newDetails: newDetails,
+        }));
+    }
+
+    function close() {
+        setVisible(false);
     }
     
     return (
-        <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose} backgroundColor={colors.l1}>
+        <DefaultModal visible={visible} onRequestClose={close} backgroundColor={colors.l1}>
             <EventInputModal
-                visible={props.visible}
                 mode='edit'
                 initialName={editedEventDetails.name}
                 initialDueDate={editedEventDetails.dueDate}
                 initialCategoryID={editedEventDetails.categoryID}
-                onRequestClose={props.onRequestClose}
+                onRequestClose={close}
                 onSubmit={handleOnSubmit}
             />
         </DefaultModal>
-        
     );
-}
+});
 
 export default EventEditor;

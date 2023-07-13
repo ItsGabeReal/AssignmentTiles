@@ -1,58 +1,62 @@
-import React from "react";
-import { Event, EventDetails } from "../types/v0";
+import React, { forwardRef, useState, useRef, useImperativeHandle } from "react";
+import { DueDate, Event, EventDetails } from "../types/v0";
 import EventInput, { RepeatSettings } from "./EventInput";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
-import { createEvent, createRepeatedEvent } from "../src/EventHelpers";
+import { createEvent, createRepeatedEvents } from "../src/EventHelpers";
 import { colors } from "../src/GlobalStyles";
 
-type EventCreatorProps = {
-    visible: boolean;
-
+export type EventCreatorRef = {
     /**
-     * The value due date will be set to when visible is
-     * set to true.
+     * Opens the event creator modal with a pre-selected due date.
      */
-    initialDueDate?: DateYMD;
-
-    /**
-     * Called when the modal wants to close. Should set visible to false.
-     */
-    onRequestClose: (() => void);
-
-    /**
-     * Called when a new event is created.
-     */
-    onEventCreated?: ((createdEvent: Event) => void);
+    open: ((suggestedDueDate?: DateYMD) => void);
 }
 
-const EventCreator: React.FC<EventCreatorProps> = (props) => {
+type EventCreatorProps = {
+}
+
+const EventCreator = forwardRef<EventCreatorRef, EventCreatorProps>((props, ref) => {
     const dispatch = useAppDispatch();
     const memorizedEventInput = useAppSelector(state => state.general.memorizedEventInput);
 
+    const [visible, setVisible] = useState(false);
+
+    const suggestedDueDate = useRef<DateYMD>();
+
+    useImperativeHandle(ref, () => ({
+        open(_suggestedDueDate?: DateYMD) {
+            suggestedDueDate.current = _suggestedDueDate;
+            setVisible(true);
+        }
+    }));
+
     function onSubmit(details: EventDetails, repeatSettings: RepeatSettings | null) {
         if (repeatSettings) {
-            createRepeatedEvent(dispatch, details, repeatSettings);
+            createRepeatedEvents(dispatch, details, repeatSettings);
         }
         else {
-            createEvent(dispatch, details, props.initialDueDate);
+            createEvent(dispatch, details, suggestedDueDate.current);
         }
     }
 
+    function close() {
+        setVisible(false);
+    }
+
     return (
-        <DefaultModal visible={props.visible} onRequestClose={props.onRequestClose} backgroundColor={colors.l1}>
+        <DefaultModal visible={visible} onRequestClose={close} backgroundColor={colors.l1}>
             <EventInput
-                visible={props.visible}
                 mode='create'
                 initialName={memorizedEventInput.name}
-                initialDueDate={props.initialDueDate}
+                initialDueDate={suggestedDueDate.current}
                 initialCategoryID={memorizedEventInput.categoryID}
-                onRequestClose={props.onRequestClose}
+                onRequestClose={close}
                 onSubmit={onSubmit}
             />
         </DefaultModal>
     );
-}
+});
 
 export default EventCreator;

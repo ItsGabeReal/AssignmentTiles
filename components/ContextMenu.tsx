@@ -104,9 +104,9 @@ const ContextMenu = forwardRef<ContextMenuRef, ContextMenuProps>((props, ref) =>
 
     return (
         <>
-            <Pressable onStartShouldSetResponderCapture={onGestureStart}>
+            <View onStartShouldSetResponderCapture={onGestureStart}>
                 {props.children}
-            </Pressable>
+            </View>
             {visible ?
                 <FlatList<ContextMenuOptionDetails>
                     data={details.options}

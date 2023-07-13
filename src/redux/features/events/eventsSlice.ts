@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CategoryID, Event, EventDetails, EventsState } from '../../../../types/v0';
+import { RootState } from '../../store';
 
 export const eventsSlice = createSlice({
     name: 'events',
@@ -49,6 +50,10 @@ export const eventsSlice = createSlice({
         },
     },
 });
+
+export function selectEventFromID(eventID: string) {
+    return ((state: RootState) => state.events.find(item => item.id === eventID)?.details)
+}
 
 export function getEventFromID(events: EventsState, eventID: string) {
     for (let i = 0; i < events.length; i++) {

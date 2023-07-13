@@ -68,8 +68,6 @@ type EventInputProps = {
     */
     onSubmit: ((eventDetails: EventDetails, repeatSettings: RepeatSettings | null) => void);
 
-    visible: boolean;
-
     /**
      * Called when the modal wants to close. Should set visible to false.
      */
@@ -169,7 +167,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
             <CategoryPicker ref={categoryPickerRef} onSelect={categoryID => setSelectedCategory(categoryID)} onDelete={handleCategoryDeleted} />
             <View style={styles.mainContainer}>
                 <View style={styles.headerContainer}>
-                    <Text style={styles.title}>{props.mode === 'edit' ? 'Edit Assignment' : 'Create Assignment'}</Text>
+                    <Text style={styles.title}>{props.mode === 'edit' ? 'Edit Assignment' : 'Add Assignment'}</Text>
                     <IosStyleButton
                         title='Cancel'
                         color='#888'
@@ -218,7 +216,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 },
                                 {
                                     value: 'before-date',
-                                    displayName: 'By Date:',
+                                    displayName: 'Before Date:',
                                     containerStyle: [styles.dotPickerOption, globalStyles.flexRow],
                                     children: <CompactDatePicker value={dueDateInput} onChange={onDateChanged} style={styles.datePickerContainer} />,
                                 },
