@@ -33,6 +33,7 @@ type DayRowProps = {
 const DayRow: React.FC<DayRowProps> = memo((props) => {
     const rowPlan = useAppSelector(state => state.rowPlans.find(item => DateYMDHelpers.datesEqual(item.plannedDate, props.date)));
     const eventIDsInRow = rowPlan?.orderedEventIDs || [];
+    const isToday = DateYMDHelpers.isToday(props.date);
 
     function handlePress(gesture: GestureResponderEvent) {
         props.onPress?.(gesture, props.date);
@@ -76,11 +77,11 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
     return (
         <TouchableOpacity onPress={handlePress}>
             <View style={styles.mainContainer}>
-                <View style={[styles.dateTextContainer, { backgroundColor: (DateYMDHelpers.isToday(props.date) ? colors.todayL2 : colors.l2) }]}>
+                <View style={[styles.dateTextContainer, { backgroundColor: (isToday ? colors.todayL2 : colors.l2) }]}>
                     <Text style={styles.dayNameText}>{DateYMDHelpers.dayNameAbrev(props.date)}</Text>
-                    <Text style={styles.dateText}>{DateYMDHelpers.monthNameAbrev(props.date)} {props.date.date}</Text>
+                    <Text style={styles.dateText}>{isToday ? 'Today' : `${DateYMDHelpers.monthNameAbrev(props.date)} ${props.date.date}`}</Text>
                 </View>
-                <View style={[styles.eventsContainer, { backgroundColor: (DateYMDHelpers.isToday(props.date) ? colors.todayL1 : colors.l1) }]}>
+                <View style={[styles.eventsContainer, { backgroundColor: (isToday ? colors.todayL1 : colors.l1) }]}>
                     {renderEventList()}
                 </View>
             </View>

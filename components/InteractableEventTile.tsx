@@ -10,9 +10,11 @@ import {
 } from 'react-native';
 import DateYMD from '../src/DateYMD';
 import EventTile from './EventTile';
-import { useAppSelector } from '../src/redux/hooks';
+import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import VisualSettings from '../src/VisualSettings';
 import { EventTileCallbacks } from '../types/General';
+import { generalStateActions } from '../src/redux/features/general/generalSlice';
+import { eventActions } from '../src/redux/features/events/eventsSlice';
 
 type InteractableEventTileProps = {
     /**
@@ -34,7 +36,10 @@ type InteractableEventTileProps = {
 const DRAG_START_DISTANCE = 5;
 
 const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
+    const dispatch = useAppDispatch();
+
     const isBeingDragged = useAppSelector(state => state.general.draggedEvent?.eventID ? (state.general.draggedEvent.eventID === props.eventID) : false);
+    const multiselectEnabled = useAppSelector(state => state.general.multiselect.enabled);
 
     const listeningToMoveEvents = useRef(false);
     const calledDragStart = useRef(false);
@@ -64,6 +69,15 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
         })
     ).current;
 
+    function handlePress() {
+        if (multiselectEnabled) {
+            dispatch(generalStateActions.toggleEventIDSelected({ eventID: props.eventID }));
+        }
+        else {
+            dispatch(eventActions.toggleComplete({ eventID: props.eventID }));
+        }
+    }
+
     function handleLongPress(e: GestureResponderEvent) {
         listeningToMoveEvents.current = true;
         if (Platform.OS == 'android') Vibration.vibrate(10);
@@ -83,7 +97,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     return (
         <View {...panResponder.panHandlers} style={{ opacity: isBeingDragged ? 0.25 : 1 }}>
             <TouchableOpacity
-                onPress={gesture => props.eventTileCallbacks.onTilePressed?.(gesture, props.eventID)}
+                onPress={handlePress}
                 onLongPress={handleLongPress}
                 delayLongPress={150}
             >

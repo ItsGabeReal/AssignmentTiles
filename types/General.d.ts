@@ -4,7 +4,6 @@ export type Vector2D = {
 }
 
 export type EventTileCallbacks = {
-    onTilePressed?: ((gesture: GestureResponderEvent, eventID: string) => void);
     onTileLongPressed?: ((gesture: GestureResponderEvent, eventID: string) => void);
     onTileDragStart?: ((gesture: GestureResponderEvent, eventID: string) => void);
 }

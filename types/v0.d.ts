@@ -45,10 +45,14 @@ export type GeneralState = {
     memorizedEventInput: {
         name: string;
         categoryID: CategoryID;
-    },
+    };
     draggedEvent: {
         eventID: string;
     } | null;
+    multiselect: {
+        enabled: boolean;
+        selectedEventIDs: string[];
+    };
 }
 
 export type RowPlansState = RowPlan[];

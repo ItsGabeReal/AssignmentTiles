@@ -11,6 +11,10 @@ const initialState: GeneralState = {
         categoryID: null,
     },
     draggedEvent: null,
+    multiselect: {
+        enabled: false,
+        selectedEventIDs: [],
+    },
 };
 
 export const generalSlice = createSlice({
@@ -30,7 +34,22 @@ export const generalSlice = createSlice({
         },
         clearDraggedEvent(state) {
             state.draggedEvent = null;
-        }
+        },
+        setMultiselectEnabled(state, action: PayloadAction<{enabled: boolean}>) {
+            state.multiselect.enabled = action.payload.enabled;
+        },
+        toggleEventIDSelected(state, action: PayloadAction<{eventID: string}>) {
+            const indexInSelectedEventIDs = state.multiselect.selectedEventIDs.findIndex(item => item === action.payload.eventID);
+
+            const eventIDIsSelected = indexInSelectedEventIDs !== -1;
+
+            if (eventIDIsSelected) {
+                state.multiselect.selectedEventIDs.splice(indexInSelectedEventIDs, 1);
+            }
+            else {
+                state.multiselect.selectedEventIDs.push(action.payload.eventID);
+            }
+        },
     },
 });
 

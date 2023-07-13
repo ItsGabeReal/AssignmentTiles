@@ -29,6 +29,7 @@ type EventTileProps = {
 const EventTile: React.FC<EventTileProps> = memo((props) => {
     const event = useAppSelector(state => state.events.find(item => item.id === props.eventID)) || nullEvnet;
     const categories = useAppSelector(state => state.categories);
+    const isSelected = useAppSelector(state => state.general.multiselect.selectedEventIDs.find(item => item === props.eventID) !== undefined);
 
     const daysPlannedBeforeDue = getDaysPlannedBeforeDue();
     const overdue = daysPlannedBeforeDue !== undefined ? (daysPlannedBeforeDue < 0) : false;
@@ -71,10 +72,19 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         return '';
     }
 
-    function checkmark() {
+    function completedCheckmarkView() {
         return (
             <View style={styles.checkmarkOverlayContainer}>
-                <Icon name='check' size={60} color='#0d0' />
+                {/* Don't show the completed checkmark if it's selected during multi-select */}
+                {!isSelected ? <Icon name='check' size={60} color='#0d0' /> : <></>}
+            </View>
+        );
+    }
+
+    function selectedView() {
+        return (
+            <View style={[StyleSheet.absoluteFill, styles.selected]}>
+                <Icon name='check' size={60} color='white' />
             </View>
         );
     }
@@ -102,7 +112,8 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
                     }
                 </View>
             </View>
-            {event.completed ? checkmark() : null}
+            {event.completed ? completedCheckmarkView() : null}
+            {isSelected ? selectedView() : null}
         </View>
     );
 }, (prevProps, newProps) => prevProps.eventID === newProps.eventID);
@@ -125,6 +136,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#0004',
         padding: 5,
+    },
+    selected: {
+        backgroundColor: '#04f8',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     eventNameText: {
         color: 'white',
