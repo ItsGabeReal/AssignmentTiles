@@ -12,9 +12,9 @@ import DateYMD from '../src/DateYMD';
 import EventTile from './EventTile';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import VisualSettings from '../src/VisualSettings';
-import { EventTileCallbacks } from '../types/General';
 import { generalStateActions } from '../src/redux/features/general/generalSlice';
 import { eventActions } from '../src/redux/features/events/eventsSlice';
+import { EventRegister } from 'react-native-event-listeners';
 
 type InteractableEventTileProps = {
     /**
@@ -26,11 +26,6 @@ type InteractableEventTileProps = {
      * The date on which this event is scheduled.
      */
     plannedDate: DateYMD;
-
-    /**
-     * Callbacks to MainScreen to alert it when events occur.
-     */
-    eventTileCallbacks: EventTileCallbacks;
 }
 
 const DRAG_START_DISTANCE = 5;
@@ -81,7 +76,8 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     function handleLongPress(e: GestureResponderEvent) {
         listeningToMoveEvents.current = true;
         if (Platform.OS == 'android') Vibration.vibrate(10);
-        props.eventTileCallbacks.onTileLongPressed?.(e, props.eventID);
+        //props.eventTileCallbacks.onTileLongPressed?.(e, props.eventID);
+        EventRegister.emit('onEventTileLongPressed', {eventID: props.eventID});
     }
 
     function handleRelease() {
@@ -91,7 +87,8 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
 
     function handleDragStart(e: GestureResponderEvent) {
         listeningToMoveEvents.current = false;
-        props.eventTileCallbacks.onTileDragStart?.(e, props.eventID);
+        //props.eventTileCallbacks.onTileDragStart?.(e, props.eventID);
+        EventRegister.emit('onEventTileDragStart', { gesture: e, eventID: props.eventID });
     }
 
     return (

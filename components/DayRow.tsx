@@ -23,11 +23,6 @@ type DayRowProps = {
      * Called when the row is pressed.
      */
     onPress?: ((gesture: GestureResponderEvent, rowDate: DateYMD) => void);
-
-    /**
-     * Callbacks to pass down to EventTile's in this row.
-     */
-    eventTileCallbacks: EventTileCallbacks;
 }
 
 const DayRow: React.FC<DayRowProps> = memo((props) => {
@@ -70,7 +65,6 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
             key={item}
             eventID={item}
             plannedDate={props.date}
-            eventTileCallbacks={props.eventTileCallbacks}
         />
     }
 

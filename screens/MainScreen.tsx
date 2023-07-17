@@ -1,44 +1,36 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
     StyleSheet,
     View,
     Text,
     FlatList,
-    GestureResponderEvent,
-    StatusBar,
-    NativeSyntheticEvent,
-    NativeScrollEvent,
     TouchableOpacity,
     useWindowDimensions,
-    Appearance,
-    ViewToken,
+    NativeSyntheticEvent,
+    NativeScrollEvent,
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
-import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
+import { DateYMDHelpers } from "../src/DateYMD";
 import {
-    getDayRowHeight,
     getDayRowYOffset,
     getEventTileDimensions,
     getDayRowScreenYOffset,
 } from "../src/VisibleDaysHelpers";
-import DayRow from "../components/DayRow";
 import EventCreator, { EventCreatorRef } from "../components/EventCreator";
 import EventEditor, { EventEditorRef } from "../components/EventEditor";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
 import { deleteEvent } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
-import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
-import { visibleDaysActions } from "../src/redux/features/visibleDays/visibleDaysSlice";
 import { colors, fontSizes } from "../src/GlobalStyles";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
-import { EventTileCallbacks, Vector2D } from "../types/General";
+import { Vector2D } from "../types/General";
 import ContextMenu, { ContextMenuRef } from "../components/ContextMenu";
 import { ContextMenuDetails, ContextMenuPosition } from "../types/ContextMenu";
 import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
-
-type TodayRowVisibility = 'visible' | 'beneath' | 'above';
+import { EventRegister } from "react-native-event-listeners";
+import DayList, { TodayRowVisibility } from "../components/DayList";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -72,11 +64,25 @@ export default function MainScreen() {
     const scrollYOffsetAtDragStart = useRef(0);
     
 
-    function onTileLongPressed_cb(gesture: GestureResponderEvent, eventID: string) {
+    useEffect(() => {
+        EventRegister.addEventListener('onEventTileLongPressed', onEventTileLongPressed);
+
+        EventRegister.addEventListener('onEventTileDragStart', onEventTileDragStart);
+
+        EventRegister.addEventListener('onEventTileDrag', onEventTileDrag);
+
+        EventRegister.addEventListener('onEventTileDropped', onEventTileDropped);
+
+        return () => {
+            EventRegister.removeAllListeners();
+        }
+    }, []);
+
+    function onEventTileLongPressed({eventID}: any) {
         if (!multiselectState.enabled) openEventTileContextMenu(eventID); // Disable context menu during multiselect
     }
 
-    function onTileDragStart_cb(gesture: GestureResponderEvent, eventID: string) {
+    function onEventTileDragStart({gesture, eventID}: any) {
         contextMenuRef.current?.close();
 
         // auto scroll setup
@@ -84,7 +90,7 @@ export default function MainScreen() {
         dragAutoScrollOffset.current = 0;
         currentDraggedEvent.current = eventID;
         lastFrameTime.current = new Date();
-        lastDragPosition.current = {x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY};
+        lastDragPosition.current = { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY };
         requestAnimationFrame(dragLoop);
 
         // show virtual event tile and initialize its position
@@ -93,11 +99,11 @@ export default function MainScreen() {
         setDraggedTileVisuals(eventID);
     }
 
-    function onTileDrag_cb(gesture: GestureResponderEvent) {
+    function onEventTileDrag({gesture}: any) {
         lastDragPosition.current = { x: gesture.nativeEvent.pageX, y: gesture.nativeEvent.pageY };
     }
 
-    function onTileDropped_cb() {
+    function onEventTileDropped() {
         currentDraggedEvent.current = null;
 
         restoreDraggedTileVisuals();
@@ -219,85 +225,6 @@ export default function MainScreen() {
         return output;
     }
 
-    const eventTileCallbacks: EventTileCallbacks = {
-        onTileLongPressed: onTileLongPressed_cb,
-        onTileDragStart: onTileDragStart_cb,
-    }
-
-    function renderItem({ item }: { item: DateYMD }) {
-        return <DayRow
-            date={item}
-            onPress={(gesture, rowDate) => eventCreatorRef.current?.open(rowDate)}
-            eventTileCallbacks={eventTileCallbacks}
-        />;
-    };
-
-    function DayRowSeparater() {
-        return <View style={styles.dayRowSeparater} />;
-    }
-
-    function getItemLayout(data: ArrayLike<DateYMD> | null | undefined, index: number) {
-        return ({
-            length: getDayRowHeight(rowPlans, visibleDays[index]),
-            offset: getDayRowYOffset(visibleDays, rowPlans, index),
-            index
-        });
-    }
-
-    function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-        scrollYOffset.current = event.nativeEvent.contentOffset.y;
-    }
-
-    const onViewableItemsChanged = useCallback(
-        ({ viewableItems, changed }: { viewableItems: ViewToken[], changed: ViewToken[] }) => {
-            const keyForTodayRow = DateYMDHelpers.toString(DateYMDHelpers.today());
-            const todaysRow = changed.find(item => item.key === keyForTodayRow);
-            const todayVisibilityChanged = todaysRow !== undefined;
-
-            if (todayVisibilityChanged) {
-                if (todaysRow.isViewable) {
-                    setTodayRowVisibility('visible');
-                }
-                else {
-                    if (!viewableItems[0]) return;
-                    const firstViewableItem = viewableItems[0].index || -1;
-                    const todaysIndex = todaysRow.index || -1;
-
-                    if (firstViewableItem === todaysIndex) return; // This is a case that often occurs. Ignoring it doesn't seem to cause issues.
-
-                    const todaysRowIsAbove = firstViewableItem > todaysIndex;
-                    if (todaysRowIsAbove) {
-                        setTodayRowVisibility('above');
-                    }
-                    else {
-                        setTodayRowVisibility('beneath');
-                    }
-                }
-            }
-        },
-        []
-    );
-
-    const NUM_NEW_DAYS = 14;
-    function onStartReached() {
-        dispatch(visibleDaysActions.addDaysToTop({ numNewDays: NUM_NEW_DAYS }));
-
-        // If autoscrolling while dragging a tile, apply offset to dragAutoScrollOffset
-        if (currentDraggedEvent.current) {
-            shiftDragScrollDeltaYByHeightOfAddedRows(NUM_NEW_DAYS, visibleDays[0]);
-        }
-    }
-
-    function onEndReached() {
-        dispatch(visibleDaysActions.addDaysToBottom({ numNewDays: NUM_NEW_DAYS }));
-    }
-
-    function shiftDragScrollDeltaYByHeightOfAddedRows(numAddedRows: number, dateOfFirstNewRow: DateYMD) {
-        const addedDays = DateYMDHelpers.createSequentialDateArray(DateYMDHelpers.subtractDays(dateOfFirstNewRow, numAddedRows), numAddedRows);
-        const heightOfNewRows = getDayRowYOffset(addedDays, rowPlans, numAddedRows);
-        dragAutoScrollOffset.current += heightOfNewRows;
-    }
-
     function returnToTodayButton(variation: 'above' | 'beneath') {
         return (
             <TouchableOpacity style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]} onPress={scrollToToday}>
@@ -335,32 +262,24 @@ export default function MainScreen() {
         })
     }
 
+    function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+        scrollYOffset.current = event.nativeEvent.contentOffset.y;
+    }
+
+    function onStartReached(heightOfNewRows: number) {
+        if (currentDraggedEvent.current) dragAutoScrollOffset.current += heightOfNewRows;
+    }
+
     return (
         <View style={styles.container}>
-            {/*<StatusBar
-                backgroundColor={Appearance.getColorScheme() === 'light' ? '#fff8' : '#0008'}
-                barStyle={Appearance.getColorScheme() === 'light' ? 'dark-content' : 'light-content'}
-                translucent
-            />*/}
-            <VETContainer ref={virtualEventTileRef} onDrag={onTileDrag_cb} onDrop={onTileDropped_cb}>
+            <VETContainer ref={virtualEventTileRef}>
                 <ContextMenu ref={contextMenuRef}>
-                    <FlatList
+                    <DayList
                         ref={flatListRef}
-                        data={visibleDays}
-                        keyExtractor={item => DateYMDHelpers.toString(item)}
-                        renderItem={renderItem}
-                        ItemSeparatorComponent={DayRowSeparater}
-                        getItemLayout={getItemLayout}
-                        initialScrollIndex={visibleDays.findIndex(item => DateYMDHelpers.isToday(item))}
-                        //scrollEnabled <- Instead of using a state here, I'm using flatListRef.setNativeProps({ scrollEnabled: true/false }). This way changing it doesn't cause a rerender.
+                        onRequestOpenEventCreator={(suggestedDate) => eventCreatorRef.current?.open(suggestedDate)}
+                        onTodayRowVisibilityChanged={setTodayRowVisibility}
                         onScroll={onScroll}
-                        onViewableItemsChanged={onViewableItemsChanged}
                         onStartReached={onStartReached}
-                        onStartReachedThreshold={1}
-                        onEndReached={onEndReached}
-                        onEndReachedThreshold={1}
-                        maintainVisibleContentPosition={{ minIndexForVisible: 2 }}
-                        showsVerticalScrollIndicator={false}
                     />
                 </ContextMenu>
             </VETContainer>

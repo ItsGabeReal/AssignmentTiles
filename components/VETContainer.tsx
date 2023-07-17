@@ -29,6 +29,7 @@ import {
 import { DateYMDHelpers } from '../src/DateYMD';
 import EventTile from './EventTile';
 import VisualSettings from '../src/VisualSettings';
+import { EventRegister } from 'react-native-event-listeners';
 
 export type VirtualEventTileRef = {
     /**
@@ -40,16 +41,6 @@ export type VirtualEventTileRef = {
 
 type VirtualEventTileProps = {
     //plannedDate: DateYMD; // <- This might get added back to display the correct due date text.
-
-    /**
-     * Called when the user drops the virtual tile.
-     */
-    onDrop?: (() => void);
-
-    /**
-     * 
-     */
-    onDrag?: ((event: GestureResponderEvent) => void);
 
     /**
      * In order for InteractableEventTiles to be dragged, they must be a child of VirtualEventTile.
@@ -90,7 +81,8 @@ const VETContainer = forwardRef<VirtualEventTileRef, VirtualEventTileProps>((pro
             onPanResponderMove: (e, gesture) => {
                 pan.current.x.setValue(gesture.moveX - (tileWidth / 2));
                 pan.current.y.setValue(gesture.moveY - (tileHeight / 2));
-                props.onDrag?.(e);
+
+                EventRegister.emit('onEventTileDrag', {gesture: e});
             },
             onPanResponderRelease: (e) => {
                 handleRelease();
@@ -107,7 +99,7 @@ const VETContainer = forwardRef<VirtualEventTileRef, VirtualEventTileProps>((pro
         enabled.current = false;
         setVisible(false);
         
-        props.onDrop?.();
+        EventRegister.emit('onEventTileDropped');
     }
 
     return (
