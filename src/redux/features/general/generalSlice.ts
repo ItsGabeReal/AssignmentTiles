@@ -37,6 +37,8 @@ export const generalSlice = createSlice({
         },
         setMultiselectEnabled(state, action: PayloadAction<{enabled: boolean}>) {
             state.multiselect.enabled = action.payload.enabled;
+
+            if (!action.payload.enabled) state.multiselect.selectedEventIDs.length = 0;
         },
         toggleEventIDSelected(state, action: PayloadAction<{eventID: string}>) {
             const indexInSelectedEventIDs = state.multiselect.selectedEventIDs.findIndex(item => item === action.payload.eventID);

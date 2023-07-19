@@ -74,10 +74,11 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     }
 
     function handleLongPress(e: GestureResponderEvent) {
+        EventRegister.emit('onEventTileLongPressed', {eventID: props.eventID});
+        
+        
         listeningToMoveEvents.current = true;
         if (Platform.OS == 'android') Vibration.vibrate(10);
-        //props.eventTileCallbacks.onTileLongPressed?.(e, props.eventID);
-        EventRegister.emit('onEventTileLongPressed', {eventID: props.eventID});
     }
 
     function handleRelease() {
@@ -87,7 +88,6 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
 
     function handleDragStart(e: GestureResponderEvent) {
         listeningToMoveEvents.current = false;
-        //props.eventTileCallbacks.onTileDragStart?.(e, props.eventID);
         EventRegister.emit('onEventTileDragStart', { gesture: e, eventID: props.eventID });
     }
 

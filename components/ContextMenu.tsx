@@ -99,14 +99,15 @@ const ContextMenu = forwardRef<ContextMenuRef, ContextMenuProps>((props, ref) =>
     function onGestureStart() {
         // When any gesture comes through, close the context menu and do not become the responder.
         if (visible) close();
-        return false;
+
+        return visible;
     }
 
     return (
         <>
-            <View onStartShouldSetResponderCapture={onGestureStart}>
+            <Pressable onPress={() => { }} disabled={!visible} onStartShouldSetResponderCapture={onGestureStart}>
                 {props.children}
-            </View>
+            </Pressable>
             {visible ?
                 <FlatList<ContextMenuOptionDetails>
                     data={details.options}

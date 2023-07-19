@@ -23,7 +23,7 @@ type EventTileProps = {
     /**
      * The date on which this event is scheduled.
      */
-    plannedDate: DateYMD;
+    plannedDate?: DateYMD;
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
@@ -35,6 +35,8 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     const overdue = daysPlannedBeforeDue !== undefined ? (daysPlannedBeforeDue < 0) : false;
 
     function getDaysPlannedBeforeDue() {
+        if (!props.plannedDate) return;
+
         if (event.details.dueDate) {
             return DateYMDHelpers.daysBefore(event.details.dueDate, props.plannedDate);
         }
@@ -81,14 +83,6 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         );
     }
 
-    function selectedView() {
-        return (
-            <View style={[StyleSheet.absoluteFill, styles.selected]}>
-                <Icon name='check' size={60} color='white' />
-            </View>
-        );
-    }
-
     function getDueDateStyle(): TextStyle {
         if (overdue) return {
             color: '#f00',
@@ -101,20 +95,32 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         }
     }
 
-    return (
-        <View style={styles.mainContainer}>
-            <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
-                <View style={styles.colorDimmer}>
-                    <Text style={styles.eventNameText}>{event.details.name}</Text>
-                    {event.details.dueDate ?
-                        <Text style={[styles.dueDateText, getDueDateStyle()]}>{getDueDateText()}</Text>
-                        : <></>
-                    }
-                </View>
+    function selectedIcon() {
+        return (
+            <View style={styles.selectedCheckIconContainer}>
+                <Icon name='check' size={30} color='black' />
             </View>
-            {event.completed ? completedCheckmarkView() : null}
-            {isSelected ? selectedView() : null}
-        </View>
+        )
+    }
+
+    return (
+        <>
+            <View style={styles.mainContainer}>
+                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
+                    <View style={styles.colorDimmer}>
+                        <Text style={styles.eventNameText}>{event.details.name}</Text>
+                        {event.details.dueDate && props.plannedDate ?
+                            <Text style={[styles.dueDateText, getDueDateStyle()]}>{getDueDateText()}</Text>
+                            : <></>
+                        }
+                    </View>
+                </View>
+                {event.completed ? completedCheckmarkView() : null}
+                {isSelected ? <View style={[StyleSheet.absoluteFill, styles.selectedColorOverlay]} /> : null}
+            </View>
+            {isSelected ? selectedIcon() : null}
+        </>
+        
     );
 }, (prevProps, newProps) => prevProps.eventID === newProps.eventID);
 
@@ -137,10 +143,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#0004',
         padding: 5,
     },
-    selected: {
+    selectedColorOverlay: {
         backgroundColor: '#04f8',
-        justifyContent: 'center',
-        alignItems: 'center'
+    },
+    selectedCheckIconContainer: {
+        position: 'absolute',
+        transform: [
+            { translateX: -10 },
+            { translateY: -10 },
+        ],
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 1,
     },
     eventNameText: {
         color: 'white',

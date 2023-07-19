@@ -1,3 +1,5 @@
+import { Dimensions } from "react-native";
+
 const VisualSettings = {
     App: {
         dayRowSeparater: {
@@ -12,7 +14,6 @@ const VisualSettings = {
             paddingLeft: 8,
             paddingTop: 8,
         },
-        numEventTileColumns: 3,
     },
     EventTile: {
         mainContainer: {
@@ -22,6 +23,20 @@ const VisualSettings = {
             marginBottom: 8,
         },
     },
+}
+
+export function getNumEventColunms() {
+    const { width } = Dimensions.get('screen');
+
+    const dateAreaWidth = VisualSettings.DayRow.dateTextContainer.width;
+    const tileWidth = VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight;
+
+    const tileContainerWidth = width - dateAreaWidth;
+
+    const numTilesThatFitInContainer = Math.floor(tileContainerWidth / tileWidth);
+
+    // Always return at least 1
+    return numTilesThatFitInContainer < 1 ? 1 : numTilesThatFitInContainer;
 }
 
 export default VisualSettings;

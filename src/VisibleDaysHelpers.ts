@@ -1,7 +1,6 @@
-import { GestureResponderEvent } from "react-native";
 import DateYMD from "./DateYMD";
 import { RowPlan } from "../types/v0";
-import VisualSettings from "./VisualSettings";
+import VisualSettings, {getNumEventColunms} from "./VisualSettings";
 import { getRowPlan } from "./redux/features/rowPlans/rowPlansSlice";
 import { Vector2D } from "../types/General";
 
@@ -24,7 +23,7 @@ export function getDayRowHeight(rowPlans: RowPlan[], date: DateYMD) {
     }
     else {
         const verticalSpaceBetweenTiles = VisualSettings.EventTile.mainContainer.marginBottom;
-        const numTileRows = Math.ceil(rowPlan.orderedEventIDs.length / VisualSettings.DayRow.numEventTileColumns);
+        const numTileRows = Math.ceil(rowPlan.orderedEventIDs.length / getNumEventColunms());
         eventContainerHeight = eventTileHeight * numTileRows + verticalSpaceBetweenTiles * (numTileRows - 1);
     }
 
@@ -75,8 +74,9 @@ function getDimensionsForAllTilesInRow(visibleDays: DateYMD[], rowPlans: RowPlan
 }
 
 export function getEventTileDimensions(rowYOffset: number, eventRowOrder: number) {
-    const tilesToTheLeft = eventRowOrder % VisualSettings.DayRow.numEventTileColumns;
-    const tilesAbove = Math.floor(eventRowOrder / VisualSettings.DayRow.numEventTileColumns);
+    const numColumns = getNumEventColunms();
+    const tilesToTheLeft = eventRowOrder % numColumns;
+    const tilesAbove = Math.floor(eventRowOrder / numColumns);
 
     const xPosition = (VisualSettings.DayRow.dateTextContainer.width
         + VisualSettings.DayRow.flatListContainer.paddingLeft
@@ -98,25 +98,34 @@ export function getEventTileDimensions(rowYOffset: number, eventRowOrder: number
 
 export function getInsertionIndexFromGesture(visibleDays: DateYMD[], rowPlans: RowPlan[], scrollYOffset: number, visibleDaysIndex: number, position: Vector2D) {
     const dimensionsForAllTiles = getDimensionsForAllTilesInRow(visibleDays, rowPlans, scrollYOffset, visibleDaysIndex);
+    const numColumns = getNumEventColunms();
     
     for (let i = 0; i < dimensionsForAllTiles.length; i++) {
         const tileDimensions = dimensionsForAllTiles[i];
 
         // Intermediate variables
-        const tileRightEdgePlusMargin = tileDimensions.x + tileDimensions.width + VisualSettings.EventTile.mainContainer.marginRight;
         const tileYMargin = VisualSettings.EventTile.mainContainer.marginBottom;
-        const isFirstInRow = (i % VisualSettings.DayRow.numEventTileColumns) === 0;
+        const tileXMargin = VisualSettings.EventTile.mainContainer.marginRight;
+        const inFirstRow = Math.floor(i / numColumns) === 0;
+        const dayRowYMargin = VisualSettings.App.dayRowSeparater.height;
         
         // Overlap checks
-        const gestureYOverlapsTile = position.y > tileDimensions.y - tileYMargin && position.y < tileDimensions.y + tileDimensions.width + tileYMargin;
-        const gestureXOverlapsTile = position.x > tileDimensions.x && position.x < tileRightEdgePlusMargin;
+        const yStart = tileDimensions.y - tileYMargin - (inFirstRow ? dayRowYMargin : 0);
+        const yEnd = tileDimensions.y + tileDimensions.width + tileYMargin;
+        const gestureYOverlapsTile = position.y > yStart && position.y < yEnd;
+
+        const xStart = tileDimensions.x;
+        const xEnd = tileDimensions.x + tileDimensions.width + tileXMargin;
+        const gestureXOverlapsTile = position.x > xStart && position.x < xEnd;
         
         // Return insert index
         if (gestureYOverlapsTile) {
+            const firstInRow = (i % numColumns) === 0;
+
             if (gestureXOverlapsTile) {
                 return i;
             }
-            else if (isFirstInRow && (position.x < tileDimensions.x)) {
+            else if (firstInRow && (position.x < tileDimensions.x)) {
                 return i;
             }
         }

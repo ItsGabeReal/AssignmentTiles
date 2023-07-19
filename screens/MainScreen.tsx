@@ -8,6 +8,7 @@ import {
     useWindowDimensions,
     NativeSyntheticEvent,
     NativeScrollEvent,
+    BackHandler,
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
@@ -46,6 +47,8 @@ export default function MainScreen() {
     rowPlans_closureSafeRef.current = rowPlans;
 
     const multiselectState = useAppSelector(state => state.general.multiselect);
+    const multiselectState_closureSafeRef = useRef(multiselectState);
+    multiselectState_closureSafeRef.current = multiselectState;
 
     const [todayRowVisibility, setTodayRowVisibility] = useState<TodayRowVisibility>('visible');
 
@@ -73,13 +76,25 @@ export default function MainScreen() {
 
         EventRegister.addEventListener('onEventTileDropped', onEventTileDropped);
 
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            if (multiselectState.enabled) {
+                dispatch(generalStateActions.setMultiselectEnabled({ enabled: false }));
+                return true;
+            }
+            else return false; // Differ to the next back handler
+        });
+
+        // Cleanup function
         return () => {
             EventRegister.removeAllListeners();
+            backHandler.remove();
         }
-    }, []);
+    }, [multiselectState]);
 
     function onEventTileLongPressed({eventID}: any) {
-        if (!multiselectState.enabled) openEventTileContextMenu(eventID); // Disable context menu during multiselect
+        flatListRef.current?.setNativeProps({scrollingEnabled: false});
+        
+        if (!multiselectState_closureSafeRef.current.enabled) openEventTileContextMenu(eventID); // Disable context menu during multiselect
     }
 
     function onEventTileDragStart({gesture, eventID}: any) {
@@ -243,14 +258,31 @@ export default function MainScreen() {
     }
 
     function multiselectButtons() {
+        const anyTilesSelected = multiselectState.selectedEventIDs.length > 0;
+
         return (
-            <View style={styles.multiselectOptionsContainer}>
-                <TouchableOpacity style={styles.multiselectOption} onPress={() => {}}>
-                    <Text></Text>
-                    <Icon name="delete" color={'red'} size={30} />
+            <View style={styles.multiselectContainer}>
+                <TouchableOpacity style={[styles.multiselectButton, {backgroundColor: anyTilesSelected ? '#f00' : '#8888'}]} onPress={onMultiselectDeletePressed} disabled={!anyTilesSelected}>
+                    <Icon name="delete" color={'white'} size={24} />
+                    <Text style={styles.multiselectText}>Delete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.multiselectButton, { backgroundColor: '#888'}]} onPress={() => dispatch(generalStateActions.setMultiselectEnabled({enabled: false}))}>
+                    <Icon name="close" color={'white'} size={24} />
+                    <Text style={styles.multiselectText}>Cancel</Text>
                 </TouchableOpacity>
             </View>
         );
+    }
+
+    function onMultiselectDeletePressed() {
+        deleteSelectedEvents();
+        dispatch(generalStateActions.setMultiselectEnabled({ enabled: false }));
+    }
+
+    function deleteSelectedEvents() {
+        multiselectState.selectedEventIDs.forEach(item => {
+            deleteEvent(dispatch, item);
+        });
     }
 
     function scrollToToday() {
@@ -270,6 +302,19 @@ export default function MainScreen() {
         if (currentDraggedEvent.current) dragAutoScrollOffset.current += heightOfNewRows;
     }
 
+    function overlayButtons() {
+        return (
+            <>
+                {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
+                <View style={styles.overlayFooterContainer}>
+                    {multiselectState.enabled ? multiselectButtons() : null}
+                    {todayRowVisibility === 'beneath' ? returnToTodayButton('beneath') : null}
+                </View>
+                {!multiselectState.enabled ? addEventButton() : null}
+            </>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <VETContainer ref={virtualEventTileRef}>
@@ -283,12 +328,7 @@ export default function MainScreen() {
                     />
                 </ContextMenu>
             </VETContainer>
-            {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
-            <View style={styles.overlayFooterContainer}>
-                {multiselectState.enabled ? multiselectButtons() : null}
-                {todayRowVisibility === 'beneath' ? returnToTodayButton('beneath') : null}
-            </View>
-            {!multiselectState.enabled ? addEventButton() : null}
+            {overlayButtons()}
             <EventCreator ref={eventCreatorRef} />
             <EventEditor ref={eventEditorRef} />
         </View>
@@ -334,17 +374,22 @@ const styles = StyleSheet.create({
         right: 0,
         alignItems: 'center',
     },
-    multiselectOptionsContainer: {
+    multiselectContainer: {
         flexDirection: 'row',
         alignSelf: 'center',
         marginBottom: 20,
     },
-    multiselectOption: {
+    multiselectButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#888',
         padding: 15,
         borderRadius: 40,
+        marginHorizontal: 10,
+    },
+    multiselectText: {
+        fontSize: fontSizes.h3,
+        color: 'white',
+        marginLeft: 10,
     },
     dayRowSeparater: {
         height: VisualSettings.App.dayRowSeparater.height,

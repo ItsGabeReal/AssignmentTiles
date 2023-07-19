@@ -7,11 +7,10 @@ import {
     GestureResponderEvent,
 } from "react-native";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
-import VisualSettings from "../src/VisualSettings"
+import VisualSettings, {getNumEventColunms} from "../src/VisualSettings"
 import { useAppSelector } from "../src/redux/hooks";
 import InteractableEventTile from "./InteractableEventTile";
 import { colors, fontSizes } from "../src/GlobalStyles";
-import { EventTileCallbacks } from "../types/General";
 
 type DayRowProps = {
     /**
@@ -27,6 +26,8 @@ type DayRowProps = {
 
 const DayRow: React.FC<DayRowProps> = memo((props) => {
     const rowPlan = useAppSelector(state => state.rowPlans.find(item => DateYMDHelpers.datesEqual(item.plannedDate, props.date)));
+    const multiselectEnabled = useAppSelector(state => state.general.multiselect.enabled);
+
     const eventIDsInRow = rowPlan?.orderedEventIDs || [];
     const isToday = DateYMDHelpers.isToday(props.date);
 
@@ -36,7 +37,7 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
 
     function renderEventList() {
         const eventRows: string[][] = [];
-        const numColumns = VisualSettings.DayRow.numEventTileColumns;
+        const numColumns = getNumEventColunms();
 
         for (let i = 0; i < eventIDsInRow.length; i++) {
             const eventID = eventIDsInRow[i];
@@ -69,7 +70,7 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
     }
 
     return (
-        <TouchableOpacity onPress={handlePress}>
+        <TouchableOpacity onPress={handlePress} disabled={multiselectEnabled}>
             <View style={styles.mainContainer}>
                 <View style={[styles.dateTextContainer, { backgroundColor: (isToday ? colors.todayL2 : colors.l2) }]}>
                     <Text style={styles.dayNameText}>{DateYMDHelpers.dayNameAbrev(props.date)}</Text>

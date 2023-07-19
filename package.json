@@ -11,6 +11,15 @@
     "start": "react-native start",
     "test": "jest"
   },
+  "jest": {
+    "preset": "react-native",
+    "setupFiles": [
+      "./jestSetup.js"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(@react-native|react-native|react-native-vector-icons|@react-native-community|react-native-event-listeners)/)"
+    ]
+  },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.18.2",
     "@react-native-community/datetimepicker": "^7.2.0",
