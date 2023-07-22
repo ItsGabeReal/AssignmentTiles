@@ -262,7 +262,7 @@ export default function MainScreen() {
 
         return (
             <View style={styles.multiselectContainer}>
-                <TouchableOpacity style={[styles.multiselectButton, {backgroundColor: anyTilesSelected ? '#f00' : '#8888'}]} onPress={onMultiselectDeletePressed} disabled={!anyTilesSelected}>
+                <TouchableOpacity style={[styles.multiselectButton, {backgroundColor: anyTilesSelected ? '#d00' : '#8888'}]} onPress={onMultiselectDeletePressed} disabled={!anyTilesSelected}>
                     <Icon name="delete" color={'white'} size={24} />
                     <Text style={styles.multiselectText}>Delete</Text>
                 </TouchableOpacity>
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 15,
         borderRadius: 40,
-        marginHorizontal: 10,
+        marginHorizontal: 15,
     },
     multiselectText: {
         fontSize: fontSizes.h3,

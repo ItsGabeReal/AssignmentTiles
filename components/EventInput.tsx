@@ -59,6 +59,11 @@ type EventInputProps = {
     initialCategoryID?: CategoryID;
 
     /**
+     * The notes to be autofilled when the component is created.
+     */
+    initialNotes?: string;
+
+    /**
      * Changes the visuals and behavior of text input.
     */
     mode: 'create' | 'edit';
@@ -90,6 +95,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
     
     const eventNameInputRef = useRef<TextInput>(null);
     const categoryPickerRef = useRef<CategoryPickerRef | null>(null);
+    const notesInput = useRef(props.initialNotes || '');
     
     useEffect(() => {
         if (props.mode !== 'edit') {
@@ -136,6 +142,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                 name: eventNameInput,
                 dueDate: dueTypeInput === 'before-date' ? DateYMDHelpers.fromDate(dueDateInput) : null,
                 categoryID: selectedCategory,
+                notes: notesInput.current,
             };
 
             const repeatSettings: RepeatSettings = {
@@ -257,6 +264,19 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                             </View>
                         </HideableView>
                     </HideableView>
+                    <View style={globalStyles.parameterContainer}>
+                        <Text style={globalStyles.fieldDescription}>Notes:</Text>
+                        <View style={styles.notesInputContainer}>
+                            <TextInput
+                                style={styles.notesInput}
+                                placeholder='Add notes here...'
+                                multiline
+                                defaultValue={notesInput.current}
+                                onChangeText={newText => { notesInput.current = newText }}
+                                placeholderTextColor={colors.dimText}
+                            />
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         </>
@@ -327,6 +347,17 @@ const styles = StyleSheet.create({
     repeatOptions: {
         ...globalStyles.flexRow,
         marginTop: 10,
+    },
+    notesInputContainer: {
+        marginTop: 10,
+        backgroundColor: colors.l3,
+        borderRadius: 8,
+        padding: 8,
+    },
+    notesInput: {
+        color: colors.text,
+        fontSize: fontSizes.p,
+        padding: 0,
     },
 });
 

@@ -80,6 +80,7 @@ const EventEditor = forwardRef<EventEditorRef, EventEditorProps>((props, ref) =>
                 initialName={editedEventDetails.name}
                 initialDueDate={editedEventDetails.dueDate}
                 initialCategoryID={editedEventDetails.categoryID}
+                initialNotes={editedEventDetails.notes}
                 onRequestClose={close}
                 onSubmit={handleOnSubmit}
             />

@@ -22,6 +22,7 @@ export interface EventDetails {
     name: string;
     categoryID: CategoryID;
     dueDate: DueDate;
+    notes: string;
 }
 
 export interface RowPlan {

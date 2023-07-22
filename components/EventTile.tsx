@@ -77,8 +77,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     function completedCheckmarkView() {
         return (
             <View style={styles.checkmarkOverlayContainer}>
-                {/* Don't show the completed checkmark if it's selected during multi-select */}
-                {!isSelected ? <Icon name='check' size={60} color='#0d0' /> : <></>}
+                <Icon name='check' size={60} color='#0d0' />
             </View>
         );
     }
@@ -98,7 +97,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     function selectedIcon() {
         return (
             <View style={styles.selectedCheckIconContainer}>
-                <Icon name='check' size={30} color='black' />
+                <Icon name='check' size={24} color='black' />
             </View>
         )
     }

@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CategoryID, Event, EventDetails, EventsState } from '../../../../types/v0';
 import { RootState } from '../../store';
+import { DateYMDHelpers } from '../../../DateYMD';
 
 export const eventsSlice = createSlice({
     name: 'events',
@@ -69,11 +70,12 @@ export function getEventFromID(events: EventsState, eventID: string) {
 }
 
 export function areEventsEqual(eventA: Event, eventB: Event) {
-    return eventA.id == eventB.id
-        && eventA.completed == eventB.completed
-        && eventA.details.name == eventB.details.name
-        && eventA.details.dueDate == eventB.details.dueDate
-        && eventA.details.categoryID == eventB.details.categoryID;
+    return eventA.id === eventB.id
+        && eventA.completed === eventB.completed
+        && eventA.details.name === eventB.details.name
+        && DateYMDHelpers.datesEqual(eventA.details.dueDate, eventB.details.dueDate)
+        && eventA.details.categoryID === eventB.details.categoryID
+        && eventA.details.notes === eventB.details.notes;
 }
 
 export const eventActions = eventsSlice.actions;

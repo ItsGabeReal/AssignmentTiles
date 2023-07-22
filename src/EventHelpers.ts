@@ -47,6 +47,7 @@ export const nullEventDetails: EventDetails = {
     name: 'null',
     categoryID: null,
     dueDate: null,
+    notes: '',
 }
 
 export const nullEvnet: Event = {
