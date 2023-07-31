@@ -49,6 +49,15 @@ export const eventsSlice = createSlice({
                 }
             }
         },
+        setCategoryID(state, action: PayloadAction<{ eventID: string, categoryID: CategoryID }>) {
+            const editedEvent = state.find(item => item.id === action.payload.eventID);
+            if (!editedEvent) {
+                console.warn('eventsSlice -> setCategory: could not find event matching id');
+                return;
+            }
+
+            editedEvent.details.categoryID = action.payload.categoryID;
+        }
     },
 });
 

@@ -9,6 +9,7 @@ import {
     NativeSyntheticEvent,
     NativeScrollEvent,
     BackHandler,
+    ColorValue,
 } from "react-native";
 import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
@@ -32,6 +33,9 @@ import { ContextMenuDetails, ContextMenuPosition } from "../types/ContextMenu";
 import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
 import DayList, { TodayRowVisibility } from "../components/DayList";
+import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
+import { CategoryID } from "../types/v0";
+import { eventActions, getEventFromID } from "../src/redux/features/events/eventsSlice";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -58,6 +62,7 @@ export default function MainScreen() {
     const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
     const contextMenuRef = useRef<ContextMenuRef | null>(null);
+    const multiselectCategoryPickerRef = useRef<CategoryPickerRef | null>(null);
 
     // Refs related to autoscroll while dragging event
     const currentDraggedEvent = useRef<string | null>(null);
@@ -78,7 +83,7 @@ export default function MainScreen() {
 
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
             if (multiselectState.enabled) {
-                dispatch(generalStateActions.setMultiselectEnabled({ enabled: false }));
+                exitMultiselectMode();
                 return true;
             }
             else return false; // Differ to the next back handler
@@ -97,7 +102,7 @@ export default function MainScreen() {
     }, [multiselectState]);
 
     function onEventTileLongPressed({eventID}: any) {
-        flatListRef.current?.setNativeProps({ scrollEnabled: false });
+        setFlatListScrollEnabled(false);
 
         requestAnimationFrame(() => {
             EventRegister.emit('onFlatListScrollDisabled');
@@ -132,7 +137,7 @@ export default function MainScreen() {
 
         restoreDraggedTileVisuals();
 
-        flatListRef.current?.setNativeProps({ scrollEnabled: true });
+        setFlatListScrollEnabled(true);
     }
 
     function dragLoop() {
@@ -272,22 +277,30 @@ export default function MainScreen() {
         const anyTilesSelected = multiselectState.selectedEventIDs.length > 0;
 
         return (
-            <View style={styles.multiselectContainer}>
-                <TouchableOpacity style={[styles.multiselectButton, {backgroundColor: anyTilesSelected ? '#d00' : '#8888'}]} onPress={onMultiselectDeletePressed} disabled={!anyTilesSelected}>
-                    <Icon name="delete" color={'white'} size={24} />
-                    <Text style={styles.multiselectText}>Delete</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.multiselectButton, { backgroundColor: '#888'}]} onPress={() => dispatch(generalStateActions.setMultiselectEnabled({enabled: false}))}>
-                    <Icon name="close" color={'white'} size={24} />
-                    <Text style={styles.multiselectText}>Cancel</Text>
-                </TouchableOpacity>
+            <View style={styles.multiselectMainContainer}>
+                {multiselectButton('Delete', 'delete', onMultiselectDeletePressed, anyTilesSelected ? '#d00' : '#8888')}
+                {multiselectButton('Set Category', 'category', () => multiselectCategoryPickerRef.current?.open())}
+                {multiselectButton('Cancel', 'close', exitMultiselectMode)}
             </View>
         );
     }
 
+    function exitMultiselectMode() {
+        dispatch(generalStateActions.setMultiselectEnabled({ enabled: false }));
+    }
+
+    function multiselectButton(displayName: string, iconName: string, onPress: (() => void), backgroundColor?: ColorValue) {
+        return (
+            <TouchableOpacity style={[styles.multiselectButton, { backgroundColor: backgroundColor || '#888' }]} onPress={onPress}>
+                <Icon name={iconName} color={'white'} size={24} />
+                <Text style={styles.multiselectText}>{displayName}</Text>
+            </TouchableOpacity>
+        )
+    }
+
     function onMultiselectDeletePressed() {
         deleteSelectedEvents();
-        dispatch(generalStateActions.setMultiselectEnabled({ enabled: false }));
+        exitMultiselectMode();
     }
 
     function deleteSelectedEvents() {
@@ -296,21 +309,12 @@ export default function MainScreen() {
         });
     }
 
-    function scrollToToday() {
-        const todayIndex = visibleDays_closureSafeRef.current.findIndex(item => DateYMDHelpers.isToday(item));
-        
-        flatListRef.current?.scrollToIndex({
-            animated: true,
-            index: todayIndex,
-        })
-    }
+    function onCategorySelectedDuringMultiselect(categoryID: CategoryID) {
+        multiselectState.selectedEventIDs.forEach(item => {
+            dispatch(eventActions.setCategoryID({eventID: item, categoryID}));
+        });
 
-    function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-        scrollYOffset.current = event.nativeEvent.contentOffset.y;
-    }
-
-    function onStartReached(heightOfNewRows: number) {
-        if (currentDraggedEvent.current) dragAutoScrollOffset.current += heightOfNewRows;
+        exitMultiselectMode();
     }
 
     function overlayButtons() {
@@ -326,10 +330,31 @@ export default function MainScreen() {
         );
     }
 
+    function scrollToToday() {
+        const todayIndex = visibleDays_closureSafeRef.current.findIndex(item => DateYMDHelpers.isToday(item));
+        
+        flatListRef.current?.scrollToIndex({
+            animated: true,
+            index: todayIndex,
+        })
+    }
+
+    function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+        scrollYOffset.current = event.nativeEvent.contentOffset.y;
+    }
+
+    function setFlatListScrollEnabled(enabled: boolean) {
+        flatListRef.current?.setNativeProps({ scrollEnabled: enabled });
+    }
+
+    function onStartReached(heightOfNewRows: number) {
+        if (currentDraggedEvent.current) dragAutoScrollOffset.current += heightOfNewRows;
+    }
+
     return (
         <View style={styles.container}>
             <VETContainer ref={virtualEventTileRef}>
-                <ContextMenu ref={contextMenuRef} onPressOut={() => flatListRef.current?.setNativeProps({ scrollEnabled: true })}>
+                <ContextMenu ref={contextMenuRef} onPressOut={() => setFlatListScrollEnabled(true)} onOptionPressed={() => setFlatListScrollEnabled(true)}>
                     <DayList
                         ref={flatListRef}
                         onRequestOpenEventCreator={(suggestedDate) => eventCreatorRef.current?.open(suggestedDate)}
@@ -342,6 +367,7 @@ export default function MainScreen() {
             {overlayButtons()}
             <EventCreator ref={eventCreatorRef} />
             <EventEditor ref={eventEditorRef} />
+            <CategoryPicker ref={multiselectCategoryPickerRef} onSelect={onCategorySelectedDuringMultiselect} />
         </View>
     );
 }
@@ -385,17 +411,16 @@ const styles = StyleSheet.create({
         right: 0,
         alignItems: 'center',
     },
-    multiselectContainer: {
-        flexDirection: 'row',
-        alignSelf: 'center',
+    multiselectMainContainer: {
         marginBottom: 20,
+        alignItems: 'center',
     },
     multiselectButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 15,
+        padding: 12,
         borderRadius: 40,
-        marginHorizontal: 15,
+        marginTop: 8,
     },
     multiselectText: {
         fontSize: fontSizes.h3,

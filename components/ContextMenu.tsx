@@ -34,6 +34,11 @@ type ContextMenuProps = {
     children?: React.ReactNode;
 
     /**
+     * Called when any one of the options are pressed.
+     */
+    onOptionPressed?: (() => void);
+
+    /**
      * Called when the uses presses outside of the context menu
      * to close it.
      */
@@ -112,6 +117,11 @@ const ContextMenu = forwardRef<ContextMenuRef, ContextMenuProps>((props, ref) =>
         return visible;
     }
 
+    function onOptionPressed() {
+        props.onOptionPressed?.();
+        close();
+    }
+
     return (
         <>
             <Pressable onPress={() => { }} disabled={!visible} onStartShouldSetResponderCapture={onPressOutGestureStart}>
@@ -120,7 +130,7 @@ const ContextMenu = forwardRef<ContextMenuRef, ContextMenuProps>((props, ref) =>
             {visible ?
                 <FlatList<ContextMenuOptionDetails>
                     data={details.options}
-                    renderItem={({ item }) => <OptionComponent details={item} onRequestClose={close} />}
+                    renderItem={({ item }) => <OptionComponent details={item} onPress={onOptionPressed} />}
                     style={[styles.mainContainer, getPositionStyleProps()]}
                 />
                 : <></>
@@ -137,9 +147,9 @@ type OptionComponentProps = {
     details: ContextMenuOptionDetails;
 
     /**
-     * Called after the option is pressed, signaling the context menu to close.
+     * Called when this options is pressed.
      */
-    onRequestClose: (() => void);
+    onPress: (() => void);
 }
 
 const OptionComponent: React.FC<OptionComponentProps> = (props) => {
@@ -153,7 +163,8 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
 
     function handlePress() {
         props.details.onPress();
-        props.onRequestClose();
+
+        props.onPress();
     }
 
     return (
