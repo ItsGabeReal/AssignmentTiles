@@ -32,6 +32,12 @@ type ContextMenuProps = {
      * will dismiss the context menu.
      */
     children?: React.ReactNode;
+
+    /**
+     * Called when the uses presses outside of the context menu
+     * to close it.
+     */
+    onPressOut?: (() => void);
 }
 
 const CONTEXT_MENU_WIDTH = 90;
@@ -96,16 +102,19 @@ const ContextMenu = forwardRef<ContextMenuRef, ContextMenuProps>((props, ref) =>
         setVisible(false);
     }
 
-    function onGestureStart() {
+    function onPressOutGestureStart() {
         // When any gesture comes through, close the context menu and do not become the responder.
-        if (visible) close();
+        if (visible) {
+            close();
+            props.onPressOut?.();
+        }
 
         return visible;
     }
 
     return (
         <>
-            <Pressable onPress={() => { }} disabled={!visible} onStartShouldSetResponderCapture={onGestureStart}>
+            <Pressable onPress={() => { }} disabled={!visible} onStartShouldSetResponderCapture={onPressOutGestureStart}>
                 {props.children}
             </Pressable>
             {visible ?

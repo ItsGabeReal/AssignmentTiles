@@ -52,6 +52,18 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
             },
             onPanResponderTerminationRequest(e, gestureState) {
                 return calledDragStart.current;
+                //return false;
+            },
+            /**
+             * For some reason, onPanResponderRelease isn't being called,
+             * so when the user long presses without dragging, flatlist
+             * scrolling must be re-enabled when the context menu is closed.
+             */
+            /*onPanResponderRelease() {
+                handleRelease();
+            },*/
+            onPanResponderTerminate() {
+                handleRelease();
             },
         })
     ).current;
@@ -64,9 +76,9 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
      * In order to resolve some bugs with dragging, it's extremely important
      * that we disable scrolling on the flatlist before beginning any drag
      * gestures. So on long press, we:
-     *   1. Dispatch an event to MainScreen to disable flatlist scroll
+     *   1. Dispatch an event to MainScreen to disable flatlist scroll.
      *   2. Wait for MainScreen to disable flatlist scroll and dispatch
-     *      an event when it's done
+     *      an event when it's done.
      *   3. Start listening to move events.
      */
     function onFlatListScrollDisabled() {
@@ -95,21 +107,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     function handleRelease() {
         listeningToMoveEvents.current = false;
 
-        /**
-         * Re-enabling flatlist scroll while dragging causes bugs.
-         * Make sure we didn't give the green light for dragging
-         * before re-enabling flatlist scroll.
-         */
-        //if (releasedWithoutDragging()) {
-        //    console.log('Released without dragging')
-            //EventRegister.emit('setFlatListScrollEnabled', { enabled: true });
-        //}
-
         calledDragStart.current = false; // Reactive one time event for drag start.
-    }
-
-    function releasedWithoutDragging() {
-        return !calledDragStart.current;
     }
 
     function handleDragStart(e: GestureResponderEvent) {
@@ -121,7 +119,6 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
         <View {...panResponder.panHandlers} style={{ opacity: isBeingDragged ? 0.25 : 1 }}>
             <TouchableOpacity
                 onPress={handlePress}
-                onPressOut={handleRelease}
                 onLongPress={handleLongPress}
                 delayLongPress={150}
             >

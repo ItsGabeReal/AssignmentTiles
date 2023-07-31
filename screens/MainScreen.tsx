@@ -329,7 +329,7 @@ export default function MainScreen() {
     return (
         <View style={styles.container}>
             <VETContainer ref={virtualEventTileRef}>
-                <ContextMenu ref={contextMenuRef}>
+                <ContextMenu ref={contextMenuRef} onPressOut={() => flatListRef.current?.setNativeProps({ scrollEnabled: true })}>
                     <DayList
                         ref={flatListRef}
                         onRequestOpenEventCreator={(suggestedDate) => eventCreatorRef.current?.open(suggestedDate)}
