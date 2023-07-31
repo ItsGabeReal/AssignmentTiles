@@ -37,7 +37,7 @@ const darkTheme: ColorScheme = {
 
 const lightTheme: ColorScheme = {
     l0: '#c0c0c0',
-    l1: '#d0d0d0', todayL1: '#81BFFF',
+    l1: '#d0d0d0', todayL1: '#accae5',
     l2: '#e0e0e0', todayL2: '#A7D4FF',
     l3: '#f0f0f0',
     l4: '#ffffff',
@@ -48,14 +48,14 @@ const lightTheme: ColorScheme = {
 export const colors = Appearance.getColorScheme() === 'light' ? lightTheme : darkTheme;
 
 export const categoryColorPalette: ColorValue[] = [
-    '#F00000',
-    '#FF6A00',
-    '#E7D400',
-    '#25DE00',
-    '#00E9E9',
-    '#225AFF',
-    '#9600FF',
-    '#EF00E4',
+    '#DE1212', // Red
+    '#E26912', // Orange
+    '#C9C91D', // Yellow
+    '#2EC610', // Green
+    '#10C6C6', // Aqua
+    '#2F60EE', // Blue
+    '#A22FEE', // Purple
+    '#E212E2', // Pink
 ];
 
 export const globalStyles = StyleSheet.create({

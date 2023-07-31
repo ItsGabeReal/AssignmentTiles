@@ -43,7 +43,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     }
 
     function getBackgroundColor() {
-        let outputColorValue: ColorValue = '#fff';
+        let outputColorValue: ColorValue = '#999';
 
         if (event.details.categoryID !== null) {
             const category = getCategoryFromID(categories, event.details.categoryID);
@@ -77,7 +77,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     function completedCheckmarkView() {
         return (
             <View style={styles.checkmarkOverlayContainer}>
-                <Icon name='check' size={60} color='#0d0' />
+                <Icon name='check' size={60} color='#0e0' />
             </View>
         );
     }
@@ -105,14 +105,12 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     return (
         <>
             <View style={styles.mainContainer}>
-                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
-                    <View style={styles.colorDimmer}>
-                        <Text style={styles.eventNameText}>{event.details.name}</Text>
-                        {event.details.dueDate && props.plannedDate ?
-                            <Text style={[styles.dueDateText, getDueDateStyle()]}>{getDueDateText()}</Text>
-                            : <></>
-                        }
-                    </View>
+                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.5 : 1 }]}>
+                    <Text style={styles.eventNameText}>{event.details.name}</Text>
+                    {event.details.dueDate && props.plannedDate ?
+                        <Text style={[styles.dueDateText, getDueDateStyle()]}>{getDueDateText()}</Text>
+                        : <></>
+                    }
                 </View>
                 {event.completed ? completedCheckmarkView() : null}
                 {isSelected ? <View style={[StyleSheet.absoluteFill, styles.selectedColorOverlay]} /> : null}
@@ -134,12 +132,8 @@ const styles = StyleSheet.create({
     },
     tileBackground: {
         flex: 1,
-    },
-    colorDimmer: {
-        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#0004',
         padding: 5,
     },
     selectedColorOverlay: {

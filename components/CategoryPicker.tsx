@@ -73,6 +73,7 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
                         {categories.map(item =>
                             <CategoryListItem key={item.id} category={item} onSelect={handleOnSelect} onDeleted={props.onDelete} />
                         )}
+                        
                     </ScrollView>
                 </View>
                 <View style={styles.submitButtonContainer}>
@@ -149,7 +150,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
                 {!hideCategoryActions ?
                     <View style={styles.actionButtonContainer}>
                         <TouchableOpacity onPress={() => categoryInputRef.current?.open()} hitSlop={5}>
-                            <Icon name='edit' color='#f0f000' size={20} />
+                            <Icon name='edit' color='#dd0' size={20} />
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.deleteButton} onPress={showDeletionConfirmation} hitSlop={5}>
                             <Icon name='delete' color='#f00000' size={20} />
@@ -188,6 +189,8 @@ const styles = StyleSheet.create({
     scrollView: {
         flex: 1,
         backgroundColor: colors.l2,
+        paddingTop: 10,
+        paddingHorizontal: 15,
     },
     submitButtonContainer: {
         margin: 5,
@@ -201,9 +204,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         padding: 15,
         alignItems: 'center',
-        backgroundColor: colors.l3,
-        marginVertical: 5,
-        marginHorizontal: 10,
+        backgroundColor: colors.l4,
+        marginBottom: 10,
         borderRadius: 10,
     },
     categoryText: {
