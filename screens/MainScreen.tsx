@@ -86,15 +86,24 @@ export default function MainScreen() {
 
         // Cleanup function
         return () => {
-            EventRegister.removeAllListeners();
+            /**
+             * removeAllListeners shaln't be used cause it causes other
+             * issues, but not removing listeners might cause listeners
+             * to double up, idk. I haven't tested it.
+             */
+            //EventRegister.removeAllListeners();
             backHandler.remove();
         }
     }, [multiselectState]);
 
     function onEventTileLongPressed({eventID}: any) {
-        flatListRef.current?.setNativeProps({scrollingEnabled: false});
-        
-        if (!multiselectState_closureSafeRef.current.enabled) openEventTileContextMenu(eventID); // Disable context menu during multiselect
+        flatListRef.current?.setNativeProps({ scrollEnabled: false });
+
+        requestAnimationFrame(() => {
+            EventRegister.emit('onFlatListScrollDisabled');
+            
+            if (!multiselectState_closureSafeRef.current.enabled) openEventTileContextMenu(eventID); // Disable context menu during multiselect
+        });
     }
 
     function onEventTileDragStart({gesture, eventID}: any) {
@@ -122,6 +131,8 @@ export default function MainScreen() {
         currentDraggedEvent.current = null;
 
         restoreDraggedTileVisuals();
+
+        flatListRef.current?.setNativeProps({ scrollEnabled: true });
     }
 
     function dragLoop() {

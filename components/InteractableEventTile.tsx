@@ -1,6 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-    StyleSheet,
     View,
     TouchableOpacity,
     GestureResponderEvent,
@@ -11,7 +10,6 @@ import {
 import DateYMD from '../src/DateYMD';
 import EventTile from './EventTile';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
-import VisualSettings from '../src/VisualSettings';
 import { generalStateActions } from '../src/redux/features/general/generalSlice';
 import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { EventRegister } from 'react-native-event-listeners';
@@ -38,6 +36,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
 
     const listeningToMoveEvents = useRef(false);
     const calledDragStart = useRef(false);
+    const waitingForFlatListScrollToDisable = useRef(false);
     
     const panResponder = useRef(
         PanResponder.create({
@@ -51,18 +50,33 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
                     calledDragStart.current = true;
                 }
             },
-            onPanResponderRelease() {
-                handleRelease();
-
-            },
-            onPanResponderTerminate() {
-                handleRelease();
-            },
             onPanResponderTerminationRequest(e, gestureState) {
                 return calledDragStart.current;
             },
         })
     ).current;
+
+    useEffect(() => {
+        EventRegister.addEventListener('onFlatListScrollDisabled', onFlatListScrollDisabled);
+    }, []);
+
+    /**
+     * In order to resolve some bugs with dragging, it's extremely important
+     * that we disable scrolling on the flatlist before beginning any drag
+     * gestures. So on long press, we:
+     *   1. Dispatch an event to MainScreen to disable flatlist scroll
+     *   2. Wait for MainScreen to disable flatlist scroll and dispatch
+     *      an event when it's done
+     *   3. Start listening to move events.
+     */
+    function onFlatListScrollDisabled() {
+        if (!waitingForFlatListScrollToDisable.current) return;
+
+        listeningToMoveEvents.current = true;
+        if (Platform.OS == 'android') Vibration.vibrate(10);
+
+        waitingForFlatListScrollToDisable.current = false;
+    }
 
     function handlePress() {
         if (multiselectEnabled) {
@@ -74,16 +88,28 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     }
 
     function handleLongPress(e: GestureResponderEvent) {
-        EventRegister.emit('onEventTileLongPressed', {eventID: props.eventID});
-        
-        
-        listeningToMoveEvents.current = true;
-        if (Platform.OS == 'android') Vibration.vibrate(10);
+        EventRegister.emit('onEventTileLongPressed', { eventID: props.eventID });
+        waitingForFlatListScrollToDisable.current = true;
     }
 
     function handleRelease() {
         listeningToMoveEvents.current = false;
+
+        /**
+         * Re-enabling flatlist scroll while dragging causes bugs.
+         * Make sure we didn't give the green light for dragging
+         * before re-enabling flatlist scroll.
+         */
+        //if (releasedWithoutDragging()) {
+        //    console.log('Released without dragging')
+            //EventRegister.emit('setFlatListScrollEnabled', { enabled: true });
+        //}
+
         calledDragStart.current = false; // Reactive one time event for drag start.
+    }
+
+    function releasedWithoutDragging() {
+        return !calledDragStart.current;
     }
 
     function handleDragStart(e: GestureResponderEvent) {
@@ -95,6 +121,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
         <View {...panResponder.panHandlers} style={{ opacity: isBeingDragged ? 0.25 : 1 }}>
             <TouchableOpacity
                 onPress={handlePress}
+                onPressOut={handleRelease}
                 onLongPress={handleLongPress}
                 delayLongPress={150}
             >
@@ -103,12 +130,5 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    eventTileSize: {
-        width: VisualSettings.EventTile.mainContainer.width,
-        height: VisualSettings.EventTile.mainContainer.height,
-    }
-})
 
 export default InteractableEventTile;

@@ -6,6 +6,7 @@ import {
     NativeSyntheticEvent,
     NativeScrollEvent,
     ViewToken,
+    GestureResponderEvent,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
@@ -15,9 +16,6 @@ import { getDayRowHeight, getDayRowYOffset } from '../src/VisibleDaysHelpers';
 import { visibleDaysActions } from '../src/redux/features/visibleDays/visibleDaysSlice';
 
 export type TodayRowVisibility = 'visible' | 'beneath' | 'above';
-
-export type DayListRef = {
-}
 
 type DayListProps = {
     /**
