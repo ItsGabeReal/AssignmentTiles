@@ -109,7 +109,7 @@ const VETContainer = forwardRef<VirtualEventTileRef, VirtualEventTileProps>((pro
                 style={[styles.mainContainer, { left: pan.current.x, top: pan.current.y, opacity: visible ? 1 : 0 }]}
                 pointerEvents='none'
             >
-                <EventTile eventID={displayedEventID} plannedDate={DateYMDHelpers.today()} />
+                <EventTile eventID={displayedEventID} />
             </Animated.View>
         </View>
     );

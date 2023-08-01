@@ -35,12 +35,15 @@ import { EventRegister } from "react-native-event-listeners";
 import DayList, { TodayRowVisibility } from "../components/DayList";
 import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
 import { CategoryID } from "../types/v0";
-import { eventActions, getEventFromID } from "../src/redux/features/events/eventsSlice";
+import { eventActions } from "../src/redux/features/events/eventsSlice";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
 
     const dispatch = useAppDispatch();
+
+    // Used for testing
+    //const entireState = useAppSelector(state => state);
 
     const visibleDays = useAppSelector(state => state.visibleDays);
     const visibleDays_closureSafeRef = useRef(visibleDays);
@@ -266,8 +269,35 @@ export default function MainScreen() {
     }
 
     function addEventButton() {
+        const onPress = () => {
+            eventCreatorRef.current?.open();
+            /*console.log('-----ENTIRE STATE-----')
+
+            // print events
+            console.log('events:')
+            entireState.events.forEach(item => console.log(item.details.name));
+
+            // print categories
+            console.log('categories:')
+            entireState.categories.forEach(item => console.log(item.name));
+
+            // print row plans
+
+            console.log('row plans:')
+            entireState.rowPlans.forEach(item => {
+                console.log(`${DateYMDHelpers.toString(item.plannedDate)}:`);
+
+                item.orderedEventIDs.forEach(eventID => {
+                    const event = entireState.events.find(evt => evt.id === eventID);
+
+                    if (!event) console.log(`id ${eventID} is not in events`);
+                    else console.log(event.details.name);
+                })
+            })*/
+        }
+
         return (
-            <TouchableOpacity style={styles.addButton} onPress={() => eventCreatorRef.current?.open()}>
+            <TouchableOpacity style={styles.addButton} onPress={onPress}>
                 <Icon name="add" color={'white'} size={40} />
             </TouchableOpacity>
         );

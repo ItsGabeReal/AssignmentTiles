@@ -52,7 +52,6 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
             },
             onPanResponderTerminationRequest(e, gestureState) {
                 return calledDragStart.current;
-                //return false;
             },
             /**
              * For some reason, onPanResponderRelease isn't being called,
@@ -99,13 +98,23 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
         }
     }
 
+    function handlePressOut() {
+        /**
+         * Note: This function is executed BEFORE onPanResponderTerminate,
+         * so any code that needs to be run after either starting a drag or
+         * releasing a long press should not be required to run after
+         * onPanResponderTerminate.
+         */
+
+        listeningToMoveEvents.current = false;
+    }
+
     function handleLongPress(e: GestureResponderEvent) {
         EventRegister.emit('onEventTileLongPressed', { eventID: props.eventID });
         waitingForFlatListScrollToDisable.current = true;
     }
 
     function handleRelease() {
-        listeningToMoveEvents.current = false;
 
         calledDragStart.current = false; // Reactive one time event for drag start.
     }
@@ -119,6 +128,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
         <View {...panResponder.panHandlers} style={{ opacity: isBeingDragged ? 0.25 : 1 }}>
             <TouchableOpacity
                 onPress={handlePress}
+                onPressOut={handlePressOut}
                 onLongPress={handleLongPress}
                 delayLongPress={150}
             >

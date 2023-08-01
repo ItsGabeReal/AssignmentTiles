@@ -93,6 +93,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
     const [repeatValueTypeInput, setRepeatValueTypeInput] = useState<RepeatValueType>('days');
     const [selectedCategory, setSelectedCategory] = useState<CategoryID>(props.initialCategoryID || null);
     
+    const scrollViewRef = useRef<ScrollView | null>(null);
     const eventNameInputRef = useRef<TextInput>(null);
     const categoryPickerRef = useRef<CategoryPickerRef | null>(null);
     const notesInput = useRef(props.initialNotes || '');
@@ -192,6 +193,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                     />
                 </View>
                 <ScrollView
+                    ref={scrollViewRef}
                     style={styles.inputContainer}
                     //keyboardDismissMode='on-drag'
                     keyboardShouldPersistTaps="handled"
@@ -274,6 +276,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
                                 defaultValue={notesInput.current}
                                 onChangeText={newText => { notesInput.current = newText }}
                                 placeholderTextColor={colors.dimText}
+                                onFocus={() => scrollViewRef.current?.scrollToEnd()}
                             />
                         </View>
                     </View>
