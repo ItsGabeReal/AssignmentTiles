@@ -12,7 +12,7 @@ import {
 import CompactDatePicker from './core/CompactDatePicker';
 import IosStyleButton from './core/IosStyleButton';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
-import { CategoryID, EventDetails } from '../types/v0';
+import { CategoryID, EventDetails } from '../types/currentVersion';
 import CategoryPicker, { CategoryPickerRef } from './CategoryPicker';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
@@ -80,7 +80,7 @@ type EventInputProps = {
 }
 
 const EventInput: React.FC<EventInputProps> = (props) => {
-    const categories = useAppSelector(state => state.categories);
+    const categories = useAppSelector(state => state.categories.current);
     const dispatch = useAppDispatch();
 
     const [eventNameInput, setEventNameInput] = useState(props.initialName || '');

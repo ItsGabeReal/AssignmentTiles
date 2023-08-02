@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { DateYMDHelpers } from '../../../DateYMD';
-import { VisibleDaysState } from '../../../../types/v0';
+import { VisibleDaysState } from '../../../../types/currentVersion';
 
 export const visibleDaysSlice = createSlice({
     name: 'visibleDays',

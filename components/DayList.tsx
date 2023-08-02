@@ -47,7 +47,7 @@ const DayList = forwardRef<FlatList, DayListProps>((props, ref) => {
     const dispatch = useAppDispatch();
 
     const visibleDays = useAppSelector(state => state.visibleDays);
-    const rowPlans = useAppSelector(state => state.rowPlans);
+    const rowPlans = useAppSelector(state => state.rowPlans.current);
 
     function renderItem({ item }: { item: DateYMD }) {
         return <DayRow

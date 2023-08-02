@@ -1,5 +1,5 @@
 import DateYMD from "./DateYMD";
-import { RowPlan } from "../types/v0";
+import { RowPlan } from "../types/currentVersion";
 import VisualSettings, {getNumEventColunms} from "./VisualSettings";
 import { getRowPlan } from "./redux/features/rowPlans/rowPlansSlice";
 import { Vector2D } from "../types/General";

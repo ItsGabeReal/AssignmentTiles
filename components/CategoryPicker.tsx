@@ -12,14 +12,13 @@ import {
     ScrollView,
 } from 'react-native';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
-import { Category, CategoryID } from '../types/v0';
+import { Category, CategoryID } from '../types/currentVersion';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
-import { eventActions } from '../src/redux/features/events/eventsSlice';
-import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 import { colors, fontSizes } from '../src/GlobalStyles';
 import IosStyleButton from './core/IosStyleButton';
+import { deleteCategoryAndBackup } from '../src/CategoriesHelpers';
 
 export type CategoryPickerRef = {
     /**
@@ -42,7 +41,7 @@ type CategoryPickerProps = {
 }
 
 const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props, ref) => {
-    const categories = useAppSelector(state => state.categories);
+    const categories = useAppSelector(state => state.categories.current);
 
     const categoryInputRef = useRef<CategoryInputRef | null>(null);
     const floatingModalRef = useRef<FloatingModalRef | null>(null);
@@ -137,8 +136,8 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
             return;
         }
 
-        dispatch(eventActions.removeCategory({categoryID: props.category.id }));
-        dispatch(categoriesActions.remove({categoryID: props.category.id}));
+        deleteCategoryAndBackup(dispatch, props.category.id);
+
         props.onDeleted?.(props.category.id);
     }
 

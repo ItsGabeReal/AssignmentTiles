@@ -21,7 +21,7 @@ import {
 import EventCreator, { EventCreatorRef } from "../components/EventCreator";
 import EventEditor, { EventEditorRef } from "../components/EventEditor";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
-import { deleteEvent } from "../src/EventHelpers";
+import { deleteEventAndBackup, deleteMultipleEventsAndBackup, restoreDeletedEventsFromBackup } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
 import { getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
@@ -34,8 +34,9 @@ import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
 import DayList, { TodayRowVisibility } from "../components/DayList";
 import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
-import { CategoryID } from "../types/v0";
+import { CategoryID } from "../types/currentVersion";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
+import { restoreCategoryFromBackup } from "../src/CategoriesHelpers";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -49,7 +50,7 @@ export default function MainScreen() {
     const visibleDays_closureSafeRef = useRef(visibleDays);
     visibleDays_closureSafeRef.current = visibleDays;
 
-    const rowPlans = useAppSelector(state => state.rowPlans);
+    const rowPlans = useAppSelector(state => state.rowPlans.current);
     const rowPlans_closureSafeRef = useRef(rowPlans);
     rowPlans_closureSafeRef.current = rowPlans;
 
@@ -216,7 +217,7 @@ export default function MainScreen() {
                 {
                     name: 'Delete',
                     onPress: () => {
-                        deleteEvent(dispatch, eventID);
+                        deleteEventAndBackup(dispatch, eventID);
                     },
                     iconName: 'delete',
                     color: '#d00',
@@ -270,7 +271,8 @@ export default function MainScreen() {
 
     function addEventButton() {
         const onPress = () => {
-            eventCreatorRef.current?.open();
+            //eventCreatorRef.current?.open();
+            restoreCategoryFromBackup(dispatch);
             /*console.log('-----ENTIRE STATE-----')
 
             // print events
@@ -334,9 +336,7 @@ export default function MainScreen() {
     }
 
     function deleteSelectedEvents() {
-        multiselectState.selectedEventIDs.forEach(item => {
-            deleteEvent(dispatch, item);
-        });
+        deleteMultipleEventsAndBackup(dispatch, multiselectState.selectedEventIDs);
     }
 
     function onCategorySelectedDuringMultiselect(categoryID: CategoryID) {

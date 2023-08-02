@@ -1,5 +1,5 @@
 /**
- * This defines the types for version 0 of the redux store.
+ * This defines the types for version 1 of the redux store.
  * 
  * If any breaking changes are made to the persisted state, you should:
  *      1. Create a new version file
@@ -20,7 +20,10 @@ export type Category = {
     id: CategoryID;
 }
 
-export type CategoriesState = Category[];
+export type CategoriesState = {
+    current: Category[];
+    backup: Category[] | null;
+}
 
 
 // ----- EVENTS -----
@@ -39,7 +42,10 @@ export interface Event {
     id: string;
 }
 
-export type EventsState = Event[];
+export type EventsState = {
+    current: Event[];
+    backup: Event[] | null;
+}
 
 
 // ----- GENERAL -----
@@ -64,7 +70,10 @@ export interface RowPlan {
     orderedEventIDs: string[];
 }
 
-export type RowPlansState = RowPlan[];
+export type RowPlansState = {
+    current: RowPlan[];
+    backup: RowPlan[] | null;
+}
 
 
 // ----- VISIBLE DAYS -----

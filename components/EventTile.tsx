@@ -10,9 +10,9 @@ import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
-import { getCategoryFromID } from '../src/redux/features/categories/categoriesSlice';
 import { nullEvnet } from '../src/EventHelpers';
 import { fontSizes } from '../src/GlobalStyles';
+import { getCategoryFromID } from '../src/CategoriesHelpers';
 
 type EventTileProps = {
     /**
@@ -27,8 +27,8 @@ type EventTileProps = {
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
-    const event = useAppSelector(state => state.events.find(item => item.id === props.eventID)) || nullEvnet;
-    const categories = useAppSelector(state => state.categories);
+    const event = useAppSelector(state => state.events.current.find(item => item.id === props.eventID)) || nullEvnet;
+    const categories = useAppSelector(state => state.categories.current);
     const isSelected = useAppSelector(state => state.general.multiselect.selectedEventIDs.find(item => item === props.eventID) !== undefined);
 
     const daysPlannedBeforeDue = getDaysPlannedBeforeDue();

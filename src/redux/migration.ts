@@ -1,5 +1,6 @@
 import { PersistedState } from "redux-persist";
-import { RootStateV0 } from "../../types/v0";
+import { RootState as RootStateV0 } from "../../types/v0";
+import { RootState as RootStateV1 } from "../../types/v1";
 import { latestStoreVersion } from "./store";
 
 /**
@@ -7,37 +8,27 @@ import { latestStoreVersion } from "./store";
  * Example: '0: (state) => {}' converts FROM version 0 TO version 1.
  */
 const migrations = {
-    /*0: (state: PersistedState) => {
-        const currentState = { ...state } as RootStateV0;
-        const newState = { ...state } as RootStateV0;
+    0: (state: PersistedState) => {
+        const oldState = { ...state } as RootStateV0;
 
-        // Map events where completed is flipped
-        newState.events = currentState.events.map(item => {
-            return {
-                ...item,
-                completed: !item.completed,
+        const newState: RootStateV1 = {
+            ...oldState,
+            categories: {
+                current: oldState.categories,
+                backup: null,
+            },
+            events: {
+                current: oldState.events,
+                backup: null,
+            },
+            rowPlans: {
+                current: oldState.rowPlans,
+                backup: null,
             }
-        });
+        };
 
         return newState;
     },
-    1: (state: PersistedState) => {
-        const currentState = { ...state } as RootStateV0;
-        const newState = { ...state } as RootStateV0;
-
-        // Map events where name is changed
-        newState.events = currentState.events.map(item => {
-            return {
-                ...item,
-                details: {
-                    ...item.details,
-                    name: item.details.name.concat('!'),
-                }
-            }
-        });
-
-        return newState;
-    },*/
 }
 
 export default function migrate(state: PersistedState) {

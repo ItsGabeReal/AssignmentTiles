@@ -17,7 +17,7 @@ const rootReducer = combineReducers({
     visibleDays: visibleDaysSlice,
 });
 
-export const latestStoreVersion = 0;
+export const latestStoreVersion = 1;
 
 const persistConfig = {
     key: 'root',
@@ -40,5 +40,5 @@ export const store = configureStore({
 
 export const persistedStore = persistStore(store);
 
-export type RootState = ReturnType<typeof store.getState>
+export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

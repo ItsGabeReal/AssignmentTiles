@@ -1,29 +1,39 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { EventDetails, RowPlansState } from "../../../../types/v0";
+import { EventDetails, RowPlan, RowPlansState } from "../../../../types/currentVersion";
 import DateYMD, { DateYMDHelpers } from '../../../DateYMD';
+
+const initialState: RowPlansState = {
+    current: [],
+    backup: null,
+}
 
 export const rowPlansSlice = createSlice({
     name: 'rowPlans',
-    initialState: [] as RowPlansState,
+    initialState,
     reducers: {
         insertEvent(state, action: PayloadAction<{eventID: string, plannedDate: DateYMD, insertionIndex?: number}>) {
             _insertEventInRowPlans(
-                state,
+                state.current,
                 action.payload.eventID,
                 action.payload.plannedDate,
                 action.payload.insertionIndex
             );
         },
-        removeEvent(state, action: PayloadAction<{eventID: string}>) {
-            const removeEventOutput = _removeEventFromRowPlans(state, action.payload.eventID);
-            if (!removeEventOutput) {
-                console.warn('rowPlansSlice -> removeEventFromRowPlans: Could not remove event because no events match the provided id');
-                return;
-            }
+        removeEventAndBackup(state, action: PayloadAction<{eventID: string}>) {
+            state.backup = deepCopyRowPlans(state.current);
+
+            _removeEventFromRowPlans(state.current, action.payload.eventID);
+        },
+        removeMultipleEventsAndBackup(state, action: PayloadAction<{ eventIDs: string[] }>) {
+            state.backup = deepCopyRowPlans(state.current);
+
+            action.payload.eventIDs.forEach(id => {
+                _removeEventFromRowPlans(state.current, id);
+            });
         },
         changePlannedDate(state, action: PayloadAction<{eventID: string, plannedDate: DateYMD, insertionIndex?: number}>) {
             // Find event
-            const eventPlan = getEventPlan(state, action.payload.eventID);
+            const eventPlan = getEventPlan(state.current, action.payload.eventID);
             if (!eventPlan) {
                 console.error('rowPlansSlice -> changePlannedDate: Could not find event');
                 return;
@@ -33,7 +43,7 @@ export const rowPlansSlice = createSlice({
             let actualInsertionIndex;
             if (action.payload.insertionIndex === undefined) {
                 // Get the number of events aleady in the target row
-                const eventsOnTargetDate = getRowPlan(state, action.payload.plannedDate);
+                const eventsOnTargetDate = getRowPlan(state.current, action.payload.plannedDate);
 
                 const rowPlanExists = eventsOnTargetDate != undefined;
                 actualInsertionIndex = rowPlanExists ? eventsOnTargetDate.orderedEventIDs.length : 0;
@@ -43,7 +53,7 @@ export const rowPlansSlice = createSlice({
             }
 
             // Remove event
-            const removeEventOutput = _removeEventFromRowPlans(state, action.payload.eventID);
+            const removeEventOutput = _removeEventFromRowPlans(state.current, action.payload.eventID);
             if (!removeEventOutput) {
                 console.error(`rowPlansSlice -> changePlannedDate: Could not remove event`);
                 return;
@@ -51,16 +61,24 @@ export const rowPlansSlice = createSlice({
 
             // Add event back in
             _insertEventInRowPlans(
-                state,
+                state.current,
                 action.payload.eventID,
                 action.payload.plannedDate,
                 actualInsertionIndex
             );
-        }
+        },
+        restoreBackup(state) {
+            if (!state.backup) {
+                console.warn('rowPlansSlice -> restoreBackup: No backup to restore. Be sure to call "backup" first.');
+                return;
+            }
+            
+            state.current = deepCopyRowPlans(state.backup);
+        },
     }
 });
 
-function _insertEventInRowPlans(rowPlans: RowPlansState, eventID: string, plannedDate: DateYMD, insertionIndex?: number) {
+function _insertEventInRowPlans(rowPlans: RowPlan[], eventID: string, plannedDate: DateYMD, insertionIndex?: number) {
     const rowPlan = getRowPlan(rowPlans, plannedDate);
     if (rowPlan) {
         const actualInsertionIndex = insertionIndex == undefined ? rowPlan.orderedEventIDs.length : insertionIndex;
@@ -72,7 +90,7 @@ function _insertEventInRowPlans(rowPlans: RowPlansState, eventID: string, planne
     }
 }
 
-function _removeEventFromRowPlans(rowPlans: RowPlansState, eventID: string) {
+function _removeEventFromRowPlans(rowPlans: RowPlan[], eventID: string) {
     let removedFromIndex = -1;
     let removedFromDate: DateYMD | null = null;
     for (let i = 0; i < rowPlans.length; i++) {
@@ -107,15 +125,28 @@ function _removeEventFromRowPlans(rowPlans: RowPlansState, eventID: string) {
     };
 }
 
-function sortRowPlansByDate(rowPlans: RowPlansState) {
+function sortRowPlansByDate(rowPlans: RowPlan[]) {
     rowPlans.sort((a, b) => DateYMDHelpers.toDate(a.plannedDate).valueOf() - DateYMDHelpers.toDate(b.plannedDate).valueOf());
 }
 
-export function getRowPlan(rowPlans: RowPlansState, plannedDate: DateYMD) {
+function deepCopyRowPlans(rowPlans: RowPlan[]) {
+    const output: RowPlan[] = [];
+
+    rowPlans.forEach(item => {
+        output.push({
+            plannedDate: { ...item.plannedDate },
+            orderedEventIDs: [ ...item.orderedEventIDs ],
+        });
+    });
+
+    return output;
+}
+
+export function getRowPlan(rowPlans: RowPlan[], plannedDate: DateYMD) {
     return rowPlans.find(item => DateYMDHelpers.datesEqual(item.plannedDate, plannedDate));
 }
 
-export function getEventPlan(rowPlans: RowPlansState, eventID: string) {
+export function getEventPlan(rowPlans: RowPlan[], eventID: string) {
     for (let i = 0; i < rowPlans.length; i++) {
         const orderedEventIDs = rowPlans[i].orderedEventIDs;
 

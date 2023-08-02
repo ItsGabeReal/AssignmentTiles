@@ -1,5 +1,5 @@
 import { Vector2D } from "../types/General";
-import { RowPlansState, VisibleDaysState } from "../types/v0";
+import { RowPlan, VisibleDaysState } from "../types/currentVersion";
 import { DateYMDHelpers } from "./DateYMD";
 import { getDayRowAtScreenPosition, getInsertionIndexFromGesture } from "./VisibleDaysHelpers";
 import { getEventPlan, rowPlansActions } from "./redux/features/rowPlans/rowPlansSlice";
@@ -8,7 +8,7 @@ import { AppDispatch } from "./redux/store";
 export function updateEventPlanFromDragPosition(
     dispatch: AppDispatch,
     visibleDays: VisibleDaysState,
-    rowPlans: RowPlansState,
+    rowPlans: RowPlan[],
     scrollYOffset: number,
     draggedEventID: string,
     dragPosition: Vector2D,

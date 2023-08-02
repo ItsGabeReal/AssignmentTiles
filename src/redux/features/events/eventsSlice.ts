@@ -1,71 +1,131 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CategoryID, Event, EventDetails, EventsState } from '../../../../types/v0';
+import { CategoryID, DueDate, Event, EventDetails, EventsState } from '../../../../types/currentVersion';
 import { RootState } from '../../store';
 import { DateYMDHelpers } from '../../../DateYMD';
 
+const initialState: EventsState = {
+    current: [],
+    backup: null,
+}
+
 export const eventsSlice = createSlice({
     name: 'events',
-    initialState: [] as EventsState,
+    initialState,
     reducers: {
         add(state, action: PayloadAction<{event: Event}>) {
-            state.push(action.payload.event);
+            state.current.push(action.payload.event);
         },
-        remove(state, action: PayloadAction<{eventID: string}>) {
+        /**
+         * Note: Removing and backing up are combined to ensure that the
+         * state is backed up before anything is deleted.
+         */
+        removeAndBackup(state, action: PayloadAction<{eventID: string}>) {
+            state.backup = deepCopyEvents(state.current);
+
             // This will remove ALL events matching the provided id
-            for (let i = 0; i < state.length; i++) {
-                const event = state[i];
+            for (let i = 0; i < state.current.length; i++) {
+                const event = state.current[i];
 
                 if (event.id === action.payload.eventID) {
-                    state.splice(i, 1);
+                    state.current.splice(i, 1);
                     i--;
                 }
             }
         },
+        removeMultipleAndBackup(state, action: PayloadAction<{ eventIDs: string[] }>) {
+            state.backup = deepCopyEvents(state.current);
+
+            action.payload.eventIDs.forEach(id => {
+                // This will remove ALL events matching the provided id
+                for (let i = 0; i < state.current.length; i++) {
+                    const event = state.current[i];
+
+                    if (event.id === id) {
+                        state.current.splice(i, 1);
+                        i--;
+                    }
+                }
+            });
+        },
         edit(state, action: PayloadAction<{ eventID: string, newDetails: EventDetails}>) {
-            const eventIndex = state.findIndex(item => item.id === action.payload.eventID);
+            const eventIndex = state.current.findIndex(item => item.id === action.payload.eventID);
             if (eventIndex === -1) {
                 console.error(`eventsSlice -> editEvent: Could not find event index`);
                 return;
             }
 
-            state[eventIndex] = {
-                ...state[eventIndex],
+            state.current[eventIndex] = {
+                ...state.current[eventIndex],
                 details: action.payload.newDetails,
             }
         },
         toggleComplete(state, action: PayloadAction<{eventID: string}>) {
-            const eventIndex = state.findIndex(item => item.id === action.payload.eventID);
+            const eventIndex = state.current.findIndex(item => item.id === action.payload.eventID);
             if (eventIndex === -1) {
                 console.error(`eventsSlice -> toggleEventComplete: Could not find event index`);
                 return;
             }
 
-            state[eventIndex].completed = !state[eventIndex].completed;
+            state.current[eventIndex].completed = !state.current[eventIndex].completed;
         },
-        removeCategory(state, action: PayloadAction<{ categoryID: CategoryID }>) {
-            for (let i = 0; i < state.length; i++) {
-                if (state[i].details.categoryID === action.payload.categoryID) {
-                    state[i].details.categoryID = null;
+        removeCategoryAndBackup(state, action: PayloadAction<{ categoryID: CategoryID }>) {
+            state.backup = deepCopyEvents(state.current);
+            
+            for (let i = 0; i < state.current.length; i++) {
+                if (state.current[i].details.categoryID === action.payload.categoryID) {
+                    state.current[i].details.categoryID = null;
                 }
             }
         },
         setCategoryID(state, action: PayloadAction<{ eventID: string, categoryID: CategoryID }>) {
-            const editedEvent = state.find(item => item.id === action.payload.eventID);
+            const editedEvent = state.current.find(item => item.id === action.payload.eventID);
             if (!editedEvent) {
                 console.warn('eventsSlice -> setCategory: could not find event matching id');
                 return;
             }
 
             editedEvent.details.categoryID = action.payload.categoryID;
-        }
+        },
+        restoreBackup(state) {
+            if (!state.backup) {
+                console.warn('eventsSlice -> restoreBackup: No backup to restore. Be sure to call "backup" first.');
+                return;
+            }
+
+            state.current = deepCopyEvents(state.backup);
+        },
     },
 });
 
-export function selectEventFromID(eventID: string) {
-    return ((state: RootState) => state.events.find(item => item.id === eventID)?.details)
+function deepCopyEvents(events: Event[]) {
+    const output: Event[] = [];
+
+    events.forEach(event => {
+        /**
+         * All objects must be coppied, which includes the due date (unless
+         * it's null), event details, and the event itself.
+         */
+        const dueDateCopy: DueDate = event.details.dueDate ? {...event.details.dueDate} : null;
+
+        const eventDetailsCopy: EventDetails = {
+            ...event.details,
+            dueDate: dueDateCopy,
+        }
+
+        output.push({
+            ...event,
+            details: eventDetailsCopy,
+        });
+    });
+
+    return output;
 }
 
-export function getEventFromID(events: EventsState, eventID: string) {
+export function selectEventFromID(eventID: string) {
+    return ((state: RootState) => state.events.current.find(item => item.id === eventID)?.details)
+}
+
+export function getEventFromID(events: Event[], eventID: string) {
     for (let i = 0; i < events.length; i++) {
         if (events[i].id == eventID) {
             return {

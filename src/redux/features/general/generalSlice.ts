@@ -3,7 +3,7 @@
  */
 
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { CategoryID, GeneralState } from "../../../../types/v0";
+import { CategoryID, GeneralState } from "../../../../types/currentVersion";
 
 const initialState: GeneralState = {
     memorizedEventInput: {

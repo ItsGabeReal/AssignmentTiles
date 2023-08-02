@@ -1,5 +1,5 @@
 import React, {useState, useRef, forwardRef, useImperativeHandle} from "react"
-import { DueDate, EventDetails } from "../types/v0"
+import { DueDate, EventDetails } from "../types/currentVersion"
 import EventInputModal, { RepeatSettings } from "./EventInput"
 import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';

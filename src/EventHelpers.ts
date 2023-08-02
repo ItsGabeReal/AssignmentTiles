@@ -1,5 +1,5 @@
 import { RepeatSettings } from "../components/EventInput";
-import { Event, EventDetails } from "../types/v0";
+import { Event, EventDetails } from "../types/currentVersion";
 import DateYMD, { DateYMDHelpers } from "./DateYMD";
 import { eventActions } from "./redux/features/events/eventsSlice";
 import { getInitialPlannedDateForEvent, rowPlansActions } from "./redux/features/rowPlans/rowPlansSlice";
@@ -38,9 +38,19 @@ export function createEvent(dispatch: AppDispatch, details: EventDetails, initia
 }
 
 // Makes sure both dispatches get called when deleting an event.
-export function deleteEvent(dispatch: AppDispatch, eventID: string) {
-    dispatch(rowPlansActions.removeEvent({eventID}));
-    dispatch(eventActions.remove({eventID}));
+export function deleteEventAndBackup(dispatch: AppDispatch, eventID: string) {
+    dispatch(rowPlansActions.removeEventAndBackup({eventID}));
+    dispatch(eventActions.removeAndBackup({eventID}));
+}
+
+export function deleteMultipleEventsAndBackup(dispatch: AppDispatch, eventIDs: string[]) {
+    dispatch(rowPlansActions.removeMultipleEventsAndBackup({ eventIDs }));
+    dispatch(eventActions.removeMultipleAndBackup({ eventIDs }));
+}
+
+export function restoreDeletedEventsFromBackup(dispatch: AppDispatch) {
+    dispatch(rowPlansActions.restoreBackup());
+    dispatch(eventActions.restoreBackup());
 }
 
 export const nullEventDetails: EventDetails = {
