@@ -37,6 +37,7 @@ import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker"
 import { CategoryID } from "../types/currentVersion";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { restoreCategoryFromBackup } from "../src/CategoriesHelpers";
+import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -67,6 +68,7 @@ export default function MainScreen() {
     const flatListRef = useRef<FlatList<any> | null>(null);
     const contextMenuRef = useRef<ContextMenuRef | null>(null);
     const multiselectCategoryPickerRef = useRef<CategoryPickerRef | null>(null);
+    const undoPopupRef = useRef<UndoPopupRef | null>(null);
 
     // Refs related to autoscroll while dragging event
     const currentDraggedEvent = useRef<string | null>(null);
@@ -77,6 +79,8 @@ export default function MainScreen() {
     
 
     useEffect(() => {
+        EventRegister.addEventListener('showUndoPopup', onShowUndoPopup);
+
         EventRegister.addEventListener('onEventTileLongPressed', onEventTileLongPressed);
 
         EventRegister.addEventListener('onEventTileDragStart', onEventTileDragStart);
@@ -104,6 +108,10 @@ export default function MainScreen() {
             backHandler.remove();
         }
     }, [multiselectState]);
+
+    function onShowUndoPopup({ prompt, onUndoPressed }: { prompt: string, onUndoPressed: (() => void)}) {
+        undoPopupRef.current?.open(prompt, onUndoPressed);
+    }
 
     function onEventTileLongPressed({eventID}: any) {
         setFlatListScrollEnabled(false);
@@ -218,6 +226,10 @@ export default function MainScreen() {
                     name: 'Delete',
                     onPress: () => {
                         deleteEventAndBackup(dispatch, eventID);
+
+                        undoPopupRef.current?.open('Event Deleted', () => {
+                            restoreDeletedEventsFromBackup(dispatch);
+                        });
                     },
                     iconName: 'delete',
                     color: '#d00',
@@ -310,8 +322,8 @@ export default function MainScreen() {
 
         return (
             <View style={styles.multiselectMainContainer}>
-                {multiselectButton('Delete', 'delete', onMultiselectDeletePressed, anyTilesSelected ? '#d00' : '#8888')}
-                {multiselectButton('Set Category', 'category', () => multiselectCategoryPickerRef.current?.open())}
+                {multiselectButton('Delete', 'delete', onMultiselectDeletePressed, !anyTilesSelected, '#d00')}
+                {multiselectButton('Set Category', 'category', () => multiselectCategoryPickerRef.current?.open(), !anyTilesSelected)}
                 {multiselectButton('Cancel', 'close', exitMultiselectMode)}
             </View>
         );
@@ -321,9 +333,14 @@ export default function MainScreen() {
         dispatch(generalStateActions.setMultiselectEnabled({ enabled: false }));
     }
 
-    function multiselectButton(displayName: string, iconName: string, onPress: (() => void), backgroundColor?: ColorValue) {
+    function multiselectButton(displayName: string, iconName: string, onPress: (() => void), disabled?: boolean, backgroundColor?: ColorValue) {
+
         return (
-            <TouchableOpacity style={[styles.multiselectButton, { backgroundColor: backgroundColor || '#888' }]} onPress={onPress}>
+            <TouchableOpacity
+                style={[styles.multiselectButton, { backgroundColor: backgroundColor || '#888', opacity: disabled ? 0.5 : 1 }]}
+                onPress={onPress}
+                disabled={disabled}
+            >
                 <Icon name={iconName} color={'white'} size={24} />
                 <Text style={styles.multiselectText}>{displayName}</Text>
             </TouchableOpacity>
@@ -331,12 +348,13 @@ export default function MainScreen() {
     }
 
     function onMultiselectDeletePressed() {
-        deleteSelectedEvents();
-        exitMultiselectMode();
-    }
-
-    function deleteSelectedEvents() {
         deleteMultipleEventsAndBackup(dispatch, multiselectState.selectedEventIDs);
+        exitMultiselectMode();
+
+        const pluralModifier = multiselectState.selectedEventIDs.length === 1 ? '' : 's';
+        undoPopupRef.current?.open(`${multiselectState.selectedEventIDs.length} Event${pluralModifier} Deleted`, () => {
+            restoreDeletedEventsFromBackup(dispatch);
+        });
     }
 
     function onCategorySelectedDuringMultiselect(categoryID: CategoryID) {
@@ -351,11 +369,12 @@ export default function MainScreen() {
         return (
             <>
                 {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
+                {!multiselectState.enabled ? addEventButton() : null}
                 <View style={styles.overlayFooterContainer}>
+                    <UndoPopup ref={undoPopupRef} />
                     {multiselectState.enabled ? multiselectButtons() : null}
                     {todayRowVisibility === 'beneath' ? returnToTodayButton('beneath') : null}
                 </View>
-                {!multiselectState.enabled ? addEventButton() : null}
             </>
         );
     }

@@ -2,6 +2,7 @@ import React, {
     forwardRef,
     useRef,
     useImperativeHandle,
+    useEffect,
 } from 'react';
 import {
     StyleSheet,
@@ -18,7 +19,8 @@ import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
 import { colors, fontSizes } from '../src/GlobalStyles';
 import IosStyleButton from './core/IosStyleButton';
-import { deleteCategoryAndBackup } from '../src/CategoriesHelpers';
+import { deleteCategoryAndBackup, restoreCategoryFromBackup } from '../src/CategoriesHelpers';
+import UndoPopup, { UndoPopupRef } from './UndoPopup';
 
 export type CategoryPickerRef = {
     /**
@@ -41,10 +43,13 @@ type CategoryPickerProps = {
 }
 
 const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props, ref) => {
+    const dispatch = useAppDispatch();
+
     const categories = useAppSelector(state => state.categories.current);
 
     const categoryInputRef = useRef<CategoryInputRef | null>(null);
     const floatingModalRef = useRef<FloatingModalRef | null>(null);
+    const undoPopupRef = useRef<UndoPopupRef | null>(null);
 
     useImperativeHandle(ref, () => ({
         open() {
@@ -57,9 +62,18 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
         props.onSelect?.(categoryID);
     }
 
+    function handleCategoryDeleted(categoryID: CategoryID) {
+        props.onDelete?.(categoryID);
+
+        undoPopupRef.current?.open(
+            'Category Deleted',
+            () => restoreCategoryFromBackup(dispatch)
+        );
+    }
+
     return (
         <>
-            <FloatingModal ref={floatingModalRef} style={styles.mainContainer}>
+            <FloatingModal ref={floatingModalRef} style={styles.mainContainer} outerChildren={<UndoPopup ref={undoPopupRef} />}>
                 <View style={styles.titleContainer}>
                     <Text style={styles.title}>Select Category</Text>
                 </View>
@@ -70,7 +84,7 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
                     >
                         <CategoryListItem key='none' hideCategoryActions onSelect={handleOnSelect} />
                         {categories.map(item =>
-                            <CategoryListItem key={item.id} category={item} onSelect={handleOnSelect} onDeleted={props.onDelete} />
+                            <CategoryListItem key={item.id} category={item} onSelect={handleOnSelect} onDeleted={handleCategoryDeleted} />
                         )}
                         
                     </ScrollView>
@@ -127,7 +141,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
                 style: 'destructive',
                 isPreferred: true,
             },
-        ], { cancelable: true})
+        ], { cancelable: true});
     }
 
     function deleteCategory() {
@@ -151,11 +165,11 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
                         <TouchableOpacity onPress={() => categoryInputRef.current?.open()} hitSlop={5}>
                             <Icon name='edit' color='#dd0' size={20} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.deleteButton} onPress={showDeletionConfirmation} hitSlop={5}>
+                        <TouchableOpacity style={styles.deleteButton} onPress={deleteCategory} hitSlop={5}>
                             <Icon name='delete' color='#f00000' size={20} />
                         </TouchableOpacity>
                     </View>
-                    : <></>
+                    : null
                 }
             </TouchableOpacity>
         </>
@@ -209,6 +223,7 @@ const styles = StyleSheet.create({
     },
     categoryText: {
         fontSize: fontSizes.p,
+        borderWidth: 1,
     },
     actionButtonContainer: {
         flexDirection: 'row',

@@ -26,6 +26,13 @@ export type FloatingModalRef = {
 
 type FloatingModalProps = {
     children?: React.ReactNode;
+
+    /**
+     * Used for children that you don't want to be confined to
+     * the inner modal view.
+     */
+    outerChildren?: React.ReactNode;
+
     style?: ViewStyle;
 }
 
@@ -53,6 +60,7 @@ const FloatingModal = forwardRef<FloatingModalRef, FloatingModalProps>((props, r
                     <View onStartShouldSetResponder={() => true} style={props.style}>
                         {props.children}
                     </View>
+                    {props.outerChildren}
                 </KeyboardAvoidingView>
             </Pressable>
         </Modal>

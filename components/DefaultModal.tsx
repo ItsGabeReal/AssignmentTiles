@@ -29,6 +29,7 @@ const DefaultModal: React.FC<DefaultModalProps> = (props) => {
     const {
         backgroundColor = '#808080'
     } = props;
+    
     return (
         <>
             {Platform.OS === 'android' ?
@@ -87,8 +88,8 @@ const AndroidModal: React.FC<AndroidModalProps> = (props) => {
                 animationType='slide'
                 visible={props.visible}
                 onRequestClose={props.onRequestClose}
-                transparent={true}
-                statusBarTranslucent={true}
+                transparent
+                statusBarTranslucent
             >
                 <Pressable style={styles.closeOutArea} onPress={props.onRequestClose} />
                 <KeyboardAvoidingView
