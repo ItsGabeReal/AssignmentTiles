@@ -17,10 +17,21 @@ export type UndoPopupRef = {
 }
 
 type UndoPopupProps = {
-
+    /**
+     * Set this to true if you want to put this popup
+     * in a custom continer. Otherwise, it will position
+     * itself on the bottom of the screen.
+     * 
+     * Default: false
+     */
+    relativePosition?: boolean;
 }
 
 const UndoPopup = forwardRef<UndoPopupRef, UndoPopupProps>((props, ref) => {
+    const {
+        relativePosition = false,
+    } = props;
+
     const [visible, setVisible] = useState(false);
     const [undoPrompt, setUndoPrompt] = useState('');
     
@@ -46,10 +57,7 @@ const UndoPopup = forwardRef<UndoPopupRef, UndoPopupProps>((props, ref) => {
 
     if (visible) {
         return (
-            <ViewWithBackHandler
-                style={styles.mainContainer}
-                onRequestClose={close}
-            >
+            <ViewWithBackHandler style={[styles.mainContainer, relativePosition ? {} : styles.absolutePosition]} onRequestClose={close}>
                 <CloseButton onPress={close} color={colors.dimText} size={18} hitSlop={12} />
                 <Text style={styles.promptText}>{undoPrompt}</Text>
                 <IosStyleButton title='Undo' onPress={onUndoPressed} textStyle={styles.undoText} containerStyle={styles.undoButtonContainer} hitSlop={10} />
@@ -63,16 +71,18 @@ export default UndoPopup;
 
 const styles = StyleSheet.create({
     mainContainer: {
-        position: 'absolute',
         flexDirection: 'row',
         alignItems: 'center',
         width: 250,
-        bottom: 0,
         backgroundColor: colors.l4,
         paddingVertical: 10,
         paddingHorizontal: 15,
         marginBottom: 20,
         borderRadius: 30,
+    },
+    absolutePosition: {
+        position: 'absolute',
+        bottom: 0,
     },
     promptText: {
         color: colors.text,
@@ -81,7 +91,6 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     undoText: {
-        //fontWeight: 'bold',
         fontSize: fontSizes.h2,
     },
     undoButtonContainer: {

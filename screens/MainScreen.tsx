@@ -281,33 +281,39 @@ export default function MainScreen() {
         );
     }
 
+    const addButtonInTestMode = false;
     function addEventButton() {
         const onPress = () => {
-            //eventCreatorRef.current?.open();
-            restoreCategoryFromBackup(dispatch);
-            /*console.log('-----ENTIRE STATE-----')
+            if (addButtonInTestMode) {
+                console.warn('MainScreen -> addEventButton: Add button is in test mode');
 
-            // print events
-            console.log('events:')
-            entireState.events.forEach(item => console.log(item.details.name));
+                /*console.log('-----ENTIRE STATE-----')
 
-            // print categories
-            console.log('categories:')
-            entireState.categories.forEach(item => console.log(item.name));
+                // print events
+                console.log('events:')
+                entireState.events.forEach(item => console.log(item.details.name));
 
-            // print row plans
+                // print categories
+                console.log('categories:')
+                entireState.categories.forEach(item => console.log(item.name));
 
-            console.log('row plans:')
-            entireState.rowPlans.forEach(item => {
-                console.log(`${DateYMDHelpers.toString(item.plannedDate)}:`);
+                // print row plans
 
-                item.orderedEventIDs.forEach(eventID => {
-                    const event = entireState.events.find(evt => evt.id === eventID);
+                console.log('row plans:')
+                entireState.rowPlans.forEach(item => {
+                    console.log(`${DateYMDHelpers.toString(item.plannedDate)}:`);
 
-                    if (!event) console.log(`id ${eventID} is not in events`);
-                    else console.log(event.details.name);
-                })
-            })*/
+                    item.orderedEventIDs.forEach(eventID => {
+                        const event = entireState.events.find(evt => evt.id === eventID);
+
+                        if (!event) console.log(`id ${eventID} is not in events`);
+                        else console.log(event.details.name);
+                    })
+                })*/
+            }
+            else {
+                eventCreatorRef.current?.open();
+            }
         }
 
         return (
@@ -371,9 +377,9 @@ export default function MainScreen() {
                 {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
                 {!multiselectState.enabled ? addEventButton() : null}
                 <View style={styles.overlayFooterContainer}>
-                    <UndoPopup ref={undoPopupRef} />
                     {multiselectState.enabled ? multiselectButtons() : null}
                     {todayRowVisibility === 'beneath' ? returnToTodayButton('beneath') : null}
+                    <UndoPopup ref={undoPopupRef} relativePosition />
                 </View>
             </>
         );

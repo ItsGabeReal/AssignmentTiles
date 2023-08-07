@@ -73,7 +73,11 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
 
     return (
         <>
-            <FloatingModal ref={floatingModalRef} style={styles.mainContainer} outerChildren={<UndoPopup ref={undoPopupRef} />}>
+            <FloatingModal
+                ref={floatingModalRef}
+                style={styles.mainContainer}
+                outerChildren={<UndoPopup ref={undoPopupRef} />}
+            >
                 <View style={styles.titleContainer}>
                     <Text style={styles.title}>Select Category</Text>
                 </View>
@@ -86,7 +90,6 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
                         {categories.map(item =>
                             <CategoryListItem key={item.id} category={item} onSelect={handleOnSelect} onDeleted={handleCategoryDeleted} />
                         )}
-                        
                     </ScrollView>
                 </View>
                 <View style={styles.submitButtonContainer}>
@@ -223,7 +226,6 @@ const styles = StyleSheet.create({
     },
     categoryText: {
         fontSize: fontSizes.p,
-        borderWidth: 1,
     },
     actionButtonContainer: {
         flexDirection: 'row',
