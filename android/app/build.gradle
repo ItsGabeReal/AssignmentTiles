@@ -78,8 +78,8 @@ android {
         applicationId "com.assignmenttiles"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "1.1.1"
+        versionCode 8
+        versionName "1.2.0"
     }
     signingConfigs {
         debug {
