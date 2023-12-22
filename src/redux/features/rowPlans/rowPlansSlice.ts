@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { EventDetails, RowPlan, RowPlansState } from "../../../../types/currentVersion";
+import { EventDetails, RowPlan, RowPlansState } from "../../../../types/store-current";
 import DateYMD, { DateYMDHelpers } from '../../../DateYMD';
 
 const initialState: RowPlansState = {

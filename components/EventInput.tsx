@@ -12,7 +12,7 @@ import {
 import CompactDatePicker from './core/CompactDatePicker';
 import IosStyleButton from './core/IosStyleButton';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
-import { CategoryID, EventDetails } from '../types/currentVersion';
+import { CategoryID, EventDetails } from '../types/store-current';
 import CategoryPicker, { CategoryPickerRef } from './CategoryPicker';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';

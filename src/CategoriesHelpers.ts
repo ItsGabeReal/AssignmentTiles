@@ -1,4 +1,4 @@
-import { Category, CategoryID } from '../types/currentVersion';
+import { Category, CategoryID } from '../types/store-current';
 import { categoriesActions } from './redux/features/categories/categoriesSlice';
 import { eventActions } from './redux/features/events/eventsSlice';
 import { AppDispatch } from './redux/store';

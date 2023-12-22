@@ -1,5 +1,5 @@
 import { Vector2D } from "../types/General";
-import { RowPlan, VisibleDaysState } from "../types/currentVersion";
+import { RowPlan, VisibleDaysState } from "../types/store-current";
 import { DateYMDHelpers } from "./DateYMD";
 import { getDayRowAtScreenPosition, getInsertionIndexFromGesture } from "./VisibleDaysHelpers";
 import { getEventPlan, rowPlansActions } from "./redux/features/rowPlans/rowPlansSlice";

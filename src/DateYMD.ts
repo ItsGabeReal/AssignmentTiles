@@ -1,3 +1,11 @@
+/*
+* DateYDM is a custom date format that only stores the year, month, and date, not the hour, minute, or second.
+* The DateYDM type is simply a dictionary with the year, month, and date, and DateYDMHelpers are the helper
+* functions to work with the dictionary.
+* It's structured like this (dictionary w/ helper functions) instead of being a class because objects do not store
+* well using redux.
+*/
+
 const MONTH_NAMES = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTH_NAMES_ABREV = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

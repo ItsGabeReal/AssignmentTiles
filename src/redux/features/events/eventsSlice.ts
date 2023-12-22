@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CategoryID, DueDate, Event, EventDetails, EventsState } from '../../../../types/currentVersion';
+import { CategoryID, DueDate, Event, EventDetails, EventsState } from '../../../../types/store-current';
 import { RootState } from '../../store';
 import { DateYMDHelpers } from '../../../DateYMD';
 

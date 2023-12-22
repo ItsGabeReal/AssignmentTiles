@@ -1,6 +1,6 @@
 import { PersistedState } from "redux-persist";
-import { RootState as RootStateV0 } from "../../types/v0";
-import { RootState as RootStateV1 } from "../../types/v1";
+import { RootState as RootStateV0 } from "../../types/store-v0";
+import { RootState as RootStateV1 } from "../../types/store-v1";
 import { latestStoreVersion } from "./store";
 
 /**

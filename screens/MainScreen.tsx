@@ -34,7 +34,7 @@ import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
 import DayList, { TodayRowVisibility } from "../components/DayList";
 import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
-import { CategoryID } from "../types/currentVersion";
+import { CategoryID } from "../types/store-current";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { restoreCategoryFromBackup } from "../src/CategoriesHelpers";
 import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";

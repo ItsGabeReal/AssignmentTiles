@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CategoriesState, Category, CategoryID } from "../../../../types/currentVersion";
+import { CategoriesState, Category, CategoryID } from "../../../../types/store-current";
 import { ColorValue } from 'react-native';
 
 const initialState: CategoriesState = {

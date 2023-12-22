@@ -1,11 +1,11 @@
 /**
- * This defines the types for version 0 of the redux store.
+ * Defines version 1 of the redux store.
  * 
- * If any breaking changes are made to the persisted state, you should:
- *      1. Create a new version file
- *      2. Update all type imports to the new version file
+ * If any breaking changes are made to the root state:
+ *      1. Add changes to a new version file
+ *      2. Update store-current.d.ts to provide the new file
  *      3. Update the version number in store.ts
- *      4. Create a migration function in migration.ts
+ *      4. Create a migration function in migration.ts to translate data to the new version
  */
 
 import DateYMD from "../src/DateYMD";
@@ -20,7 +20,10 @@ export type Category = {
     id: CategoryID;
 }
 
-export type CategoriesState = Category[];
+export type CategoriesState = {
+    current: Category[];
+    backup: Category[] | null;
+}
 
 
 // ----- EVENTS -----
@@ -39,7 +42,10 @@ export interface Event {
     id: string;
 }
 
-export type EventsState = Event[];
+export type EventsState = {
+    current: Event[];
+    backup: Event[] | null;
+}
 
 
 // ----- GENERAL -----
@@ -64,7 +70,10 @@ export interface RowPlan {
     orderedEventIDs: string[];
 }
 
-export type RowPlansState = RowPlan[];
+export type RowPlansState = {
+    current: RowPlan[];
+    backup: RowPlan[] | null;
+}
 
 
 // ----- VISIBLE DAYS -----
