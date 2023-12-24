@@ -6,7 +6,6 @@ import {
     NativeSyntheticEvent,
     NativeScrollEvent,
     ViewToken,
-    GestureResponderEvent,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';

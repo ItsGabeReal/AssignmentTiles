@@ -9,6 +9,13 @@ import thunk from 'redux-thunk';
 import migrate from "./migration";
 import generalSlice from "./features/general/generalSlice";
 
+/**
+ * Indicates the data version the app is using. If this is higher
+ * than a client's current version, the data will go through migration
+ * functions until it reaches the latest version.
+ */
+export const latestStoreVersion = 2;
+
 const rootReducer = combineReducers({
     categories: categoriesSlice,
     events: eventsReducer,
@@ -16,8 +23,6 @@ const rootReducer = combineReducers({
     rowPlans: rowPlansSlice,
     visibleDays: visibleDaysSlice,
 });
-
-export const latestStoreVersion = 1;
 
 const persistConfig = {
     key: 'root',

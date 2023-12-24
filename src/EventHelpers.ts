@@ -25,16 +25,21 @@ export function createRepeatedEvents(dispatch: AppDispatch, details: EventDetail
 
 // A standardized way to create events and call the proper dispatches
 export function createEvent(dispatch: AppDispatch, details: EventDetails, initialPlannedDate?: DateYMD) {
+    // Come up with a unique id
+    const id = Math.random().toString();
+    
+    // Create event object
     const newEvent: Event = {
         details,
-        id: Math.random().toString(),
-        completed: false,
+        completed: false
     }
 
-    dispatch(eventActions.add({event: newEvent}));
+    // Insert event into store
+    dispatch(eventActions.add({event: newEvent, id}));
 
+    // Insert event into row plan
     const _plannedDate = initialPlannedDate || getInitialPlannedDateForEvent(details);
-    dispatch(rowPlansActions.insertEvent({ eventID: newEvent.id, plannedDate: _plannedDate }))
+    dispatch(rowPlansActions.insertEvent({ eventID: id, plannedDate: _plannedDate }))
 }
 
 // Makes sure both dispatches get called when deleting an event.
@@ -60,8 +65,7 @@ export const nullEventDetails: EventDetails = {
     notes: '',
 }
 
-export const nullEvnet: Event = {
+export const nullEvent: Event = {
     details: nullEventDetails,
-    completed: false,
-    id: '',
+    completed: false
 }

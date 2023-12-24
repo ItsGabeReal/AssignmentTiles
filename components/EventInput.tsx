@@ -12,7 +12,7 @@ import {
 import CompactDatePicker from './core/CompactDatePicker';
 import IosStyleButton from './core/IosStyleButton';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
-import { CategoryID, EventDetails } from '../types/store-current';
+import { EventDetails } from '../types/store-current';
 import CategoryPicker, { CategoryPickerRef } from './CategoryPicker';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import NumberInput from './core/NumberInput';
@@ -56,7 +56,7 @@ type EventInputProps = {
     /**
      * The id of the category to be autofilled when the component is created.
      */
-    initialCategoryID?: CategoryID;
+    initialCategoryID?: string | null;
 
     /**
      * The notes to be autofilled when the component is created.
@@ -91,7 +91,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
     const [repeatRecurrences, setRepeatRecurrences] = useState(2);
     const [repeatValueInput, setRepeatValueInput] = useState(7);
     const [repeatValueTypeInput, setRepeatValueTypeInput] = useState<RepeatValueType>('days');
-    const [selectedCategory, setSelectedCategory] = useState<CategoryID>(props.initialCategoryID || null);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(props.initialCategoryID || null);
     
     const scrollViewRef = useRef<ScrollView | null>(null);
     const eventNameInputRef = useRef<TextInput>(null);
@@ -112,17 +112,13 @@ const EventInput: React.FC<EventInputProps> = (props) => {
     function getCategoryColor(): ColorValue {
         if (!selectedCategory) return colors.dimText;
 
-        const categoryDetails = categories.find(item => item.id === selectedCategory);
-
-        return categoryDetails?.color || colors.text;
+        return categories[selectedCategory].color;
     }
 
     function getCategoryName() {
         if (!selectedCategory) return 'None';
 
-        const categoryDetails = categories.find(item => item.id === selectedCategory);
-
-        return categoryDetails?.name || 'null';
+        return categories[selectedCategory].name;
     }
 
     function onDateChanged(newDate?: Date) {
@@ -158,7 +154,7 @@ const EventInput: React.FC<EventInputProps> = (props) => {
         }
     }
 
-    function handleCategoryDeleted(deletedCategoryID: CategoryID) {
+    function handleCategoryDeleted(deletedCategoryID: string) {
         if (deletedCategoryID === selectedCategory) {
             setSelectedCategory(null);
         }

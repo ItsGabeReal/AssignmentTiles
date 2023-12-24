@@ -16,6 +16,8 @@ export namespace DateYMDHelpers {
         return new Date(date.year, date.month - 1, date.date);
     }
 
+    // WARNING: Row plans use this function to generate their keys. If any change is made
+    // to this function, a migraion function must be created to update the keys.
     export function toString(date?: DateYMD | null) {
         if (date === null) return 'null DateYMD';
         if (date === undefined) return 'undefined DateYMD';

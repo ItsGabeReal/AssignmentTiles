@@ -1,8 +1,7 @@
 import React, {
     forwardRef,
     useRef,
-    useImperativeHandle,
-    useEffect,
+    useImperativeHandle
 } from 'react';
 import {
     StyleSheet,
@@ -13,7 +12,7 @@ import {
     ScrollView,
 } from 'react-native';
 import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
-import { Category, CategoryID } from '../types/store-current';
+import { Category } from '../types/store-current';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
@@ -33,13 +32,13 @@ type CategoryPickerProps = {
     /**
      * Called when a category is selected.
      */
-    onSelect?: ((categoryID: CategoryID) => void);
+    onSelect?: ((categoryID: string | null) => void);
 
     /**
      * Called whenever a category is deleted. Should be used to
      * check if the the currently selected category was deleted.
      */
-    onDelete?: ((deletedCategoryID: CategoryID) => void);
+    onDelete?: ((deletedCategoryID: string) => void);
 }
 
 const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props, ref) => {
@@ -57,18 +56,28 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
         }
     }));
 
-    function handleOnSelect(categoryID: CategoryID) {
+    function handleOnSelect(categoryID: string | null) {
         floatingModalRef.current?.close();
         props.onSelect?.(categoryID);
     }
 
-    function handleCategoryDeleted(categoryID: CategoryID) {
+    function handleCategoryDeleted(categoryID: string) {
         props.onDelete?.(categoryID);
 
         undoPopupRef.current?.open(
             'Category Deleted',
             () => restoreCategoryFromBackup(dispatch)
         );
+    }
+
+    function createCategoryComponents() {
+        const output: React.JSX.Element[] = [];
+
+        for (let key in categories) {
+            output.push(<CategoryListItem key={key} category={categories[key]} categoryID={key} onSelect={handleOnSelect} onDeleted={handleCategoryDeleted} />);
+        }
+
+        return output;
     }
 
     return (
@@ -87,15 +96,13 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
                         keyboardShouldPersistTaps='always'
                     >
                         <CategoryListItem key='none' hideCategoryActions onSelect={handleOnSelect} />
-                        {categories.map(item =>
-                            <CategoryListItem key={item.id} category={item} onSelect={handleOnSelect} onDeleted={handleCategoryDeleted} />
-                        )}
+                        {createCategoryComponents()}
                     </ScrollView>
                 </View>
                 <View style={styles.submitButtonContainer}>
                     <IosStyleButton textStyle={styles.submitButton} title='Create +' onPress={() => categoryInputRef.current?.open()} />
                 </View>
-                <CategoryInput ref={categoryInputRef} mode='create' onCategoryCreated={newCategory => handleOnSelect(newCategory.id)} />
+                <CategoryInput ref={categoryInputRef} mode='create' onCategoryCreated={categoryID => handleOnSelect(categoryID)} />
             </FloatingModal>
         </>
     )
@@ -103,9 +110,14 @@ const CategoryPicker = forwardRef<CategoryPickerRef, CategoryPickerProps>((props
 
 type CategoryListItemProps = {
     /**
-     * The category this list item represents.
+     * Category details for display purposes.
      */
     category?: Category;
+
+    /**
+     * The category id this component represents.
+     */
+    categoryID?: string;
 
     /**
      * Hides the edit and delete buttons next to the category.
@@ -115,12 +127,12 @@ type CategoryListItemProps = {
     /**
      * Called when this category is selected.
      */
-    onSelect?: ((categoryID: CategoryID) => void);
+    onSelect?: ((categoryID: string | null) => void);
 
     /**
      * Called if this category is deleted.
      */
-    onDeleted?: ((categoryID: CategoryID) => void);
+    onDeleted?: ((categoryID: string) => void);
 }
 
 const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
@@ -148,20 +160,20 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
     }
 
     function deleteCategory() {
-        if (!props.category) {
+        if (!props.categoryID) {
             console.warn('CategoryPicker -> deleteCategory: Could not delete category because no category was provided to CategoryListItem');
             return;
         }
 
-        deleteCategoryAndBackup(dispatch, props.category.id);
+        deleteCategoryAndBackup(dispatch, props.categoryID);
 
-        props.onDeleted?.(props.category.id);
+        props.onDeleted?.(props.categoryID);
     }
 
     return (
         <>
-            <CategoryInput ref={categoryInputRef} mode='edit' editedCategory={props.category} />
-            <TouchableOpacity onPress={() => props.onSelect?.(props.category?.id || null)} style={styles.categoryListItemContainer}>
+            <CategoryInput ref={categoryInputRef} mode='edit' editedCategory={props.category} editedCategoryID={props.categoryID} />
+            <TouchableOpacity onPress={() => props.onSelect?.(props.categoryID || null)} style={styles.categoryListItemContainer}>
                 <Text style={[styles.categoryText, {color: props.category?.color || colors.dimText}]}>{props.category?.name || 'None'}</Text>
                 {!hideCategoryActions ?
                     <View style={styles.actionButtonContainer}>

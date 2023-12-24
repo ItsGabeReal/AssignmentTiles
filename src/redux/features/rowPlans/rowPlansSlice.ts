@@ -3,7 +3,7 @@ import { EventDetails, RowPlan, RowPlansState } from "../../../../types/store-cu
 import DateYMD, { DateYMDHelpers } from '../../../DateYMD';
 
 const initialState: RowPlansState = {
-    current: [],
+    current: {},
     backup: null,
 }
 
@@ -32,39 +32,15 @@ export const rowPlansSlice = createSlice({
             });
         },
         changePlannedDate(state, action: PayloadAction<{eventID: string, plannedDate: DateYMD, insertionIndex?: number}>) {
-            // Find event
-            const eventPlan = getEventPlan(state.current, action.payload.eventID);
-            if (!eventPlan) {
-                console.error('rowPlansSlice -> changePlannedDate: Could not find event');
-                return;
-            }
+            const { eventID, plannedDate, insertionIndex } = action.payload;
 
-            // Get actual insertion index
-            let actualInsertionIndex;
-            if (action.payload.insertionIndex === undefined) {
-                // Get the number of events aleady in the target row
-                const eventsOnTargetDate = getRowPlan(state.current, action.payload.plannedDate);
+            _removeEventFromRowPlans(state.current, eventID);
 
-                const rowPlanExists = eventsOnTargetDate != undefined;
-                actualInsertionIndex = rowPlanExists ? eventsOnTargetDate.orderedEventIDs.length : 0;
-            }
-            else {
-                actualInsertionIndex = action.payload.insertionIndex;
-            }
-
-            // Remove event
-            const removeEventOutput = _removeEventFromRowPlans(state.current, action.payload.eventID);
-            if (!removeEventOutput) {
-                console.error(`rowPlansSlice -> changePlannedDate: Could not remove event`);
-                return;
-            }
-
-            // Add event back in
             _insertEventInRowPlans(
                 state.current,
-                action.payload.eventID,
-                action.payload.plannedDate,
-                actualInsertionIndex
+                eventID,
+                plannedDate,
+                insertionIndex
             );
         },
         restoreBackup(state) {
@@ -78,84 +54,60 @@ export const rowPlansSlice = createSlice({
     }
 });
 
-function _insertEventInRowPlans(rowPlans: RowPlan[], eventID: string, plannedDate: DateYMD, insertionIndex?: number) {
-    const rowPlan = getRowPlan(rowPlans, plannedDate);
-    if (rowPlan) {
-        const actualInsertionIndex = insertionIndex == undefined ? rowPlan.orderedEventIDs.length : insertionIndex;
-        rowPlan.orderedEventIDs.splice(actualInsertionIndex, 0, eventID);
+// Inserts event into an existing row plan, or creates a new row plan if it doesn't exist
+function _insertEventInRowPlans(rowPlans: {[key: string]: RowPlan}, eventID: string, plannedDate: DateYMD, insertionIndex?: number) {    
+    const key = DateYMDHelpers.toString(plannedDate);
+
+    if (key in rowPlans) { // Plan already exists for this date
+        const actualInsertionIndex = insertionIndex == undefined ? rowPlans[key].orderedEventIDs.length : insertionIndex;
+        rowPlans[key].orderedEventIDs.splice(actualInsertionIndex, 0, eventID);
     }
-    else {
-        rowPlans.push({ plannedDate, orderedEventIDs: [eventID] });
-        sortRowPlansByDate(rowPlans);
-    }
-}
-
-function _removeEventFromRowPlans(rowPlans: RowPlan[], eventID: string) {
-    let removedFromIndex = -1;
-    let removedFromDate: DateYMD | null = null;
-    for (let i = 0; i < rowPlans.length; i++) {
-        const rowPlan = rowPlans[i];
-
-        for (let j = 0; j < rowPlan.orderedEventIDs.length; j++) {
-            if (rowPlan.orderedEventIDs[j] === eventID) {
-                rowPlan.orderedEventIDs.splice(j, 1);
-                removedFromIndex = j;
-                removedFromDate = rowPlan.plannedDate;
-                break;
-            }
-        }
-
-        // Remove rowPlans element if there arent any more events in it
-        const eventWasRemoved = removedFromIndex != -1;
-        if (eventWasRemoved) {
-            if (rowPlan.orderedEventIDs.length === 0) {
-                rowPlans.splice(i, 1);
-            }
-            break;
+    else { // Plan does not exist
+        rowPlans[key] = {
+            plannedDate,
+            orderedEventIDs: [eventID]
         }
     }
+}
 
-    if (removedFromIndex == -1 || removedFromDate == null) {
-        return undefined;
+// Mutates rowPlans by removing the provided eventID
+function _removeEventFromRowPlans(rowPlans: {[key: string]: RowPlan}, eventID: string) {
+    const plan = getEventPlan(rowPlans, eventID);
+
+    if (plan !== undefined) {
+        rowPlans[plan.rowPlansKey].orderedEventIDs.splice(plan.rowOrder, 1);
+
+        if (rowPlans[plan.rowPlansKey].orderedEventIDs.length === 0)
+            delete rowPlans[plan.rowPlansKey];
     }
-
-    return {
-        removedFromDate: removedFromDate,
-        removedFromIndex: removedFromIndex,
-    };
 }
 
-function sortRowPlansByDate(rowPlans: RowPlan[]) {
-    rowPlans.sort((a, b) => DateYMDHelpers.toDate(a.plannedDate).valueOf() - DateYMDHelpers.toDate(b.plannedDate).valueOf());
-}
+function deepCopyRowPlans(rowPlans: {[key: string]: RowPlan}) {
+    const output: {[key: string]: RowPlan} = {};
 
-function deepCopyRowPlans(rowPlans: RowPlan[]) {
-    const output: RowPlan[] = [];
+    for (let key in rowPlans) {
+        const plan = rowPlans[key];
 
-    rowPlans.forEach(item => {
-        output.push({
-            plannedDate: { ...item.plannedDate },
-            orderedEventIDs: [ ...item.orderedEventIDs ],
-        });
-    });
+        output[key] = {
+            plannedDate: { ...plan.plannedDate },
+            orderedEventIDs: [ ...plan.orderedEventIDs ]
+        };
+    }
 
     return output;
 }
 
-export function getRowPlan(rowPlans: RowPlan[], plannedDate: DateYMD) {
-    return rowPlans.find(item => DateYMDHelpers.datesEqual(item.plannedDate, plannedDate));
-}
+// Returns the key of the row plan this event is in, the date it's planned on, and its order within the row. Returns undefined if the event id isn't found
+export function getEventPlan(rowPlans: {[key: string]: RowPlan}, eventID: string) {
+    for (let key in rowPlans) {
+        const eventIDs = rowPlans[key].orderedEventIDs;
 
-export function getEventPlan(rowPlans: RowPlan[], eventID: string) {
-    for (let i = 0; i < rowPlans.length; i++) {
-        const orderedEventIDs = rowPlans[i].orderedEventIDs;
-
-        for (let j = 0; j < orderedEventIDs.length; j++) {
-            if (orderedEventIDs[j] === eventID) {
+        for (let i = 0; i < eventIDs.length; i++) {
+            if (eventIDs[i] === eventID) {
                 return {
-                    plannedDate: rowPlans[i].plannedDate,
-                    rowPlansIndex: i,
-                    rowOrder: j,
+                    rowPlansKey: key,
+                    plannedDate: rowPlans[key].plannedDate,
+                    rowOrder: i
                 };
             }
         }
@@ -164,6 +116,7 @@ export function getEventPlan(rowPlans: RowPlan[], eventID: string) {
     return undefined;
 }
 
+// Determines the initial planned date for an event based on its details
 export function getInitialPlannedDateForEvent(event: EventDetails) {
     if (event.dueDate) {
         return event.dueDate;

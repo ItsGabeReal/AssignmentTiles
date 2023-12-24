@@ -5,16 +5,17 @@ import { getDayRowAtScreenPosition, getInsertionIndexFromGesture } from "./Visib
 import { getEventPlan, rowPlansActions } from "./redux/features/rowPlans/rowPlansSlice";
 import { AppDispatch } from "./redux/store";
 
+// Updates the row plan for an event if nescesary. Should be called for each update in the drag loop.
 export function updateEventPlanFromDragPosition(
     dispatch: AppDispatch,
     visibleDays: VisibleDaysState,
-    rowPlans: RowPlan[],
+    rowPlans: {[key: string]: RowPlan},
     scrollYOffset: number,
     draggedEventID: string,
     dragPosition: Vector2D,
 ) {
-    const currentEventPlans = getEventPlan(rowPlans, draggedEventID);
-    if (!currentEventPlans) {
+    const currentEventPlan = getEventPlan(rowPlans, draggedEventID);
+    if (!currentEventPlan) {
         console.warn('RowPlansHelpers -> updateEventPlanFromDragPosition: Could not get event plan');
         return;
     }
@@ -25,7 +26,7 @@ export function updateEventPlanFromDragPosition(
         return;
     }
 
-    const samePlannedDate = DateYMDHelpers.datesEqual(currentEventPlans.plannedDate, overlappingRowDate);
+    const samePlannedDate = DateYMDHelpers.datesEqual(currentEventPlan.plannedDate, overlappingRowDate);
 
     const targetVisibleDaysIndex = visibleDays.findIndex(item => DateYMDHelpers.datesEqual(item, overlappingRowDate));
     if (targetVisibleDaysIndex == -1) {
@@ -33,9 +34,9 @@ export function updateEventPlanFromDragPosition(
         return;
     }
 
-    let insertionIndex = getInsertionIndexFromGesture(visibleDays, rowPlans, scrollYOffset, targetVisibleDaysIndex, dragPosition);
+    let insertionIndex = getInsertionIndexFromGesture(visibleDays, targetVisibleDaysIndex, rowPlans, scrollYOffset, dragPosition);
 
-    const numEventsInRow = rowPlans[currentEventPlans.rowPlansIndex].orderedEventIDs.length;
+    const numEventsInRow = rowPlans[currentEventPlan.rowPlansKey].orderedEventIDs.length;
 
     /**
      * If a tile is dragged to the end of a row, the insertion index will
@@ -45,7 +46,7 @@ export function updateEventPlanFromDragPosition(
      */
     if (samePlannedDate && insertionIndex > numEventsInRow - 1) insertionIndex--;
 
-    const insertionIndexChanged = insertionIndex !== currentEventPlans.rowOrder;
+    const insertionIndexChanged = insertionIndex !== currentEventPlan.rowOrder;
 
     if (!samePlannedDate || insertionIndexChanged) {
         dispatch(rowPlansActions.changePlannedDate({ eventID: draggedEventID, plannedDate: overlappingRowDate, insertionIndex }));

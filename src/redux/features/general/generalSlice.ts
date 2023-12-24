@@ -3,7 +3,7 @@
  */
 
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { CategoryID, GeneralState } from "../../../../types/store-current";
+import { GeneralState } from "../../../../types/store-current";
 
 const initialState: GeneralState = {
     memorizedEventInput: {
@@ -21,7 +21,7 @@ export const generalSlice = createSlice({
     name: 'events',
     initialState,
     reducers: {
-        updateMemorizedEventInput(state, action: PayloadAction<{ name?: string, categoryID?: CategoryID }>) {
+        updateMemorizedEventInput(state, action: PayloadAction<{ name?: string, categoryID?: string | null }>) {
             state.memorizedEventInput = {
                 name: action.payload.name || state.memorizedEventInput.name,
                 categoryID: action.payload.categoryID !== undefined ? action.payload.categoryID : state.memorizedEventInput.categoryID,

@@ -1,5 +1,5 @@
 import React, { forwardRef, useState, useRef, useImperativeHandle } from "react";
-import { DueDate, Event, EventDetails } from "../types/store-current";
+import { Event, EventDetails } from "../types/store-current";
 import EventInput, { RepeatSettings } from "./EventInput";
 import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import DefaultModal from "./DefaultModal";

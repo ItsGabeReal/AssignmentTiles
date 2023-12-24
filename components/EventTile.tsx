@@ -10,9 +10,8 @@ import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
-import { nullEvnet } from '../src/EventHelpers';
+import { nullEvent } from '../src/EventHelpers';
 import { fontSizes } from '../src/GlobalStyles';
-import { getCategoryFromID } from '../src/CategoriesHelpers';
 
 type EventTileProps = {
     /**
@@ -27,7 +26,7 @@ type EventTileProps = {
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
-    const event = useAppSelector(state => state.events.current.find(item => item.id === props.eventID)) || nullEvnet;
+    const event = useAppSelector(state => state.events.current[props.eventID]) || nullEvent;
     const categories = useAppSelector(state => state.categories.current);
     const isSelected = useAppSelector(state => state.general.multiselect.selectedEventIDs.find(item => item === props.eventID) !== undefined);
 
@@ -46,13 +45,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         let outputColorValue: ColorValue = '#999';
 
         if (event.details.categoryID !== null) {
-            const category = getCategoryFromID(categories, event.details.categoryID);
-            if (!category) {
-                console.error('EventTile/getBackgroundColor: Could not find category from id');
-            }
-            else {
-                outputColorValue = category.color;
-            }
+            outputColorValue = categories[event.details.categoryID].color;
         }
 
         return outputColorValue;

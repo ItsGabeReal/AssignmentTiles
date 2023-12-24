@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CategoriesState, Category, CategoryID } from "../../../../types/store-current";
+import { CategoriesState, Category } from "../../../../types/store-current";
 import { ColorValue } from 'react-native';
 
 const initialState: CategoriesState = {
-    current: [],
+    current: {},
     backup: null,
 }
 
@@ -11,40 +11,32 @@ export const categoriesSlice = createSlice({
     name: 'categories',
     initialState,
     reducers: {
-        add(state, action: PayloadAction<{ category: Category }>) {
-            state.current.push(action.payload.category);
+        add(state, action: PayloadAction<{ category: Category, id: string }>) {
+            state.current[action.payload.id] = action.payload.category;
         },
-        removeAndBackup(state, action: PayloadAction<{ categoryID: CategoryID }>) {
+        removeAndBackup(state, action: PayloadAction<{ categoryID: string }>) {
             state.backup = deepCopyCategories(state.current);
 
-            // This will remove ALL categories matching the provided id
-            for (let i = 0; i < state.current.length; i++) {
-                const category = state.current[i];
-
-                if (category.id === action.payload.categoryID) {
-                    state.current.splice(i, 1);
-                    i--;
-                }
-            }
+            // Delete category
+            delete state.current[action.payload.categoryID];
         },
-        edit(state, action: PayloadAction<{ categoryID: CategoryID, newName?: string, newColor?: ColorValue }>) {
-            const categoryIndex = state.current.findIndex(item => item.id === action.payload.categoryID);
-            if (categoryIndex === -1) {
-                console.error(`categoriesSlice -> edit: Could not find category index`);
-                return;
-            }
-
+        edit(state, action: PayloadAction<{ categoryID: string, newName?: string, newColor?: ColorValue }>) {
+            const {
+                categoryID,
+                newName,
+                newColor
+            } = action.payload;
+            
             const editedCategory = {
-                name: action.payload.newName || state.current[categoryIndex].name,
-                color: action.payload.newColor || state.current[categoryIndex].color,
-                id: state.current[categoryIndex].id,
+                name: newName || state.current[categoryID].name,
+                color: newColor || state.current[categoryID].color
             }
 
-            state.current[categoryIndex] = editedCategory;
+            state.current[categoryID] = editedCategory;
         },
         restoreBackup(state) {
             if (!state.backup) {
-                console.warn('categoriesSlice -> restoreBackup: No backup to restore. Be sure to call "backup" first.');
+                console.warn('categoriesSlice -> restoreBackup: No backup to restore.');
                 return;
             }
 
@@ -53,12 +45,12 @@ export const categoriesSlice = createSlice({
     }
 });
 
-function deepCopyCategories(categories: Category[]) {
-    const output: Category[] = [];
+function deepCopyCategories(categories: {[key: string]: Category}) {
+    const output: {[key: string]: Category} = {};
 
-    categories.forEach(item => {
-        output.push({ ...item });
-    });
+    for (let key in categories) {
+        output[key] = { ...categories[key] };
+    }
 
     return output;
 }

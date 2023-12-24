@@ -25,7 +25,7 @@ type DayRowProps = {
 }
 
 const DayRow: React.FC<DayRowProps> = memo((props) => {
-    const rowPlan = useAppSelector(state => state.rowPlans.current.find(item => DateYMDHelpers.datesEqual(item.plannedDate, props.date)));
+    const rowPlan = useAppSelector(state => state.rowPlans.current[DateYMDHelpers.toString(props.date)]);
     const multiselectEnabled = useAppSelector(state => state.general.multiselect.enabled);
 
     const eventIDsInRow = rowPlan?.orderedEventIDs || [];

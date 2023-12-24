@@ -3,4 +3,4 @@
  * import this file rather than directly importing specific store versions.
  */
 
-export * from './store-v1';
+export * from './store-v2';

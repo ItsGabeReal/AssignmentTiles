@@ -40,15 +40,19 @@ type CategoryInputProps = {
 
     /**
      * If mode is set to 'edit', the input fields will be autofilled
-     * from this category, and once submitted, this category ID will
-     * be edited.
+     * from this category.
      */
     editedCategory?: Category;
 
     /**
+     * If mode is set to 'edit', the category under this id will be edited.
+     */
+    editedCategoryID?: string;
+
+    /**
      * Called when a new category is created.
      */
-    onCategoryCreated?: ((category: Category) => void);
+    onCategoryCreated?: ((categoryID: string) => void);
 }
 
 const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, ref) => {
@@ -86,21 +90,27 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
         floatingModalRef.current?.close();
 
         if (props.mode === 'create') {
+            // Come up with a new id
+            const id = Math.random().toString();
+
+            // Create category
             const newCategory = {
                 name: nameInput,
-                color: selectedColor,
-                id: Math.random().toString(),
+                color: selectedColor
             }
-            dispatch(categoriesActions.add({category: newCategory}));
             
-            props.onCategoryCreated?.(newCategory);
+            // Add category
+            dispatch(categoriesActions.add({category: newCategory, id}));
+            
+            props.onCategoryCreated?.(id);
         }
         else {
-            if (!props.editedCategory) {
-                console.error(`CategoryInput/handleSubmit: Could not update category because edited category was not provided`);
+            if (!props.editedCategoryID) {
+                console.error(`CategoryInput -> handleSubmit: Could not edit category. No id provided`);
                 return;
             }
-            dispatch(categoriesActions.edit({ categoryID: props.editedCategory.id, newName: nameInput, newColor: selectedColor }));
+
+            dispatch(categoriesActions.edit({ categoryID: props.editedCategoryID, newName: nameInput, newColor: selectedColor }));
         }
     }
     

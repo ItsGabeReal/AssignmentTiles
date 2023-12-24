@@ -14,8 +14,7 @@ import {
 import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
 import {
-    getDayRowYOffset,
-    getEventTileDimensions,
+    getEventTilePosition,
     getDayRowScreenYOffset,
 } from "../src/VisibleDaysHelpers";
 import EventCreator, { EventCreatorRef } from "../components/EventCreator";
@@ -34,9 +33,7 @@ import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
 import DayList, { TodayRowVisibility } from "../components/DayList";
 import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
-import { CategoryID } from "../types/store-current";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
-import { restoreCategoryFromBackup } from "../src/CategoriesHelpers";
 import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";
 
 export default function MainScreen() {
@@ -259,14 +256,14 @@ export default function MainScreen() {
 
         const rowYOffset = getDayRowScreenYOffset(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, visibleDaysIndex);
 
-        const eventTileDimensions = getEventTileDimensions(rowYOffset, eventPlan.rowOrder);
+        const tilePosition = getEventTilePosition(rowYOffset, eventPlan.rowOrder);
 
-        const xMidpoint = eventTileDimensions.x + eventTileDimensions.width / 2;
+        const xMidpoint = tilePosition.x + VisualSettings.EventTile.mainContainer.width / 2;
 
         const output: ContextMenuPosition = {
             x: xMidpoint,
-            topY: eventTileDimensions.y,
-            bottomY: eventTileDimensions.y + eventTileDimensions.height,
+            topY: tilePosition.y,
+            bottomY: tilePosition.y + VisualSettings.EventTile.mainContainer.height,
         };
 
         return output;
@@ -363,7 +360,7 @@ export default function MainScreen() {
         });
     }
 
-    function onCategorySelectedDuringMultiselect(categoryID: CategoryID) {
+    function onCategorySelectedDuringMultiselect(categoryID: string | null) {
         multiselectState.selectedEventIDs.forEach(item => {
             dispatch(eventActions.setCategoryID({eventID: item, categoryID}));
         });

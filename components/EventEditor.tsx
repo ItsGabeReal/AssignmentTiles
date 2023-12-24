@@ -1,11 +1,11 @@
-import React, {useState, useRef, forwardRef, useImperativeHandle} from "react"
-import { DueDate, EventDetails } from "../types/store-current"
+import React, { useState, useRef, forwardRef, useImperativeHandle } from "react"
+import { EventDetails } from "../types/store-current"
 import EventInputModal, { RepeatSettings } from "./EventInput"
 import DefaultModal from "./DefaultModal"
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
-import { eventActions, getEventFromID, selectEventFromID } from "../src/redux/features/events/eventsSlice";
+import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { createRepeatedEvents, nullEventDetails } from "../src/EventHelpers";
-import { DateYMDHelpers } from "../src/DateYMD";
+import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import { rowPlansActions } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { colors } from "../src/GlobalStyles";
 
@@ -25,7 +25,7 @@ const EventEditor = forwardRef<EventEditorRef, EventEditorProps>((props, ref) =>
     const [visible, setVisible] = useState(false);
     const [editedEventID, setEditedEventID] = useState<string>('');
 
-    const editedEventDetails = useAppSelector(selectEventFromID(editedEventID)) || nullEventDetails;
+    const editedEventDetails = useAppSelector(state => state.events.current[editedEventID]?.details) || nullEventDetails;
 
     useImperativeHandle(ref, () => ({
         open(_editedEventID: string) {
@@ -53,7 +53,7 @@ const EventEditor = forwardRef<EventEditorRef, EventEditorProps>((props, ref) =>
         return editedEventID === '';
     }
 
-    function changePlannedDateIfDueDateWasChanged(before: DueDate, after: DueDate) {
+    function changePlannedDateIfDueDateWasChanged(before: DateYMD | null, after: DateYMD | null) {
         const dueDateIsDifferent = !DateYMDHelpers.datesEqual(before, after);
         const newDateIsValid = after !== null;
 

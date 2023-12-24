@@ -1,10 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CategoryID, DueDate, Event, EventDetails, EventsState } from '../../../../types/store-current';
+import { Event, EventDetails, EventsState } from '../../../../types/store-current';
 import { RootState } from '../../store';
 import { DateYMDHelpers } from '../../../DateYMD';
 
 const initialState: EventsState = {
-    current: [],
+    current: {},
     backup: null,
 }
 
@@ -12,8 +12,8 @@ export const eventsSlice = createSlice({
     name: 'events',
     initialState,
     reducers: {
-        add(state, action: PayloadAction<{event: Event}>) {
-            state.current.push(action.payload.event);
+        add(state, action: PayloadAction<{event: Event, id: string}>) {
+            state.current[action.payload.id] = action.payload.event;
         },
         /**
          * Note: Removing and backing up are combined to ensure that the
@@ -22,69 +22,39 @@ export const eventsSlice = createSlice({
         removeAndBackup(state, action: PayloadAction<{eventID: string}>) {
             state.backup = deepCopyEvents(state.current);
 
-            // This will remove ALL events matching the provided id
-            for (let i = 0; i < state.current.length; i++) {
-                const event = state.current[i];
-
-                if (event.id === action.payload.eventID) {
-                    state.current.splice(i, 1);
-                    i--;
-                }
-            }
+            // Delete event
+            delete state.current[action.payload.eventID];
         },
         removeMultipleAndBackup(state, action: PayloadAction<{ eventIDs: string[] }>) {
             state.backup = deepCopyEvents(state.current);
 
-            action.payload.eventIDs.forEach(id => {
-                // This will remove ALL events matching the provided id
-                for (let i = 0; i < state.current.length; i++) {
-                    const event = state.current[i];
-
-                    if (event.id === id) {
-                        state.current.splice(i, 1);
-                        i--;
-                    }
-                }
-            });
+            // Delete events
+            action.payload.eventIDs.forEach(id => delete state.current[id]);
         },
         edit(state, action: PayloadAction<{ eventID: string, newDetails: EventDetails}>) {
-            const eventIndex = state.current.findIndex(item => item.id === action.payload.eventID);
-            if (eventIndex === -1) {
-                console.error(`eventsSlice -> editEvent: Could not find event index`);
-                return;
-            }
+            const { eventID, newDetails } = action.payload;
 
-            state.current[eventIndex] = {
-                ...state.current[eventIndex],
-                details: action.payload.newDetails,
-            }
+            state.current[eventID].details = newDetails;
         },
         toggleComplete(state, action: PayloadAction<{eventID: string}>) {
-            const eventIndex = state.current.findIndex(item => item.id === action.payload.eventID);
-            if (eventIndex === -1) {
-                console.error(`eventsSlice -> toggleEventComplete: Could not find event index`);
-                return;
-            }
-
-            state.current[eventIndex].completed = !state.current[eventIndex].completed;
+            const { eventID } = action.payload;
+            
+            state.current[eventID].completed = !state.current[eventID].completed;
         },
-        removeCategoryAndBackup(state, action: PayloadAction<{ categoryID: CategoryID }>) {
+        removeCategoryAndBackup(state, action: PayloadAction<{ categoryID: string }>) {
             state.backup = deepCopyEvents(state.current);
             
-            for (let i = 0; i < state.current.length; i++) {
-                if (state.current[i].details.categoryID === action.payload.categoryID) {
-                    state.current[i].details.categoryID = null;
+            // Find events with this category and set their category to null
+            for (let eventID in state.current) {
+                if (state.current[eventID].details.categoryID === action.payload.categoryID) {
+                    state.current[eventID].details.categoryID = null;
                 }
             }
         },
-        setCategoryID(state, action: PayloadAction<{ eventID: string, categoryID: CategoryID }>) {
-            const editedEvent = state.current.find(item => item.id === action.payload.eventID);
-            if (!editedEvent) {
-                console.warn('eventsSlice -> setCategory: could not find event matching id');
-                return;
-            }
+        setCategoryID(state, action: PayloadAction<{ eventID: string, categoryID: string | null }>) {
+            const { eventID, categoryID } = action.payload;
 
-            editedEvent.details.categoryID = action.payload.categoryID;
+            state.current[eventID].details.categoryID = categoryID;
         },
         restoreBackup(state) {
             if (!state.backup) {
@@ -97,50 +67,30 @@ export const eventsSlice = createSlice({
     },
 });
 
-function deepCopyEvents(events: Event[]) {
-    const output: Event[] = [];
+function deepCopyEvents(events: {[key: string]: Event}) {
+    const output: {[key: string]: Event} = {};
 
-    events.forEach(event => {
-        /**
-         * All objects must be coppied, which includes the due date (unless
-         * it's null), event details, and the event itself.
-         */
-        const dueDateCopy: DueDate = event.details.dueDate ? {...event.details.dueDate} : null;
+    for (let key in events) {
+        const event = events[key];
+
+        const dueDateCopy = event.details.dueDate ? {...event.details.dueDate} : null;
 
         const eventDetailsCopy: EventDetails = {
             ...event.details,
             dueDate: dueDateCopy,
         }
 
-        output.push({
+        output[key] = {
             ...event,
-            details: eventDetailsCopy,
-        });
-    });
+            details: eventDetailsCopy
+        }
+    }
 
     return output;
 }
 
-export function selectEventFromID(eventID: string) {
-    return ((state: RootState) => state.events.current.find(item => item.id === eventID)?.details)
-}
-
-export function getEventFromID(events: Event[], eventID: string) {
-    for (let i = 0; i < events.length; i++) {
-        if (events[i].id == eventID) {
-            return {
-                details: events[i],
-                eventsIndex: i,
-            }
-        }
-    }
-
-    return undefined;
-}
-
 export function areEventsEqual(eventA: Event, eventB: Event) {
-    return eventA.id === eventB.id
-        && eventA.completed === eventB.completed
+    return eventA.completed === eventB.completed
         && eventA.details.name === eventB.details.name
         && DateYMDHelpers.datesEqual(eventA.details.dueDate, eventB.details.dueDate)
         && eventA.details.categoryID === eventB.details.categoryID
