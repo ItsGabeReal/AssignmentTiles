@@ -1,8 +1,10 @@
 import {
     StyleSheet,
     ColorValue,
-    Appearance,
+    Appearance
 } from 'react-native';
+
+export let colorTheme: 'dark' | 'light' = Appearance.getColorScheme() || 'dark';
 
 export const fontSizes = {
     title: 22,
@@ -23,6 +25,8 @@ export type ColorScheme = {
     todayL2: ColorValue;
     dimText: ColorValue;
     text: ColorValue;
+    fieldText: ColorValue;
+    fieldBackground: ColorValue;
 }
 
 const darkTheme: ColorScheme = {
@@ -33,6 +37,8 @@ const darkTheme: ColorScheme = {
     l4: '#505050',
     dimText: '#A0A0A0',
     text: 'white',
+    fieldText: '#FFFFFF40',
+    fieldBackground: '#FFFFFF10'
 }
 
 const lightTheme: ColorScheme = {
@@ -43,9 +49,11 @@ const lightTheme: ColorScheme = {
     l4: '#ffffff',
     dimText: '#808080',
     text: 'black',
+    fieldText: '#00000040',
+    fieldBackground: '#00000010'
 }
 
-export const colors = Appearance.getColorScheme() === 'light' ? lightTheme : darkTheme;
+export const colors = colorTheme === 'light' ? lightTheme : darkTheme;
 
 export const categoryColorPalette: ColorValue[] = [
     '#DE1212', // Red
@@ -59,17 +67,24 @@ export const categoryColorPalette: ColorValue[] = [
 ];
 
 export const globalStyles = StyleSheet.create({
+    fieldHeaderContianer: {
+        position: 'absolute',
+        height: '100%',
+        left: 10,
+        top: '-50%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#80808080'
+    },
     fieldDescription: {
-        marginRight: 8,
         fontSize: fontSizes.h3,
         fontWeight: 'bold',
-        color: colors.dimText,
+        color: colors.fieldText,
     },
     parameterContainer: {
-        padding: 15,
-        backgroundColor: colors.l2,
-        borderRadius: 10,
-        marginBottom: 25,
+        padding: 10,
+        backgroundColor: colors.fieldBackground,
+        borderRadius: 10
     },
     numberInput: {
         fontSize: fontSizes.p,

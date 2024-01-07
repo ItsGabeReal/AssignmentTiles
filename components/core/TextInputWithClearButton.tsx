@@ -6,15 +6,12 @@ import {
     TouchableOpacity,
     TextInputProps,
     ColorValue,
-    StyleProp,
-    ViewStyle,
-    TextStyle,
     Pressable,
     Appearance,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-export type TextInputWithClearButtonProps = Omit<TextInputProps, 'style' | 'clearButtonMode'> & {
+export type TextInputWithClearButtonProps = Omit<TextInputProps, 'clearButtonMode'> & {
     /**
      * The size of the close button to the right of the view.
      * Default is 16.
@@ -31,18 +28,6 @@ export type TextInputWithClearButtonProps = Omit<TextInputProps, 'style' | 'clea
      * Default is 20.
      */
     closeButtonHitSlop?: number;
-
-    /**
-     * The style of the TextInput component inside the container.
-     * Note: Try to apply container styling to the 'containerStyle' prop.
-     * Otherwise the clear button might not be positioned correctly.
-     */
-    textInputStyle?: StyleProp<TextStyle>;
-
-    /**
-     * The style of the view containing the text input and clear button.
-     */
-    containerStyle?: StyleProp<ViewStyle>;
 }
 
 const TextInputWithClearButton = forwardRef<TextInput, TextInputWithClearButtonProps>((props, parentRef) => {
@@ -50,14 +35,14 @@ const TextInputWithClearButton = forwardRef<TextInput, TextInputWithClearButtonP
         closeButtonSize = 16,
         closeButtonColor = Appearance.getColorScheme() === 'light' ? 'black' : 'white',
         closeButtonHitSlop = 20,
-        textInputStyle,
-        containerStyle,
         ...otherProps
     } = props;
 
     const textInputRef = useRef<TextInput | null>(null);
 
-    function setRef(ref: TextInput | null) {
+    // Grabs the TextInput reference (so this component can clear/focus the TextInput),
+    // then passes the reference to forwardRef.
+    function saveRef(ref: TextInput | null) {
         textInputRef.current = ref;
 
         if (typeof parentRef === 'function') parentRef(ref);
@@ -70,24 +55,19 @@ const TextInputWithClearButton = forwardRef<TextInput, TextInputWithClearButtonP
     }
 
     return (
-        <Pressable style={containerStyle} onPress={() => textInputRef.current?.focus()}>
-            <View style={styles.subcontainer}>
-                <TextInput ref={setRef} style={[textInputStyle, styles.textInput]} {...otherProps} />
-                <TouchableOpacity onPress={onClearButtonPressed} hitSlop={closeButtonHitSlop}>
-                    <Icon name='close' size={closeButtonSize} color={closeButtonColor} />
-                </TouchableOpacity>
-            </View>
-        </Pressable>
+        <View style={styles.subcontainer}>
+            <TextInput ref={saveRef} {...otherProps} />
+            <TouchableOpacity onPress={onClearButtonPressed} hitSlop={closeButtonHitSlop}>
+                <Icon name='close' size={closeButtonSize} color={closeButtonColor} />
+            </TouchableOpacity>
+        </View>
     );
 });
 
 const styles = StyleSheet.create({
     subcontainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-    },
-    textInput: {
-        flex: 1,
+        alignItems: 'center'
     },
     closeButtonContainer: {
         position: 'absolute',

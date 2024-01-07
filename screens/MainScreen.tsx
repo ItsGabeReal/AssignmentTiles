@@ -11,30 +11,30 @@ import {
     BackHandler,
     ColorValue,
 } from "react-native";
+import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
+import EventInput,  { EventInputRef } from "../components/EventInput";
+import ContextMenu, { ContextMenuRef } from "../components/ContextMenu";
+import DayList, { TodayRowVisibility } from "../components/DayList";
+import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
+import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";
 import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
 import {
     getEventTilePosition,
     getDayRowScreenYOffset,
 } from "../src/VisibleDaysHelpers";
-import EventCreator, { EventCreatorRef } from "../components/EventCreator";
-import EventEditor, { EventEditorRef } from "../components/EventEditor";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
-import { deleteEventAndBackup, deleteMultipleEventsAndBackup, restoreDeletedEventsFromBackup } from "../src/EventHelpers";
+import { createEvent, deleteEventAndBackup, deleteMultipleEventsAndBackup, restoreDeletedEventsFromBackup } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
 import { getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { colors, fontSizes } from "../src/GlobalStyles";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
 import { Vector2D } from "../types/General";
-import ContextMenu, { ContextMenuRef } from "../components/ContextMenu";
 import { ContextMenuDetails, ContextMenuPosition } from "../types/ContextMenu";
 import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
-import DayList, { TodayRowVisibility } from "../components/DayList";
-import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
-import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";
+import { Event } from "../types/store-current";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -59,8 +59,7 @@ export default function MainScreen() {
     const [todayRowVisibility, setTodayRowVisibility] = useState<TodayRowVisibility>('visible');
 
     const scrollYOffset = useRef(0);
-    const eventCreatorRef = useRef<EventCreatorRef | null>(null);
-    const eventEditorRef = useRef<EventEditorRef | null>(null);
+    const eventInputRef = useRef<EventInputRef | null>(null);
     const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
     const contextMenuRef = useRef<ContextMenuRef | null>(null);
@@ -77,6 +76,8 @@ export default function MainScreen() {
 
     useEffect(() => {
         EventRegister.addEventListener('showUndoPopup', onShowUndoPopup);
+
+        EventRegister.addEventListener('onEventTilePressed', onEventTilePressed)
 
         EventRegister.addEventListener('onEventTileLongPressed', onEventTileLongPressed);
 
@@ -108,6 +109,10 @@ export default function MainScreen() {
 
     function onShowUndoPopup({ prompt, onUndoPressed }: { prompt: string, onUndoPressed: (() => void)}) {
         undoPopupRef.current?.open(prompt, onUndoPressed);
+    }
+
+    function onEventTilePressed({eventID}: any) {
+        eventInputRef.current?.open({mode: 'edit', eventID})
     }
 
     function onEventTileLongPressed({eventID}: any) {
@@ -206,7 +211,7 @@ export default function MainScreen() {
             options: [
                 {
                     name: 'Edit',
-                    onPress: () => eventEditorRef.current?.open(eventID),
+                    onPress: () => eventInputRef.current?.open({mode: 'edit', eventID}),
                     iconName: 'edit',
                     color: colors.text,
                 },
@@ -309,7 +314,7 @@ export default function MainScreen() {
                 })*/
             }
             else {
-                eventCreatorRef.current?.open();
+                eventInputRef.current?.open({ mode: 'create' });
             }
         }
 
@@ -409,7 +414,7 @@ export default function MainScreen() {
                 <ContextMenu ref={contextMenuRef} onPressOut={() => setFlatListScrollEnabled(true)} onOptionPressed={() => setFlatListScrollEnabled(true)}>
                     <DayList
                         ref={flatListRef}
-                        onRequestOpenEventCreator={(suggestedDate) => eventCreatorRef.current?.open(suggestedDate)}
+                        onRequestOpenEventCreator={(suggestedDueDate) => eventInputRef.current?.open({mode: 'create', suggestedDueDate})}
                         onTodayRowVisibilityChanged={setTodayRowVisibility}
                         onScroll={onScroll}
                         onStartReached={onStartReached}
@@ -417,8 +422,17 @@ export default function MainScreen() {
                 </ContextMenu>
             </VETContainer>
             {overlayButtons()}
-            <EventCreator ref={eventCreatorRef} />
-            <EventEditor ref={eventEditorRef} />
+            <EventInput ref={eventInputRef} onSubmit={(mode, eventID, details, repeatSettings) => {
+                if (mode === 'create') {
+                    createEvent(dispatch, details, details.dueDate || DateYMDHelpers.today());
+                }
+                else {
+                    dispatch(eventActions.edit({
+                        eventID,
+                        newDetails: details
+                    }));
+                }
+            }} />
             <CategoryPicker ref={multiselectCategoryPickerRef} onSelect={onCategorySelectedDuringMultiselect} />
         </View>
     );

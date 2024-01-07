@@ -16,7 +16,7 @@ import { EventRegister } from 'react-native-event-listeners';
 
 type InteractableEventTileProps = {
     /**
-     * The if of the event this tile represents.
+     * The id of the event this tile represents.
      */
     eventID: string;
 
@@ -94,7 +94,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
             dispatch(generalStateActions.toggleEventIDSelected({ eventID: props.eventID }));
         }
         else {
-            dispatch(eventActions.toggleComplete({ eventID: props.eventID }));
+            EventRegister.emit('onEventTilePressed', { eventID: props.eventID });
         }
     }
 
