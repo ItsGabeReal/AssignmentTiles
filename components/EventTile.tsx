@@ -12,6 +12,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
 import { nullEvent } from '../src/EventHelpers';
 import { fontSizes } from '../src/GlobalStyles';
+import { darkenColor, lightenColor } from '../src/GlobalHelpers';
 
 type EventTileProps = {
     /**
@@ -46,6 +47,10 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
 
         if (event.details.categoryID !== null) {
             outputColorValue = categories[event.details.categoryID].color;
+        }
+
+        if (event.completed) {
+            outputColorValue = darkenColor(lightenColor(outputColorValue, 0.2), 0.2);
         }
 
         return outputColorValue;
@@ -105,7 +110,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
                         : <></>
                     }
                 </View>
-                {event.completed ? completedCheckmarkView() : null}
+                {/*event.completed ? completedCheckmarkView() : */null}
                 {isSelected ? <View style={[StyleSheet.absoluteFill, styles.selectedColorOverlay]} /> : null}
             </View>
             {isSelected ? selectedIcon() : null}

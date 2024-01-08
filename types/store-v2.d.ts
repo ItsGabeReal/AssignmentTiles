@@ -1,5 +1,5 @@
 /**
- * Defines version 2 of the redux store.
+ * Defines version 2 of the app's persisted data.
  * 
  * If any breaking changes are made to the root state:
  *      1. Add changes to a new version file
@@ -11,6 +11,8 @@
 import DateYMD from "../src/DateYMD";
 
 
+// ==================== PERSISTED STATE: Edits require new version file ====================
+
 // ----- CATEGORIES -----
 export type Category = {
     name: string;
@@ -21,7 +23,6 @@ export type CategoriesState = {
     current: {[key: string]: Category};
     backup: {[key: string]: Category} | null;
 }
-
 
 // ----- EVENTS -----
 export interface EventDetails {
@@ -41,23 +42,6 @@ export type EventsState = {
     backup: {[key: string]: Event} | null;
 }
 
-
-// ----- GENERAL -----
-export type GeneralState = {
-    memorizedEventInput: {
-        name: string;
-        categoryID: string | null;
-    };
-    draggedEvent: {
-        eventID: string;
-    } | null;
-    multiselect: {
-        enabled: boolean;
-        selectedEventIDs: string[];
-    };
-}
-
-
 // ----- ROW PLANS -----
 export interface RowPlan {
     plannedDate: DateYMD;
@@ -70,6 +54,24 @@ export type RowPlansState = {
 }
 
 
+// ==================== NON-PERSISTED STATE: Edits do not require new version file ====================
+
+// ----- GENERAL -----
+export type GeneralState = {
+    memorizedEventInput: {
+        name: string;
+        categoryID: string | null;
+        deadlineEnabled: boolean;
+    };
+    draggedEvent: {
+        eventID: string;
+    } | null;
+    multiselect: {
+        enabled: boolean;
+        selectedEventIDs: string[];
+    };
+}
+
 // ----- VISIBLE DAYS -----
 export type VisibleDaysState = DateYMD[];
 
@@ -81,7 +83,7 @@ export type VisibleDaysState = DateYMD[];
 export type RootState = {
     categories: CategoriesState;
     events: EventsState;
-    general: GeneralState;
     rowPlans: RowPlansState;
+    general: GeneralState;
     visibleDays: VisibleDaysState;
 }

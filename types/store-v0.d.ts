@@ -1,5 +1,5 @@
 /**
- * Defines version 0 of the redux store.
+ * Defines version 0 of the app's persisted data.
  * 
  * If any breaking changes are made to the root state:
  *      1. Add changes to a new version file
@@ -11,6 +11,8 @@
 import DateYMD from "../src/DateYMD";
 
 
+// ==================== PERSISTED STATE: Edits require new version file ====================
+
 // ----- CATEGORIES -----
 export type CategoryID = string | null;
 
@@ -21,7 +23,6 @@ export type Category = {
 }
 
 export type CategoriesState = Category[];
-
 
 // ----- EVENTS -----
 export type DueDate = DateYMD | null;
@@ -41,6 +42,16 @@ export interface Event {
 
 export type EventsState = Event[];
 
+// ----- ROW PLANS -----
+export interface RowPlan {
+    plannedDate: DateYMD;
+    orderedEventIDs: string[];
+}
+
+export type RowPlansState = RowPlan[];
+
+
+// ==================== NON-PERSISTED STATE: Edits do not require new version file ====================
 
 // ----- GENERAL -----
 export type GeneralState = {
@@ -56,16 +67,6 @@ export type GeneralState = {
         selectedEventIDs: string[];
     };
 }
-
-
-// ----- ROW PLANS -----
-export interface RowPlan {
-    plannedDate: DateYMD;
-    orderedEventIDs: string[];
-}
-
-export type RowPlansState = RowPlan[];
-
 
 // ----- VISIBLE DAYS -----
 export type VisibleDaysState = DateYMD[];

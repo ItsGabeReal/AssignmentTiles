@@ -34,7 +34,7 @@ import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { Event } from "../types/store-current";
-import SafeAreaView from "../components/SafeAreaView";
+import SafeAreaView from "../components/core/SafeAreaView";
 import { vibrate } from "../src/GlobalHelpers";
 
 export default function MainScreen() {
@@ -321,16 +321,12 @@ export default function MainScreen() {
 
     function onEventSubmitted(params: OnEventInputSubmitParams) {
         if (params.mode === 'create') {
-            createEvent(dispatch, params.eventDetails, params.eventDetails.dueDate || DateYMDHelpers.today());
+            createEvent(dispatch, params.details, params.plannedDate);
         }
         else {
             dispatch(eventActions.edit({
                 eventID: params.editedEventID,
-                newDetails: params.event.details
-            }));
-            dispatch(eventActions.setComplete({
-                eventID: params.editedEventID,
-                complete: params.event.completed
+                newDetails: params.details
             }));
         }
     }

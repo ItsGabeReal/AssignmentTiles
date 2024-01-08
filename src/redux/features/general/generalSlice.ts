@@ -9,6 +9,7 @@ const initialState: GeneralState = {
     memorizedEventInput: {
         name: '',
         categoryID: null,
+        deadlineEnabled: false
     },
     draggedEvent: null,
     multiselect: {
@@ -21,10 +22,11 @@ export const generalSlice = createSlice({
     name: 'events',
     initialState,
     reducers: {
-        updateMemorizedEventInput(state, action: PayloadAction<{ name?: string, categoryID?: string | null }>) {
+        updateMemorizedEventInput(state, action: PayloadAction<{ name?: string, categoryID?: string | null, deadlineEnabled?: boolean }>) {
             state.memorizedEventInput = {
                 name: action.payload.name || state.memorizedEventInput.name,
                 categoryID: action.payload.categoryID !== undefined ? action.payload.categoryID : state.memorizedEventInput.categoryID,
+                deadlineEnabled: action.payload.deadlineEnabled !== undefined ? action.payload.deadlineEnabled : state.memorizedEventInput.deadlineEnabled
             }
         },
         setDraggedEvent(state, action: PayloadAction<{eventID: string}>) {

@@ -23,6 +23,11 @@ type CheckboxProps = {
      */
     onChange?: ((value: boolean) => void);
 
+    /**
+     * The visual appearance of the checkbox. Default is 'square'.
+     */
+    visualStyle?: 'square' | 'round';
+
     size?: number;
 
     color?: ColorValue;
@@ -33,7 +38,8 @@ type CheckboxProps = {
 const Checkbox: React.FC<CheckboxProps> = (props) => {
     const {
         size = 20,
-        hitSlop = 10
+        hitSlop = 10,
+        visualStyle = 'square'
     } = props;
 
     const [checked, setChecked] = useState(props.defaultValue || false);
@@ -52,9 +58,18 @@ const Checkbox: React.FC<CheckboxProps> = (props) => {
         return props.value ==! undefined ? props.value : checked;
     }
 
+    function getIconName() {
+        if (visualStyle === 'square') {
+            return getValue() ? 'check-box' : 'check-box-outline-blank';
+        }
+        else {
+            return getValue() ? 'check-circle-outline' : 'radio-button-unchecked'
+        }
+    }
+
     return (
         <TouchableOpacity onPress={onPress} hitSlop={hitSlop}>
-            <Icon name={getValue() ? 'check-box' : 'check-box-outline-blank'} size={size} color={props.color}/>
+            <Icon name={getIconName()} size={size} color={props.color}/>
         </TouchableOpacity>
     );
 };

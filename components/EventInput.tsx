@@ -1,3 +1,7 @@
+/**
+ * The input interface for creating or editing an event.
+ */
+
 import React, { forwardRef, useRef, useState, useImperativeHandle } from 'react';
 import {
     StyleSheet,
@@ -62,8 +66,8 @@ export type EventInputRef = {
 }
 
 export type OnEventInputSubmitParams =
-    { mode: 'create', eventDetails: EventDetails, repeatSettings: RepeatSettings | null}
-    | { mode: 'edit', editedEventID: string, event: Event, repeatSettings: RepeatSettings | null };
+    { mode: 'create', details: EventDetails, plannedDate: DateYMD, repeatSettings: RepeatSettings | null}
+    | { mode: 'edit', details: EventDetails, editedEventID: string };
 
 type EventInputProps = {
     /**
@@ -78,8 +82,10 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     const memorizedEventInput = useAppSelector(state => state.general.memorizedEventInput);
     const dispatch = useAppDispatch();
 
+    // Opens/closes event input
     const [enabled, setEnabled] = useState(false);
 
+    // Input variables
     const [eventNameInput, setEventNameInput] = useState('');
     const [categoryInput, setCategoryInput] = useState<string | null>(null);
     const [deadlineSwitchInput, setDeadlineSwitchInput] = useState(false);
@@ -88,30 +94,33 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     const [recurrencesInput, setRecurrencesInput] = useState(2);
     const [intervalInput, setIntervalInput] = useState(7);
     const [notesInput, setNotesInput] = useState('');
-    const [completedInput, setCompletedInput] = useState(false);
-    const eventNameInputRef = useRef<TextInput>(null);
-    const categoryPickerRef = useRef<CategoryPickerRef | null>(null);
+    //const [completedInput, setCompletedInput] = useState(false);
+
+    // Non-input variables
     const mode = useRef<'create' | 'edit'>('create');
     const editedEventID = useRef('');
+    const suggestedDate = useRef<DateYMD>(DateYMDHelpers.today()); // Used to store the day row that was tapped when creating an event
+
+    // Component references
+    const eventNameInputRef = useRef<TextInput>(null);
+    const categoryPickerRef = useRef<CategoryPickerRef | null>(null);
 
 
     useImperativeHandle(ref, () => ({
         open(params) {
+            // Setup
             setEnabled(true);
             mode.current = params.mode;
+            initializeInputs();
 
             if (params.mode === 'create') {
                 // Initialize input from memorized input
-                initializeInputs(memorizedEventInput.name, memorizedEventInput.categoryID, params.suggestedDueDate);
-
-                /*
-                 * Auto-focus keyboard.
-                 * 
-                 * Note: There's a bug on android where enabling autofocus
-                 * on text inputs doesn't automatically show the keyboard.
-                 * This is fixed by calling focus after a short timeout.
-                 */
-                setTimeout(() => { eventNameInputRef.current?.focus(); }, 100);
+                setEventNameInput(memorizedEventInput.name);
+                setCategoryInput(memorizedEventInput.categoryID);
+                setDeadlineSwitchInput(memorizedEventInput.deadlineEnabled);
+                suggestedDate.current = params.suggestedDueDate || DateYMDHelpers.today();
+                setDueDateInput(DateYMDHelpers.toDate(suggestedDate.current));
+                autoFocusNameInput();
             }
             else {
                 // Initialize input from provided event id
@@ -121,34 +130,36 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                     return;
                 }
 
-                initializeInputs(
-                    event.details.name,
-                    event.details.categoryID,
-                    event.details.dueDate,
-                    event.details.notes,
-                    event.completed);
-
+                setEventNameInput(event.details.name);
+                setCategoryInput(event.details.categoryID);
+                setDeadlineSwitchInput(event.details.dueDate !== null);
+                setDueDateInput(DateYMDHelpers.toDate(event.details.dueDate || DateYMDHelpers.today()));
+                setNotesInput(event.details.notes);
                 editedEventID.current = params.eventID;
             }
         }
     }));
 
-    function initializeInputs(name: string, categoryID: string | null, dueDate?: DateYMD | null, notes?: string, completed?: boolean) {
-        setEventNameInput(name);
-        setCategoryInput(categoryID);
-        setNotesInput(notes || '');
-        setCompletedInput(completed || false);
-        if (dueDate) {
-            setDeadlineSwitchInput(true);
-            setDueDateInput(DateYMDHelpers.toDate(dueDate));
-        }
-        else
-            setDeadlineSwitchInput(false);
-
-        // Defaults
+    // Initialize inputs to their default values
+    function initializeInputs() {
+        setEventNameInput('');
+        setCategoryInput(null);
+        setDeadlineSwitchInput(false);
+        setDueDateInput(new Date());
         setRepeatSwitchInput(false);
         setRecurrencesInput(2);
         setIntervalInput(7);
+        setNotesInput('');
+        //setCompletedInput(false);
+    }
+
+    function autoFocusNameInput() {
+        /**
+         * Note: There's a bug on android where enabling autofocus
+         * on text inputs doesn't automatically show the keyboard.
+         * This is fixed by calling focus after a short timeout.
+         */
+        setTimeout(() => { eventNameInputRef.current?.focus(); }, 100);
     }
 
     function getCategoryColor(): ColorValue {
@@ -161,7 +172,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     function getBackgroundColor() {
         const color = getCategoryColor();
 
-        let colorStr = colorTheme === 'dark' ? darkenColor(color, 0.4) : darkenColor(color, 0.1);
+        let colorStr = colorTheme === 'dark' ? darkenColor(lightenColor(color, 0.4), 0.5) : darkenColor(lightenColor(color, 0.4), 0.2);
 
         if (colorStr.length === 7) {
             colorStr = colorStr + "B0";
@@ -201,23 +212,20 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         if (mode.current === 'create') {
             props.onSubmit({
                 mode: 'create',
-                eventDetails: details,
+                details,
+                plannedDate: DateYMDHelpers.fromDate(dueDateInput),
                 repeatSettings
             });
         }
         else {
             props.onSubmit({
                 mode: 'edit',
-                editedEventID: editedEventID.current,
-                event: {
-                    details,
-                    completed: completedInput
-                },
-                repeatSettings
+                details,
+                editedEventID: editedEventID.current
             });
         }
 
-        dispatch(generalStateActions.updateMemorizedEventInput({ name: details.name, categoryID: details.categoryID }));
+        dispatch(generalStateActions.updateMemorizedEventInput({ name: details.name, categoryID: details.categoryID, deadlineEnabled: deadlineSwitchInput }));
     }
 
     // Handle edge cases regarding category deletion
@@ -297,66 +305,74 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                     <CompactDatePicker value={dueDateInput} onChange={setDueDateInput} themeVariant='dark' />
                                 </HideableView>
                             </InputField>
-                            <InputField title='Repeat' marginBottom={20} width={225} headerChildren={<Checkbox value={repeatSwitchInput} onChange={setRepeatSwitchInput} color='white' />} >
-                                <HideableView hidden={!repeatSwitchInput}>
-                                    <View style={[globalStyles.flexRow, { marginBottom: 5 }]}>
-                                        <Text style={{color: 'white'}}>Every </Text>
-                                        <NumberInput
-                                            value={intervalInput}
-                                            onChangeNumber={setIntervalInput}
-                                            minimimValue={1}
-                                            maximumValue={999}
-                                            style={[globalStyles.numberInput, {color: 'white'}]}
-                                        />
-                                        <Text style={{color: 'white'}}> days</Text>
-                                    </View>
-                                    <View style={globalStyles.flexRow}>
-                                        <Text style={{color: 'white'}}>End after </Text>
-                                        <NumberInput
-                                            value={recurrencesInput}
-                                            onChangeNumber={setRecurrencesInput}
-                                            minimimValue={2}
-                                            maximumValue={100}
-                                            style={[globalStyles.numberInput, {color: 'white'}]}
-                                        />
-                                        <Text style={{color: 'white'}}> occurrences</Text>
-                                    </View>
-                                </HideableView>
-                            </InputField>
+                            { mode.current === 'create' ?
+                                <InputField title='Repeat' marginBottom={20} width={225} headerChildren={<Checkbox value={repeatSwitchInput} onChange={setRepeatSwitchInput} color='white' />} >
+                                    <HideableView hidden={!repeatSwitchInput}>
+                                        <View style={[globalStyles.flexRow, { marginBottom: 5 }]}>
+                                            <Text style={{color: 'white'}}>Every </Text>
+                                            <NumberInput
+                                                value={intervalInput}
+                                                onChangeNumber={setIntervalInput}
+                                                minimimValue={1}
+                                                maximumValue={999}
+                                                style={[globalStyles.numberInput, {color: 'white'}]}
+                                            />
+                                            <Text style={{color: 'white'}}> days</Text>
+                                        </View>
+                                        <View style={globalStyles.flexRow}>
+                                            <Text style={{color: 'white'}}>End after </Text>
+                                            <NumberInput
+                                                value={recurrencesInput}
+                                                onChangeNumber={setRecurrencesInput}
+                                                minimimValue={2}
+                                                maximumValue={100}
+                                                style={[globalStyles.numberInput, {color: 'white'}]}
+                                            />
+                                            <Text style={{color: 'white'}}> occurrences</Text>
+                                        </View>
+                                    </HideableView>
+                                </InputField>
+                            :
+                                null
+                            }
                             <InputField title='Notes' width={260}>
                                 <TextInput value={notesInput} onChangeText={setNotesInput} placeholder='Add notes here...' placeholderTextColor='#ffffff40' style={{ color: 'white', padding: 0, maxHeight: 100 }} multiline maxLength={500} />
                             </InputField>
                         </BlurView>
                         {mode.current === 'create' ?
-                            <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
-                                <BlurView borderRadius={100} blurType={colorTheme} style={{ backgroundColor: '#00FF0080', padding: 12, ...globalStyles.flexRow }}>
-                                    <Icon name='add' color='white' size={30} />
-                                    <Text style={{ marginLeft: 8, fontSize: 18, fontWeight: 'bold', color: 'white' }}>Create Assignment</Text>
-                                </BlurView>
-                            </TouchableOpacity>
-                        :
                             <>
-                                <TouchableOpacity activeOpacity={activeOpacity} onPress={() => setCompletedInput(!completedInput)} style={{marginTop: 12, width: 200}}>
-                                    <BlurView borderRadius={20} blurType={colorTheme} style={{backgroundColor: completedInput ? '#00FF0080' : '#60606080', padding: 15, justifyContent: 'center', ...globalStyles.flexRow}}>
-                                        <Icon name={completedInput ? 'check-circle-outline' : 'radio-button-unchecked'} color='#FFFFFFB0' size={30} />
-                                        <Text style={{marginLeft: 24, fontSize: 18, fontWeight: 'bold', color: '#FFFFFFB0'}}>Complete</Text>
+                                <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
+                                    <BlurView borderRadius={100} blurType={colorTheme} style={{ backgroundColor: '#00FF0080', padding: 12, ...globalStyles.flexRow }}>
+                                        <Icon name='add' color='white' size={30} />
+                                        <Text style={{ marginLeft: 8, fontSize: 18, fontWeight: 'bold', color: 'white' }}>Create Assignment</Text>
                                     </BlurView>
                                 </TouchableOpacity>
-                                <View style={[globalStyles.flexRow, {marginTop: 12}]}>
-                                    <TouchableOpacity activeOpacity={activeOpacity} onPress={onSelected}>
-                                        <BlurView borderRadius={12} blurType={colorTheme} style={{backgroundColor: '#0040FF80', width: 60, height: 60, alignItems: 'center', justifyContent: 'center'}}>
-                                            <Text style={{fontSize: 12, fontWeight: 'bold', color: '#FFFFFFB0'}}>Select</Text>
-                                            <Icon name='check-box' color='#FFFFFFB0' size={24} />
-                                        </BlurView>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity activeOpacity={activeOpacity} onPress={onDeleted} style={{marginLeft: 12}}>
-                                        <BlurView borderRadius={12} blurType={colorTheme} style={{backgroundColor: '#FF000080', width: 60, height: 60, alignItems: 'center', justifyContent: 'center'}}>
-                                            <Text style={{fontSize: 12, fontWeight: 'bold', color: '#FFFFFFB0'}}>Delete</Text>
-                                            <Icon name='delete' color='#FFFFFFB0' size={24} />
-                                        </BlurView>
-                                    </TouchableOpacity>
-                                </View>
+                                <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
+                                    <BlurView borderRadius={100} blurType={colorTheme} style={{ backgroundColor: '#FFFF0080', padding: 10, ...globalStyles.flexRow }}>
+                                        <View style={{width: 26, height: 26}}>
+                                            <Icon name='add' color='#FFFFFFB0' size={22} style={{position: 'absolute', left: 0, bottom: 0}}/>
+                                            <Icon name='add' color='white' size={22} style={{position: 'absolute', right: 0, top: 0}} />
+                                        </View>
+                                        <Text style={{ marginLeft: 8, fontSize: 16, fontWeight: 'bold', color: 'white' }}>Repeat</Text>
+                                    </BlurView>
+                                </TouchableOpacity>
                             </>
+                            
+                        :
+                            <View style={[globalStyles.flexRow, { marginTop: 12 }]}>
+                                <TouchableOpacity activeOpacity={activeOpacity} onPress={onSelected}>
+                                    <BlurView borderRadius={12} blurType={colorTheme} style={{ backgroundColor: '#0040FF80', width: 60, height: 60, alignItems: 'center', justifyContent: 'center' }}>
+                                        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFB0' }}>Select</Text>
+                                        <Icon name='check-box' color='#FFFFFFB0' size={24} />
+                                    </BlurView>
+                                </TouchableOpacity>
+                                <TouchableOpacity activeOpacity={activeOpacity} onPress={onDeleted} style={{ marginLeft: 12 }}>
+                                    <BlurView borderRadius={12} blurType={colorTheme} style={{ backgroundColor: '#FF000080', width: 60, height: 60, alignItems: 'center', justifyContent: 'center' }}>
+                                        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFB0' }}>Delete</Text>
+                                        <Icon name='delete' color='#FFFFFFB0' size={24} />
+                                    </BlurView>
+                                </TouchableOpacity>
+                            </View>
                         }
                     </View>
                 </Pressable>

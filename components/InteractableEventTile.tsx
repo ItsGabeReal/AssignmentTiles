@@ -11,6 +11,7 @@ import { generalStateActions } from '../src/redux/features/general/generalSlice'
 import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { EventRegister } from 'react-native-event-listeners';
 import { activeOpacity } from '../src/GlobalStyles';
+import Checkbox from './core/Checkbox';
 
 type InteractableEventTileProps = {
     /**
@@ -29,6 +30,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
 
     const isBeingDragged = useAppSelector(state => state.general.draggedEvent?.eventID ? (state.general.draggedEvent.eventID === props.eventID) : false);
     const multiselectEnabled = useAppSelector(state => state.general.multiselect.enabled);
+    const eventCompleted = useAppSelector(state => state.events.current[props.eventID].completed);
 
     function handlePress() {
         if (multiselectEnabled) {
@@ -53,6 +55,9 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
                 delayLongPress={150}
             >
                 <EventTile {...props} />
+                <View style={{position: 'absolute', left: 0, top: 0}}>
+                    <Checkbox value={eventCompleted} visualStyle='round' color={eventCompleted ? '#00FF00' : '#FFFFFF80'} size={26} onChange={() => {dispatch(eventActions.toggleComplete({eventID: props.eventID}))}}/>
+                </View>
             </TouchableOpacity>
         </View>
     )

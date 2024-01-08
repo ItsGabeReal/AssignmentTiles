@@ -89,14 +89,29 @@ const migrations = {
         // Assemble updated state
         const newState: RootStateV2 = {
             ...oldState,
+
+            // Add deadlineEnabled field
+            general: {
+                ...oldState.general,
+                memorizedEventInput: {
+                    ...oldState.general.memorizedEventInput,
+                    deadlineEnabled: false
+                }
+            },
+
+            // Update categories format
             categories: {
                 current: newCategories,
                 backup: null,
             },
+
+            // Update events format
             events: {
                 current: newEvents,
                 backup: null,
             },
+
+            // Update row plan format
             rowPlans: {
                 current: newRowPlans,
                 backup: null,

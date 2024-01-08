@@ -38,7 +38,7 @@ const darkTheme: ColorScheme = {
     dimText: '#A0A0A0',
     text: 'white',
     fieldText: '#FFFFFF80',
-    fieldBackground: '#FFFFFF10'
+    fieldBackground: '#FFFFFF18'
 }
 
 const lightTheme: ColorScheme = {
@@ -50,7 +50,7 @@ const lightTheme: ColorScheme = {
     dimText: '#808080',
     text: 'black',
     fieldText: '#FFFFFF80',
-    fieldBackground: '#00000010'
+    fieldBackground: '#00000018'
 }
 
 export const colors = colorTheme === 'light' ? lightTheme : darkTheme;
