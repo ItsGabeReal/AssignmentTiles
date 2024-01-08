@@ -10,10 +10,10 @@ import {
     NativeScrollEvent,
     BackHandler,
     ColorValue,
+    GestureResponderEvent,
 } from "react-native";
 import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
 import EventInput,  { EventInputRef, OnEventInputSubmitParams } from "../components/EventInput";
-import ContextMenu, { ContextMenuRef } from "../components/ContextMenu";
 import DayList, { TodayRowVisibility } from "../components/DayList";
 import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
 import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";
@@ -30,12 +30,12 @@ import { getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { activeOpacity, colors, fontSizes } from "../src/GlobalStyles";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
 import { Vector2D } from "../types/General";
-import { ContextMenuDetails, ContextMenuPosition } from "../types/ContextMenu";
 import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { Event } from "../types/store-current";
 import SafeAreaView from "../components/SafeAreaView";
+import { vibrate } from "../src/GlobalHelpers";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -63,7 +63,6 @@ export default function MainScreen() {
     const eventInputRef = useRef<EventInputRef | null>(null);
     const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
-    const contextMenuRef = useRef<ContextMenuRef | null>(null);
     const multiselectCategoryPickerRef = useRef<CategoryPickerRef | null>(null);
     const undoPopupRef = useRef<UndoPopupRef | null>(null);
 
@@ -81,8 +80,6 @@ export default function MainScreen() {
         EventRegister.addEventListener('onEventTilePressed', onEventTilePressed)
 
         EventRegister.addEventListener('onEventTileLongPressed', onEventTileLongPressed);
-
-        EventRegister.addEventListener('onEventTileDragStart', onEventTileDragStart);
 
         EventRegister.addEventListener('onEventTileDrag', onEventTileDrag);
 
@@ -116,18 +113,25 @@ export default function MainScreen() {
         eventInputRef.current?.open({mode: 'edit', eventID})
     }
 
-    function onEventTileLongPressed({eventID}: any) {
+    /**
+     * In order to resolve some bugs with dragging, it's extremely important
+     * that we disable scrolling on the flatlist before beginning any drag
+     * gestures. So on long press, we:
+     *   1. Disable flatlist scrolling.
+     *   2. Wait a frame for the changes to take effect.
+     *   3. Enable dragging for the virtual event tile.
+     */
+    function onEventTileLongPressed({eventID, gesture}: any) {
         setFlatListScrollEnabled(false);
 
         requestAnimationFrame(() => {
-            EventRegister.emit('onFlatListScrollDisabled');
-            
-            if (!multiselectState_closureSafeRef.current.enabled) openEventTileContextMenu(eventID); // Disable context menu during multiselect
+            EventRegister.emit('onEventTileDragStart', { eventID, gesture });
+            onEventTileDragStart(gesture, eventID);
         });
     }
 
-    function onEventTileDragStart({gesture, eventID}: any) {
-        contextMenuRef.current?.close();
+    function onEventTileDragStart(gesture: GestureResponderEvent, eventID: string) {
+        vibrate();
 
         // auto scroll setup
         scrollYOffsetAtDragStart.current = scrollYOffset.current;
@@ -200,81 +204,7 @@ export default function MainScreen() {
     function restoreDraggedTileVisuals() {
         dispatch(generalStateActions.clearDraggedEvent());
     }
-
-    function openEventTileContextMenu(eventID: string) {
-        const contextMenuPosition = getContextMenuPositionForEventTile(eventID);
-        if (!contextMenuPosition) {
-            console.error(`MainScreen -> openEventTileContextMenu: Could not get context menu position`);
-            return;
-        }
-
-        const contextMenuDetails: ContextMenuDetails = {
-            options: [
-                {
-                    name: 'Edit',
-                    onPress: () => eventInputRef.current?.open({mode: 'edit', eventID}),
-                    iconName: 'edit',
-                    color: colors.text,
-                },
-                {
-                    name: 'Select',
-                    onPress: () => {
-                        dispatch(generalStateActions.setMultiselectEnabled({enabled: true}));
-                        dispatch(generalStateActions.toggleEventIDSelected({eventID}));
-                    },
-                    iconName: 'check-box',
-                    color: colors.text,
-                },
-                {
-                    name: 'Delete',
-                    onPress: () => {
-                        deleteEventAndBackup(dispatch, eventID);
-
-                        undoPopupRef.current?.open('Event Deleted', () => {
-                            restoreDeletedEventsFromBackup(dispatch);
-                        });
-                    },
-                    iconName: 'delete',
-                    color: '#d00',
-                },
-            ],
-            position: contextMenuPosition,
-        }
-
-        contextMenuRef.current?.create(contextMenuDetails);
-    }
-
-    function getContextMenuPositionForEventTile(eventID: string) {
-        const visibleDays_CSR = visibleDays_closureSafeRef.current;
-        const rowPlans_CSR = rowPlans_closureSafeRef.current;
-
-        const eventPlan = getEventPlan(rowPlans_CSR, eventID);
-        if (!eventPlan) {
-            console.error(`MainScreen -> getContextMenuPositionForEventTile: Could not get event plan`);
-            return;
-        }
-
-        const visibleDaysIndex = visibleDays_CSR.findIndex(item => DateYMDHelpers.datesEqual(item, eventPlan.plannedDate));
-        if (visibleDaysIndex == -1) {
-            console.error(`MainScreen -> getContextMenuPositionForEventTile: Could not find visible day with date = ${DateYMDHelpers.toString(eventPlan.plannedDate)}`);
-            return;
-        }
-
-        const rowYOffset = getDayRowScreenYOffset(visibleDays_CSR, rowPlans_CSR, scrollYOffset.current, visibleDaysIndex);
-
-        const tilePosition = getEventTilePosition(rowYOffset, eventPlan.rowOrder);
-
-        const xMidpoint = tilePosition.x + VisualSettings.EventTile.mainContainer.width / 2;
-
-        const output: ContextMenuPosition = {
-            x: xMidpoint,
-            topY: tilePosition.y,
-            bottomY: tilePosition.y + VisualSettings.EventTile.mainContainer.height,
-        };
-
-        return output;
-    }
-
+    
     function returnToTodayButton(variation: 'above' | 'beneath') {
         return (
             <TouchableOpacity activeOpacity={activeOpacity} style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]} onPress={scrollToToday}>
@@ -429,15 +359,13 @@ export default function MainScreen() {
     return (
         <View style={styles.container}>
             <VETContainer ref={virtualEventTileRef}>
-                <ContextMenu ref={contextMenuRef} onPressOut={() => setFlatListScrollEnabled(true)} onOptionPressed={() => setFlatListScrollEnabled(true)}>
-                    <DayList
-                        ref={flatListRef}
-                        onRequestOpenEventCreator={(suggestedDueDate) => eventInputRef.current?.open({mode: 'create', suggestedDueDate})}
-                        onTodayRowVisibilityChanged={setTodayRowVisibility}
-                        onScroll={onScroll}
-                        onStartReached={onStartReached}
-                    />
-                </ContextMenu>
+                <DayList
+                    ref={flatListRef}
+                    onRequestOpenEventCreator={(suggestedDueDate) => eventInputRef.current?.open({ mode: 'create', suggestedDueDate })}
+                    onTodayRowVisibilityChanged={setTodayRowVisibility}
+                    onScroll={onScroll}
+                    onStartReached={onStartReached}
+                />
             </VETContainer>
             <SafeAreaView pointerEvents='box-none'>
                 {overlayButtons()}

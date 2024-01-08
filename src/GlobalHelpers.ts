@@ -2,6 +2,8 @@ import {
     TextInput,
     Keyboard,
     ColorValue,
+    Platform,
+    Vibration,
 } from 'react-native';
 
 /**
@@ -227,4 +229,8 @@ function clamp(value: number, min: number, max: number) {
     if (value > max) return max;
 
     return value;
+}
+
+export function vibrate(type?: 'quick') {
+    if (Platform.OS == 'android') Vibration.vibrate(10);
 }
