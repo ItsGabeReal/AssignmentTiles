@@ -16,7 +16,7 @@ import { Category } from '../types/store-current';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppSelector, useAppDispatch } from '../src/redux/hooks';
-import { colors, fontSizes } from '../src/GlobalStyles';
+import { activeOpacity, colors, fontSizes } from '../src/GlobalStyles';
 import IosStyleButton from './core/IosStyleButton';
 import { deleteCategoryAndBackup, restoreCategoryFromBackup } from '../src/CategoriesHelpers';
 import UndoPopup, { UndoPopupRef } from './UndoPopup';
@@ -173,14 +173,14 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
     return (
         <>
             <CategoryInput ref={categoryInputRef} mode='edit' editedCategory={props.category} editedCategoryID={props.categoryID} />
-            <TouchableOpacity onPress={() => props.onSelect?.(props.categoryID || null)} style={styles.categoryListItemContainer}>
+            <TouchableOpacity activeOpacity={activeOpacity} onPress={() => props.onSelect?.(props.categoryID || null)} style={styles.categoryListItemContainer}>
                 <Text style={[styles.categoryText, {color: props.category?.color || colors.dimText}]}>{props.category?.name || 'None'}</Text>
                 {!hideCategoryActions ?
                     <View style={styles.actionButtonContainer}>
-                        <TouchableOpacity onPress={() => categoryInputRef.current?.open()} hitSlop={5}>
+                        <TouchableOpacity activeOpacity={activeOpacity} onPress={() => categoryInputRef.current?.open()} hitSlop={5}>
                             <Icon name='edit' color='#dd0' size={20} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.deleteButton} onPress={deleteCategory} hitSlop={5}>
+                        <TouchableOpacity activeOpacity={activeOpacity} style={styles.deleteButton} onPress={deleteCategory} hitSlop={5}>
                             <Icon name='delete' color='#f00000' size={20} />
                         </TouchableOpacity>
                     </View>

@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { generalStateActions } from '../src/redux/features/general/generalSlice';
 import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { EventRegister } from 'react-native-event-listeners';
+import { activeOpacity } from '../src/GlobalStyles';
 
 type InteractableEventTileProps = {
     /**
@@ -127,6 +128,7 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     return (
         <View {...panResponder.panHandlers} style={{ opacity: isBeingDragged ? 0.25 : 1 }}>
             <TouchableOpacity
+                activeOpacity={activeOpacity}
                 onPress={handlePress}
                 onPressOut={handlePressOut}
                 onLongPress={handleLongPress}

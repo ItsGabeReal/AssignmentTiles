@@ -11,7 +11,7 @@ import {
     BackHandler,
 } from 'react-native';
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { colors, fontSizes } from '../src/GlobalStyles';
+import { activeOpacity, colors, fontSizes } from '../src/GlobalStyles';
 import { ContextMenuDetails, ContextMenuOptionDetails } from '../types/ContextMenu';
 
 export type ContextMenuRef = {
@@ -168,7 +168,7 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
     }
 
     return (
-        <TouchableOpacity onPress={handlePress} style={styles.optionContainer}>
+        <TouchableOpacity activeOpacity={activeOpacity} onPress={handlePress} style={styles.optionContainer}>
             <Text style={[styles.optionText, { color: props.details.color }]}>{props.details.name}</Text>
             <View style={styles.iconContainer}>
                 {drawIcon()}

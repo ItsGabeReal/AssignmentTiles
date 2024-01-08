@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     TextInputProps,
     ColorValue,
-    Pressable,
     Appearance,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';

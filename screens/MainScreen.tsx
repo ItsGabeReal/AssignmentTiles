@@ -12,7 +12,7 @@ import {
     ColorValue,
 } from "react-native";
 import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
-import EventInput,  { EventInputRef } from "../components/EventInput";
+import EventInput,  { EventInputRef, OnEventInputSubmitParams } from "../components/EventInput";
 import ContextMenu, { ContextMenuRef } from "../components/ContextMenu";
 import DayList, { TodayRowVisibility } from "../components/DayList";
 import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
@@ -27,7 +27,7 @@ import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
 import { createEvent, deleteEventAndBackup, deleteMultipleEventsAndBackup, restoreDeletedEventsFromBackup } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
-import { colors, fontSizes } from "../src/GlobalStyles";
+import { activeOpacity, colors, fontSizes } from "../src/GlobalStyles";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
 import { Vector2D } from "../types/General";
 import { ContextMenuDetails, ContextMenuPosition } from "../types/ContextMenu";
@@ -35,6 +35,7 @@ import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import { Event } from "../types/store-current";
+import SafeAreaView from "../components/SafeAreaView";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -276,7 +277,7 @@ export default function MainScreen() {
 
     function returnToTodayButton(variation: 'above' | 'beneath') {
         return (
-            <TouchableOpacity style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]} onPress={scrollToToday}>
+            <TouchableOpacity activeOpacity={activeOpacity} style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]} onPress={scrollToToday}>
                 <Text style={styles.returnToTodayText}>Today</Text>
                 <Icon name={variation === 'above' ? "arrow-upward" : "arrow-downward"} size={20} style={styles.returnToTodayIcon} />
             </TouchableOpacity>
@@ -319,7 +320,7 @@ export default function MainScreen() {
         }
 
         return (
-            <TouchableOpacity style={styles.addButton} onPress={onPress}>
+            <TouchableOpacity activeOpacity={activeOpacity} style={styles.addButton} onPress={onPress}>
                 <Icon name="add" color={'white'} size={40} />
             </TouchableOpacity>
         );
@@ -345,6 +346,7 @@ export default function MainScreen() {
 
         return (
             <TouchableOpacity
+                activeOpacity={activeOpacity}
                 style={[styles.multiselectButton, { backgroundColor: backgroundColor || '#888', opacity: disabled ? 0.5 : 1 }]}
                 onPress={onPress}
                 disabled={disabled}
@@ -387,6 +389,22 @@ export default function MainScreen() {
         );
     }
 
+    function onEventSubmitted(params: OnEventInputSubmitParams) {
+        if (params.mode === 'create') {
+            createEvent(dispatch, params.eventDetails, params.eventDetails.dueDate || DateYMDHelpers.today());
+        }
+        else {
+            dispatch(eventActions.edit({
+                eventID: params.editedEventID,
+                newDetails: params.event.details
+            }));
+            dispatch(eventActions.setComplete({
+                eventID: params.editedEventID,
+                complete: params.event.completed
+            }));
+        }
+    }
+
     function scrollToToday() {
         const todayIndex = visibleDays_closureSafeRef.current.findIndex(item => DateYMDHelpers.isToday(item));
         
@@ -421,18 +439,10 @@ export default function MainScreen() {
                     />
                 </ContextMenu>
             </VETContainer>
-            {overlayButtons()}
-            <EventInput ref={eventInputRef} onSubmit={(mode, eventID, details, repeatSettings) => {
-                if (mode === 'create') {
-                    createEvent(dispatch, details, details.dueDate || DateYMDHelpers.today());
-                }
-                else {
-                    dispatch(eventActions.edit({
-                        eventID,
-                        newDetails: details
-                    }));
-                }
-            }} />
+            <SafeAreaView pointerEvents='box-none'>
+                {overlayButtons()}
+            </SafeAreaView>
+            <EventInput ref={eventInputRef} onSubmit={onEventSubmitted} />
             <CategoryPicker ref={multiselectCategoryPickerRef} onSelect={onCategorySelectedDuringMultiselect} />
         </View>
     );

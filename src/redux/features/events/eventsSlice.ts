@@ -41,6 +41,11 @@ export const eventsSlice = createSlice({
             
             state.current[eventID].completed = !state.current[eventID].completed;
         },
+        setComplete(state, action: PayloadAction<{eventID: string, complete: boolean}>) {
+            const { eventID, complete } = action.payload;
+
+            state.current[eventID].completed = complete;
+        },
         removeCategoryAndBackup(state, action: PayloadAction<{ categoryID: string }>) {
             state.backup = deepCopyEvents(state.current);
             

@@ -19,7 +19,7 @@ import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
 import { useAppDispatch } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
-import { categoryColorPalette, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
+import { activeOpacity, categoryColorPalette, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 import { focusTextInput } from '../src/GlobalHelpers';
 
 export type CategoryInputRef = {
@@ -127,8 +127,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 <TextInputWithClearButton
                     ref={categoryNameInputRef}
                     value={nameInput}
-                    textInputStyle={styles.inputText}
-                    containerStyle={{borderRadius: 1, flex: 1}}
+                    style={styles.textInput}
                     selectTextOnFocus
                     autoFocus
                     onChangeText={newText => setNameInput(newText)}
@@ -142,6 +141,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                         renderItem={({ item }) => {
                             return (
                                 <TouchableOpacity
+                                    activeOpacity={activeOpacity}
                                     style={[styles.colorButton, {
                                         backgroundColor: item,
                                         borderWidth: item == selectedColor ? 3 : 0,
@@ -178,7 +178,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: colors.text,
     },
-    inputText: {
+    textInput: {
+        flex: 1,
         padding: 0,
         fontSize: fontSizes.p,
         color: colors.text,

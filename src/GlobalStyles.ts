@@ -37,7 +37,7 @@ const darkTheme: ColorScheme = {
     l4: '#505050',
     dimText: '#A0A0A0',
     text: 'white',
-    fieldText: '#FFFFFF40',
+    fieldText: '#FFFFFF80',
     fieldBackground: '#FFFFFF10'
 }
 
@@ -49,7 +49,7 @@ const lightTheme: ColorScheme = {
     l4: '#ffffff',
     dimText: '#808080',
     text: 'black',
-    fieldText: '#00000040',
+    fieldText: '#FFFFFF80',
     fieldBackground: '#00000010'
 }
 
@@ -88,11 +88,12 @@ export const globalStyles = StyleSheet.create({
     },
     numberInput: {
         fontSize: fontSizes.p,
-        backgroundColor: '#8888',
-        padding: 5,
-        minWidth: 30,
+        backgroundColor: '#FFFFFF20',
+        padding: 0,
+        //minWidth: 30,
         textAlign: 'center',
         color: colors.text,
+        borderRadius: 5,
     },
     dropShadow: {
         shadowRadius: 10,
@@ -106,3 +107,11 @@ export const globalStyles = StyleSheet.create({
         alignItems: 'center',
     },
 });
+
+/**
+ * The opacity of a TouchableOpacity when pressed.
+ * 
+ * This should be applied to every TouchableOpaclty
+ * component in the app.
+ */
+export const activeOpacity = 0.5;

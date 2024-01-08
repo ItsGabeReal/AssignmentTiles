@@ -52,6 +52,7 @@ const NumberInput = forwardRef<TextInput, NumberInputProps>((props, ref) => {
         if (!isNaN(numericValue)) return numericValue;
     }
 
+    // Get a valid default value given defaultValue, value, and minimumValue
     function getDefaultValue() {
         let output = 0;
 
@@ -68,36 +69,43 @@ const NumberInput = forwardRef<TextInput, NumberInputProps>((props, ref) => {
         return output.toString();
     }
 
-    function getOutputValue(value: number) {
+    function clampValue(value: number) {
         if (minimimValue !== undefined && value < minimimValue) return minimimValue;
         else if (maximumValue !== undefined && value > maximumValue) return maximumValue;
         else return value;
+    }
+
+    // Decide wether or not to accept the input string and call onChangeNumber
+    function onChangeText(newText: string) {
+        if (newText.length === 0) setTextInputValue(newText); // Allow the text box to be empty
+        else if (newText === '-') setTextInputValue(newText); // Don't delete negative sign if it's the only thing in the box
+        else { // Otherwise, don't save the newText if a non-number was typed
+            const numericValue = stringToInt(newText);
+
+            if (numericValue !== undefined) {
+                setTextInputValue(numericValue.toString());
+                onChangeNumber?.(clampValue(numericValue));
+            }
+        }
+    }
+
+    // Make sure a valid value is left in the number input field when deselected
+    function _onBlur(e: NativeSyntheticEvent<TextInputFocusEventData>) {
+        const numericValue = stringToInt(textInputValue);
+        if (numericValue !== undefined) {
+            setTextInputValue(clampValue(numericValue).toString());
+        }
+        else setTextInputValue(getDefaultValue());
+
+        onBlur?.(e);
     }
 
     return (
         <TextInput
             ref={ref}
             value={textInputValue}
-            onChangeText={value => {
-                if (value.length === 0) setTextInputValue(value); // Allow the text box to be empty
-                else if (value === '-') setTextInputValue(value); // Don't delete negative sign if it's the only thing in the box
-                else { // Otherwise, don't save the value if a non-number was typed
-                    const numericValue = stringToInt(value);
-                    if (numericValue !== undefined) {
-                        setTextInputValue(numericValue.toString());
-                        onChangeNumber?.(getOutputValue(numericValue));
-                    }
-                }
-            }}
-            onBlur={(e: NativeSyntheticEvent<TextInputFocusEventData>) => { // Make sure text input is set to a valid value on blur
-                const numericValue = stringToInt(textInputValue);
-                if (numericValue !== undefined) {
-                    setTextInputValue(getOutputValue(numericValue).toString());
-                }
-                else setTextInputValue(getDefaultValue());
-
-                onBlur?.(e);
-            }}
+            onChangeText={onChangeText}
+            onBlur={_onBlur}
             inputMode='numeric'
             selectTextOnFocus
             {...otherProps}
