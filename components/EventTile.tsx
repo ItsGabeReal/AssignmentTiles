@@ -12,7 +12,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
 import { nullEvent } from '../src/EventHelpers';
 import { fontSizes } from '../src/GlobalStyles';
-import { darkenColor, lightenColor } from '../src/GlobalHelpers';
+import { mixColor } from '../src/ColorHelpers';
 
 type EventTileProps = {
     /**
@@ -50,7 +50,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         }
 
         if (event.completed) {
-            outputColorValue = darkenColor(lightenColor(outputColorValue, 0.2), 0.2);
+            outputColorValue = mixColor(outputColorValue, '#808080', 0.5);
         }
 
         return outputColorValue;
@@ -103,7 +103,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     return (
         <>
             <View style={styles.mainContainer}>
-                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.5 : 1 }]}>
+                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
                     <Text style={styles.eventNameText}>{event.details.name}</Text>
                     {event.details.dueDate && props.plannedDate ?
                         <Text style={[styles.dueDateText, getDueDateStyle()]}>{getDueDateText()}</Text>

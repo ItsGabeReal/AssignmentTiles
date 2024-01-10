@@ -25,8 +25,6 @@ export type ColorScheme = {
     todayL2: ColorValue;
     dimText: ColorValue;
     text: ColorValue;
-    fieldText: ColorValue;
-    fieldBackground: ColorValue;
 }
 
 const darkTheme: ColorScheme = {
@@ -36,9 +34,7 @@ const darkTheme: ColorScheme = {
     l3: '#404040',
     l4: '#505050',
     dimText: '#A0A0A0',
-    text: 'white',
-    fieldText: '#FFFFFF80',
-    fieldBackground: '#FFFFFF18'
+    text: 'white'
 }
 
 const lightTheme: ColorScheme = {
@@ -48,9 +44,7 @@ const lightTheme: ColorScheme = {
     l3: '#f0f0f0',
     l4: '#ffffff',
     dimText: '#808080',
-    text: 'black',
-    fieldText: '#FFFFFF80',
-    fieldBackground: '#00000018'
+    text: 'black'
 }
 
 export const colors = colorTheme === 'light' ? lightTheme : darkTheme;
@@ -78,12 +72,12 @@ export const globalStyles = StyleSheet.create({
     },
     fieldDescription: {
         fontSize: fontSizes.h3,
-        fontWeight: 'bold',
-        color: colors.fieldText,
+        //fontWeight: 'bold',
+        color: '#FFFFFF80',
     },
     parameterContainer: {
         padding: 10,
-        backgroundColor: colors.fieldBackground,
+        backgroundColor: '#20202030',
         borderRadius: 10
     },
     numberInput: {

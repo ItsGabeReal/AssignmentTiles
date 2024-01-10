@@ -47,12 +47,12 @@ const styles = StyleSheet.create({
     fieldTitle: {
         fontSize: fontSizes.h3,
         fontWeight: 'bold',
-        color: colors.fieldText,
+        color: '#FFFFFF80',
         marginRight: 10
     },
     parameterContainer: {
         padding: 10,
-        backgroundColor: colors.fieldBackground,
+        backgroundColor: '#20202020',
         borderRadius: 10
     },
 });
