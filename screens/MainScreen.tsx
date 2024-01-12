@@ -15,7 +15,6 @@ import {
 import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
 import EventInput,  { EventInputRef, OnEventInputSubmitParams } from "../components/EventInput";
 import DayList, { TodayRowVisibility } from "../components/DayList";
-import CategoryPicker, { CategoryPickerRef } from "../components/CategoryPicker";
 import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";
 import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
@@ -63,7 +62,6 @@ export default function MainScreen() {
     const eventInputRef = useRef<EventInputRef | null>(null);
     const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
-    const multiselectCategoryPickerRef = useRef<CategoryPickerRef | null>(null);
     const undoPopupRef = useRef<UndoPopupRef | null>(null);
 
     // Refs related to autoscroll while dragging event
@@ -262,7 +260,7 @@ export default function MainScreen() {
         return (
             <View style={styles.multiselectMainContainer}>
                 {multiselectButton('Delete', 'delete', onMultiselectDeletePressed, !anyTilesSelected, '#d00')}
-                {multiselectButton('Set Category', 'category', () => multiselectCategoryPickerRef.current?.open(), !anyTilesSelected)}
+                {/*multiselectButton('Set Category', 'category', () => multiselectCategoryPickerRef.current?.open(), !anyTilesSelected)*/}
                 {multiselectButton('Cancel', 'close', exitMultiselectMode)}
             </View>
         );
@@ -367,7 +365,6 @@ export default function MainScreen() {
                 {overlayButtons()}
             </SafeAreaView>
             <EventInput ref={eventInputRef} onSubmit={onEventSubmitted} />
-            <CategoryPicker ref={multiselectCategoryPickerRef} onSelect={onCategorySelectedDuringMultiselect} />
         </View>
     );
 }

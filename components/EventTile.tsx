@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
         height: VisualSettings.EventTile.mainContainer.height,
         marginRight: VisualSettings.EventTile.mainContainer.marginRight,
         marginBottom: VisualSettings.EventTile.mainContainer.marginBottom,
-        borderRadius: 10,
+        borderRadius: 13,
         overflow: 'hidden'
     },
     tileBackground: {

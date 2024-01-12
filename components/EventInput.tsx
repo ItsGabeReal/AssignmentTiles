@@ -8,22 +8,22 @@ import {
     View,
     Text,
     TextInput,
-    Switch,
     Pressable,
     ColorValue,
-    TouchableOpacity
+    TouchableOpacity,
+    ScrollView
 } from 'react-native';
 import CompactDatePicker from './core/CompactDatePicker';
 import NumberInput from './core/NumberInput';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
 import ViewWithBackHandler from './core/ViewWithBackHandler';
-import CategoryPicker, { CategoryPickerRef } from './CategoryPicker';
+import CategoryListItem from './CategoryListItem';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { activeOpacity, colorTheme, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 import { focusTextInput } from '../src/GlobalHelpers';
 import { generalStateActions } from '../src/redux/features/general/generalSlice';
-import { EventDetails, Event } from '../types/store-current';
+import { EventDetails } from '../types/store-current';
 import InputField from './InputField';
 import BlurView from './core/BlurView';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -31,6 +31,8 @@ import { deleteEventAndBackup } from '../src/EventHelpers';
 import HideableView from './core/HideableView';
 import Checkbox from './core/Checkbox';
 import { lightenColor, mixColor } from '../src/ColorHelpers';
+import DropdownMenu, { DropdownMenuRef } from './core/DropdownMenu';
+import CategoryPickerDropdown from './CategoryPickerDropdown';
 
 export type RepeatSettings = {
     /**
@@ -103,7 +105,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
 
     // Component references
     const eventNameInputRef = useRef<TextInput>(null);
-    const categoryPickerRef = useRef<CategoryPickerRef | null>(null);
+    const dropdownMenuRef = useRef<DropdownMenuRef | null>(null);
 
 
     useImperativeHandle(ref, () => ({
@@ -227,6 +229,11 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         dispatch(generalStateActions.updateMemorizedEventInput({ name: details.name, categoryID: details.categoryID, deadlineEnabled: deadlineSwitchInput }));
     }
 
+    function onCategorySelected(categoryID: string | null) {
+        setCategoryInput(categoryID);
+        dropdownMenuRef.current?.close();
+    }
+
     // Handle edge cases regarding category deletion
     function handleCategoryDeleted(deletedCategoryID: string) {
         if (deletedCategoryID === categoryInput) {
@@ -273,7 +280,6 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                 onStartShouldSetResponder={() => true} // Absorb touch events. This prevents event input from closing when box is tapped
                 style={StyleSheet.absoluteFill}
             >
-                <CategoryPicker ref={categoryPickerRef} onSelect={categoryID => setCategoryInput(categoryID)} onDelete={handleCategoryDeleted} />
                 <Pressable onPress={submitAndClose} style={styles.pressOutContainer}>
                     <View style={styles.fieldsAndButtonsContainer}>
                         <BlurView
@@ -295,8 +301,15 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                     maxLength={50}
                                 />
                             </InputField>
-                            <InputField title='Category' marginBottom={20} width={215} onPress={() => categoryPickerRef.current?.open()}>
-                                <Text style={[styles.categoryText, { color: lightenColor(getCategoryColor(), 0.25) }]}>{getCategoryName()}</Text>
+                            <InputField title='Category' marginBottom={20} width={215}>
+                                <DropdownMenu
+                                    ref={dropdownMenuRef}
+                                    dropIconColor={'white'}
+                                    content={<CategoryPickerDropdown onCategorySelected={onCategorySelected} onCategoryDeleted={handleCategoryDeleted}/>}
+                                    contentContainerStyle={{backgroundColor: '#000000E0', borderRadius: 10, maxHeight: 250, overflow: 'hidden'}}
+                                >
+                                    <Text style={[styles.categoryText, { color: lightenColor(getCategoryColor(), 0.25) }]}>{getCategoryName()}</Text>
+                                </DropdownMenu>
                             </InputField>
                             <InputField title='Deadline' marginBottom={20} width={215} headerChildren={<Checkbox value={deadlineSwitchInput} onChange={setDeadlineSwitchInput} color='white' />}>
                                 <HideableView hidden={!deadlineSwitchInput} style={globalStyles.flexRow}>
@@ -304,7 +317,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                     <CompactDatePicker value={dueDateInput} onChange={setDueDateInput} themeVariant='dark' />
                                 </HideableView>
                             </InputField>
-                            { mode.current === 'create' ?
+                            {/*mode.current === 'create' ?
                                 <InputField title='Repeat' marginBottom={20} width={215} headerChildren={<Checkbox value={repeatSwitchInput} onChange={setRepeatSwitchInput} color='white' />} >
                                     <HideableView hidden={!repeatSwitchInput}>
                                         <View style={[globalStyles.flexRow, { marginBottom: 5 }]}>
@@ -333,7 +346,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                 </InputField>
                             :
                                 null
-                            }
+                            */}
                             <InputField title='Notes' width={250}>
                                 <TextInput value={notesInput} onChangeText={setNotesInput} placeholder='Add notes here...' placeholderTextColor='#ffffff40' style={{ color: 'white', padding: 0, maxHeight: 100 }} multiline maxLength={500} />
                             </InputField>
@@ -353,17 +366,16 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                     </BlurView>
                                 </TouchableOpacity>
                             </>
-                            
                         :
                             <View style={[globalStyles.flexRow, { marginTop: 12 }]}>
                                 <TouchableOpacity activeOpacity={activeOpacity} onPress={onSelected}>
-                                    <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#0040FF60', padding: 12, ...globalStyles.flexRow }}>
+                                    <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#0040FF80', padding: 12, ...globalStyles.flexRow }}>
                                         <Icon name='check-box' color='#FFFFFFE0' size={24} />
                                         <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFE0', marginLeft: 8 }}>Select</Text>
                                     </BlurView>
                                 </TouchableOpacity>
                                 <TouchableOpacity activeOpacity={activeOpacity} onPress={onDeleted} style={{ marginLeft: 12 }}>
-                                    <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#FF000060', padding: 12, ...globalStyles.flexRow }}>
+                                    <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#FF000080', padding: 12, ...globalStyles.flexRow }}>
                                         <Icon name='delete' color='#FFFFFFE0' size={24} />
                                         <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFE0', marginLeft: 8 }}>Delete</Text>
                                     </BlurView>

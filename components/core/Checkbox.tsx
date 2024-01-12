@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import {
     ColorValue,
+    StyleProp,
     TouchableOpacity,
+    ViewStyle,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -27,6 +29,8 @@ type CheckboxProps = {
      * The visual appearance of the checkbox. Default is 'square'.
      */
     visualStyle?: 'square' | 'round';
+
+    style?: StyleProp<ViewStyle>;
 
     size?: number;
 
@@ -68,7 +72,7 @@ const Checkbox: React.FC<CheckboxProps> = (props) => {
     }
 
     return (
-        <TouchableOpacity onPress={onPress} hitSlop={hitSlop}>
+        <TouchableOpacity style={props.style} onPress={onPress} hitSlop={hitSlop}>
             <Icon name={getIconName()} size={size} color={props.color}/>
         </TouchableOpacity>
     );

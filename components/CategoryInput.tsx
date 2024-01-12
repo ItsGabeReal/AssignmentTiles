@@ -47,7 +47,7 @@ type CategoryInputProps = {
     /**
      * If mode is set to 'edit', the category under this id will be edited.
      */
-    editedCategoryID?: string;
+    editedCategoryID?: string | null;
 
     /**
      * Called when a new category is created.

@@ -56,7 +56,14 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
             >
                 <EventTile {...props} />
                 <View style={{position: 'absolute', left: 0, top: 0}}>
-                    <Checkbox value={eventCompleted} visualStyle='round' color={eventCompleted ? '#00FF00' : '#FFFFFF80'} size={26} onChange={() => {dispatch(eventActions.toggleComplete({eventID: props.eventID}))}}/>
+                    <Checkbox
+                        value={eventCompleted}
+                        visualStyle='round'
+                        color={eventCompleted ? '#00FF00' : '#FFFFFF80'}
+                        size={24}
+                        style={{marginLeft: 2, marginTop: 2}}
+                        onChange={() => {dispatch(eventActions.toggleComplete({eventID: props.eventID}))}}
+                    />
                 </View>
             </TouchableOpacity>
         </View>
