@@ -8,6 +8,7 @@
  *      4. Create a migration function in migration.ts to translate data to the new version
  */
 
+import { RGBAColor } from "../src/ColorHelpers";
 import DateYMD from "../src/DateYMD";
 
 
@@ -16,7 +17,7 @@ import DateYMD from "../src/DateYMD";
 // ----- CATEGORIES -----
 export type Category = {
     name: string;
-    color: ColorValue;
+    color: RGBAColor;
 }
 
 export type CategoriesState = {

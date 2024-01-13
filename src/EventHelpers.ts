@@ -11,8 +11,7 @@ export function createRepeatedEvents(dispatch: AppDispatch, details: EventDetail
     for (let i = 0; i < repeatSettings.recurrences; i++) {
         if (skipFirstEvent && i === 0) continue; // Don't create the first event. Useful when event is edited.
 
-        let dueDate = startDate;
-        if (repeatSettings.valueType === 'days') dueDate = DateYMDHelpers.addDays(startDate, i * repeatSettings.value);
+        let dueDate = DateYMDHelpers.addDays(startDate, i * repeatSettings.interval);
 
         const repeatedEventDetails: EventDetails = {
             ...details,

@@ -18,21 +18,15 @@ import DayList, { TodayRowVisibility } from "../components/DayList";
 import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";
 import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
-import {
-    getEventTilePosition,
-    getDayRowScreenYOffset,
-} from "../src/VisibleDaysHelpers";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
-import { createEvent, deleteEventAndBackup, deleteMultipleEventsAndBackup, restoreDeletedEventsFromBackup } from "../src/EventHelpers";
+import { createEvent, deleteMultipleEventsAndBackup, restoreDeletedEventsFromBackup } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
 import { activeOpacity, colors, fontSizes } from "../src/GlobalStyles";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
 import { Vector2D } from "../types/General";
 import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
 import { EventRegister } from "react-native-event-listeners";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
-import { Event } from "../types/store-current";
 import SafeAreaView from "../components/core/SafeAreaView";
 import { vibrate } from "../src/GlobalHelpers";
 

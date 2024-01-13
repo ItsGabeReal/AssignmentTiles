@@ -3,7 +3,6 @@ import {
     StyleSheet,
     View,
     Text,
-    ColorValue,
     TextStyle,
 } from "react-native";
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
@@ -12,7 +11,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
 import { nullEvent } from '../src/EventHelpers';
 import { fontSizes } from '../src/GlobalStyles';
-import { mixColor } from '../src/ColorHelpers';
+import { RGBAToColorValue, gray, mixColor } from '../src/ColorHelpers';
 
 type EventTileProps = {
     /**
@@ -43,17 +42,17 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     }
 
     function getBackgroundColor() {
-        let outputColorValue: ColorValue = '#999';
+        let output = gray;
 
         if (event.details.categoryID !== null) {
-            outputColorValue = categories[event.details.categoryID].color;
+            output = categories[event.details.categoryID].color;
         }
-
+        
         if (event.completed) {
-            outputColorValue = mixColor(outputColorValue, '#808080', 0.5);
+            output = mixColor(output, gray, 0.5);
         }
-
-        return outputColorValue;
+        
+        return RGBAToColorValue(output);
     }
 
     function getDueDateText() {

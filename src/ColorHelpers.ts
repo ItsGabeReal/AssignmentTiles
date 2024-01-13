@@ -1,63 +1,24 @@
 import { ColorValue } from "react-native";
-import { clamp } from "./GlobalHelpers";
-
-type RGBA = {
-    red: number,
-    green: number,
-    blue: number,
-    alpha: number
-}
 
 /**
- * Darkens the color values of each color (r, g, and b).
- * 
- * @param {ColorValue} color Color input
- * @param {number} amount Amount from 1-0 to darken color by. 0 keeps the color the same, 1 makes it black.
- * @return {string} Hex value of modified color
- * 
- * @example
- * // Darken color by 25%
- * darkenColor(color, 0.25);
+ * WARNING: This type is a dependency for version 2 of the
+ * redux store. Do what you will with that information.
  */
-export function darkenColor(color: ColorValue, amount: number): ColorValue {
-    const rgba = colorToRGBA(color);
-
-    rgba.red = clamp(Math.round(rgba.red * (1 - amount)), 0, 255);
-    rgba.green = clamp(Math.round(rgba.green * (1 - amount)), 0, 255);
-    rgba.blue = clamp(Math.round(rgba.blue * (1 - amount)), 0, 255);
-    
-    return RGBAToHex(rgba);
-}
-
-/**
- * Darkens the color values of each color (r, g, and b).
- * 
- * @param {ColorValue} color Color input
- * @param {number} amount Amount from 1-0 to lighten color by. 0 keeps the color the same, 1 makes it white.
- * @return {string} Hex value of modified color
- * 
- * @example
- * // Lighten color by 25%
- * lightenColor(color, 0.25);
- */
-export function lightenColor(color: ColorValue, amount: number): ColorValue {
-    const rgba = colorToRGBA(color);
-
-    rgba.red = clamp(Math.round(rgba.red + (255 - rgba.red) * amount), 0, 255);
-    rgba.green = clamp(Math.round(rgba.green + (255 - rgba.green) * amount), 0, 255);
-    rgba.blue = clamp(Math.round(rgba.blue + (255 - rgba.blue) * amount), 0, 255);
-    
-    return RGBAToHex(rgba);
+export type RGBAColor = {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
 }
 
 /**
  * Returns a mix between two colors.
  * 
- * @param {ColorValue} colorA First color
- * @param {ColorValue} colorB Second color
+ * @param {RGBAColor} colorA First color
+ * @param {RGBAColor} colorB Second color
  * @param {number} blend The strength of colorB from 1-0. Default is 0.5.
  */
-export function mixColor(colorA: ColorValue, colorB: ColorValue, blend: number = 0.5): ColorValue {
+export function mixColor(colorA: RGBAColor, colorB: RGBAColor, blend: number = 0.5): RGBAColor {
     // Easy return cases
     if (blend === 0)
         return colorA;
@@ -65,70 +26,113 @@ export function mixColor(colorA: ColorValue, colorB: ColorValue, blend: number =
     if (blend === 1)
         return colorB;
 
-    
-    const rgbaA = colorToRGBA(colorA);
-    const rgbaB = colorToRGBA(colorB);
+    const rgbaA = colorA;
+    const rgbaB = colorB;
 
-    const combinedRGBA: RGBA = {
-        red: rgbaA.red + Math.round((rgbaB.red - rgbaA.red) * blend),
-        green: rgbaA.green + Math.round((rgbaB.green - rgbaA.green) * blend),
-        blue: rgbaA.blue + Math.round((rgbaB.blue - rgbaA.blue) * blend),
-        alpha: rgbaA.alpha + Math.round((rgbaB.alpha - rgbaA.alpha) * blend)
+    const combinedRGBA: RGBAColor = {
+        r: rgbaA.r + Math.round((rgbaB.r - rgbaA.r) * blend),
+        g: rgbaA.g + Math.round((rgbaB.g - rgbaA.g) * blend),
+        b: rgbaA.b + Math.round((rgbaB.b - rgbaA.b) * blend),
+        a: rgbaA.a + Math.round((rgbaB.a - rgbaA.a) * blend)
     }
     
-    return RGBAToHex(combinedRGBA);
+    return combinedRGBA;
 }
 
-function colorToRGBA(color: ColorValue) {
-    const colorStr = color.toString();
-
-    const output: RGBA = {
-        red: 0,
-        green: 0,
-        blue: 0,
-        alpha: 0
+export function RGBAToColorValue(rgba: RGBAColor): ColorValue {
+    if (rgba.r === undefined || rgba.g === undefined || rgba.b === undefined || rgba.a === undefined) {
+        console.warn(`ColorHelpers -> RGBAToColorValue: RGBA values are undefined.`);
+        return 'pink';
     }
 
-    for (let i = 1; i < colorStr.length; i++) {
-        const char = colorStr.at(i);
+    if (rgba.a === 255)
+        return `rgb(${rgba.r || 0}, ${rgba.g || 0}, ${rgba.b || 0})`;
+    else
+        return `rgba(${rgba.r || 0}, ${rgba.g || 0}, ${rgba.b || 0}, ${(rgba.a || 255)/255})`;
+}
+
+/**
+ * WARNING: This function is used to convert old category colors
+ * to RGBA objects. Major changes may break migration from V1 to V2.
+ */
+export function hexToRGBA(hexStr: string) {
+    const output: RGBAColor = {
+        r: 0,
+        g: 0,
+        b: 0,
+        a: 0
+    }
+
+    // Ensure this is a hex string
+    if (hexStr.at(0) !== '#') {
+        console.warn('ColorHelpers -> hexToRGBA: hexStr is not a hex string.');
+        return output;
+    }
+
+    // Convert hex string to rgba values
+    for (let i = 1; i < hexStr.length; i++) {
+        const char = hexStr.at(i);
         if (!char) {
-            console.error(`GlobalHelpers -> colorToRGBA: Error while processing hex code. Character at position ${i} is undefined.`);
+            console.error(`ColorHelpers -> colorToRGBA: Error while processing hex code. Character at position ${i} is undefined.`);
             break;
         }
 
         const value = hexCharToNumber(char);
 
-        switch (i) {
-            case 1:
-                output.red += value * 16;
-                break;
-            case 2:
-                output.red += value;
-                break;
-            case 3:
-                output.green += value * 16;
-                break;
-            case 4:
-                output.green += value;
-                break;
-            case 5:
-                output.blue += value * 16;
-                break;
-            case 6:
-                output.blue += value;
-                break;
-            case 7:
-                output.alpha += value * 16;
-                break;
-            case 8:
-                output.alpha += value;
-                break;
+        // Handle different hex lengths
+        if (hexStr.length === 7 || hexStr.length === 9) {
+            switch (i) {
+                case 1:
+                    output.r += value * 16;
+                    break;
+                case 2:
+                    output.r += value;
+                    break;
+                case 3:
+                    output.g += value * 16;
+                    break;
+                case 4:
+                    output.g += value;
+                    break;
+                case 5:
+                    output.b += value * 16;
+                    break;
+                case 6:
+                    output.b += value;
+                    break;
+                case 7:
+                    output.a += value * 16;
+                    break;
+                case 8:
+                    output.a += value;
+                    break;
+            }
+        }
+        else if (hexStr.length === 4 || hexStr.length === 5) {
+            switch (i) {
+                case 1:
+                    output.r += value * 17;
+                    break;
+                case 2:
+                    output.g += value * 17;
+                    break;
+                case 3:
+                    output.b += value * 17;
+                    break;
+                case 4:
+                    output.a += value * 17;
+                    break;
+            }
+        }
+        else {
+            console.warn('ColorHelpers -> hexToRGBA: Length of hex code unrecognized.');
+            break;
         }
     }
 
     // If no alpha is provided, assume alpha is maxed
-    if (colorStr.length === 7) {
-        output.alpha = 255;
+    if (hexStr.length === 7 || hexStr.length === 4) {
+        output.a = 255;
     }
 
     return output;
@@ -169,62 +173,11 @@ function hexCharToNumber(char: string) {
         case 'F':
             return 15;
         default:
-            console.error('GlobalHelpers -> hexChatToNumber: Could not convert character. Character not recognized.');
+            console.error('ColorHelpers -> hexCharToNumber: Could not convert character. Character not recognized:', char);
             return 0;
     }
 }
 
-function RGBAToHex(rgba: RGBA) {
-    let output = '#';
-    let sixteensPlace;
-    let onesPlace;
-    
-    // Red
-    sixteensPlace = Math.floor(rgba.red / 16);
-    onesPlace = rgba.red - 16*sixteensPlace;
-    output = output + numberToHexChar(sixteensPlace) + numberToHexChar(onesPlace);
-    
-    // Green
-    sixteensPlace = Math.floor(rgba.green / 16);
-    onesPlace = rgba.green - 16*sixteensPlace;
-    output = output + numberToHexChar(sixteensPlace) + numberToHexChar(onesPlace);
-    
-    // Blue
-    sixteensPlace = Math.floor(rgba.blue / 16);
-    onesPlace = rgba.blue - 16*sixteensPlace;
-    output = output + numberToHexChar(sixteensPlace) + numberToHexChar(onesPlace);
-    
-    // Alpha (ignore if maxed)
-    if (rgba.alpha !== 255) {
-        sixteensPlace = Math.floor(rgba.alpha / 16);
-        onesPlace = rgba.alpha - 16*sixteensPlace;
-        output = output + numberToHexChar(sixteensPlace) + numberToHexChar(onesPlace);
-    }
-
-    return output;
-}
-
-function numberToHexChar(number: number) {
-    if (number >= 0 && number < 10) {
-        return number.toString();
-    }
-    else {
-        switch (number) {
-            case 10:
-                return 'A';
-            case 11:
-                return 'B';
-            case 12:
-                return 'C';
-            case 13:
-                return 'D';
-            case 14:
-                return 'E';
-            case 15:
-                return 'F';
-            default:
-                console.error(`GlobalHelpers -> numberToHexChar: Could not convert ${number} to hex character.`);
-                return '0';
-        }
-    }
-}
+export const white: RGBAColor = { r: 255, g: 255, b: 255, a: 255 };
+export const black: RGBAColor = { r: 0,   g: 0,   b: 0,   a: 255 };
+export const gray: RGBAColor =  { r: 128, g: 128, b: 128, a: 255 };

@@ -4,6 +4,7 @@ import { RootState as RootStateV1 } from "../../types/store-v1";
 import { RootState as RootStateV2, Category as CategoryV2, Event as EventV2, RowPlan as RowPlanV2 } from "../../types/store-v2";
 import { latestStoreVersion } from "./store";
 import { DateYMDHelpers } from "../DateYMD";
+import { hexToRGBA } from "../ColorHelpers";
 
 /**
  * These methods should convert FROM the version in the key TO the next version.
@@ -63,7 +64,7 @@ const migrations = {
             // Create entry
             newCategories[newID] = {
                 name: oldCategories[i].name,
-                color: oldCategories[i].color
+                color: hexToRGBA(oldCategories[i].color.toString()) // Convert color hex codes to RGBA objects
             };
         }
 
@@ -75,7 +76,6 @@ const migrations = {
                 details: oldEvents[i].details,
                 completed: oldEvents[i].completed
             };
-
         }
 
         // Convert row plans

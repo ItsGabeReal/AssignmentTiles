@@ -10,21 +10,47 @@ import {
     ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { activeOpacity, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 import { deleteCategoryAndBackup } from '../src/CategoriesHelpers';
+import { RGBAToColorValue, gray } from '../src/ColorHelpers';
+import { Category } from '../types/store-current';
 
 type CategoryPickerDropdownProps = {
-    onCategorySelected?: ((categoryID: string | null) => void);
+    /**
+     * Called when the user selects a category.
+     */
+    onCategorySelected: ((categoryID: string | null) => void);
+
+    /**
+     * Called when the user presses the edit button next to
+     * a category. Should be used to open a category input.
+     * 
+     * It must be this way because we cannot open a category
+     * input form within the CategoryPickerDropdown (the category input
+     * component is confined within the dropdown menu).
+     */
+    onEditCategory: ((catgoryID: string) => void);
+
+    /**
+     * Called when the user presses the create category button.
+     * Should be used to open a category input.
+     * 
+     * It must be this way because we cannot open a category
+     * input form within the CategoryPickerDropdown (the category input
+     * component is confined within the dropdown menu).
+     */
+    onCreateCategory: (() => void);
     
+    /**
+     * Called when the user deletes a category. This should be
+     * used to handle any edge cases releated to category deletion.
+     */
     onCategoryDeleted?: ((categoryID: string) => void);
 }
 
 const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) => {
     const categories = useAppSelector(state => state.categories.current);
-
-    const categoryInputRef = useRef<CategoryInputRef | null>(null);
 
     function createCategoryListItems() {
         const categoryListItems: React.ReactNode[] = [];
@@ -36,6 +62,7 @@ const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) =>
                     categoryID={categoryID}
                     onSelect={props.onCategorySelected}
                     onDeleted={props.onCategoryDeleted}
+                    onEditPressed={() => props.onEditCategory(categoryID)}
                 />
             )
         }
@@ -46,17 +73,21 @@ const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) =>
     return (
         <>
             <ScrollView>
-                <CategoryListItem key={''} categoryID={null} hideCategoryActions onSelect={props.onCategorySelected} />
+                <CategoryListItem
+                    key={''}
+                    categoryID={null}
+                    hideCategoryActions
+                    onSelect={props.onCategorySelected}
+                />
                 {createCategoryListItems()}
             </ScrollView>
             <TouchableOpacity
                 style={[globalStyles.flexRow, { backgroundColor: '#40404080', padding: 5 }]}
-                onPress={() => categoryInputRef.current?.open()}
+                onPress={props.onCreateCategory}
             >
                 <Icon name='add' />
                 <Text style={{ color: colors.text, fontSize: fontSizes.p }}>Create</Text>
             </TouchableOpacity>
-            <CategoryInput ref={categoryInputRef} mode='create' onCategoryCreated={props.onCategorySelected}/>
         </>
     );
 }
@@ -75,12 +106,17 @@ type CategoryListItemProps = {
     /**
      * Called when this category is selected.
      */
-    onSelect?: ((categoryID: string | null) => void);
+    onSelect: ((categoryID: string | null) => void);
 
     /**
      * Called if this category is deleted.
      */
     onDeleted?: ((categoryID: string) => void);
+
+    /**
+     * Called if the user presses the edit button next to the category.
+     */
+    onEditPressed?: (() => void);
 }
 
 const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
@@ -88,14 +124,12 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
         hideCategoryActions = false,
     } = props;
 
-    const category = useAppSelector(state => state.categories.current[props.categoryID || '']) || {
+    const category: Category = useAppSelector(state => state.categories.current[props.categoryID || '']) || {
         name: 'None',
-        color: colors.dimText
+        color: gray
     };
 
     const dispatch = useAppDispatch();
-
-    const categoryInputRef = useRef<CategoryInputRef | null>(null);
 
     function showDeletionConfirmation() {
         Alert.alert('Confirm', 'Are you sure you want to delete this category?', [
@@ -125,15 +159,14 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
 
     return (
         <>
-            <CategoryInput ref={categoryInputRef} mode='edit' editedCategory={category} editedCategoryID={props.categoryID} />
-            <TouchableOpacity activeOpacity={activeOpacity} onPress={() => props.onSelect?.(props.categoryID)} style={styles.categoryListItemContainer}>
-                <Text style={[styles.categoryText, {color: category.color}]}>{category.name}</Text>
+            <TouchableOpacity activeOpacity={activeOpacity} onPress={() => props.onSelect(props.categoryID)} style={styles.categoryListItemContainer}>
+                <Text style={[styles.categoryText, {color: RGBAToColorValue(category.color)}]}>{category.name}</Text>
                 {!hideCategoryActions ?
                     <View style={styles.actionButtonContainer}>
-                        <TouchableOpacity activeOpacity={activeOpacity} onPress={() => categoryInputRef.current?.open()} hitSlop={5}>
+                        <TouchableOpacity activeOpacity={activeOpacity} onPress={props.onEditPressed} hitSlop={5}>
                             <Icon name='edit' color='#DD0' size={20} />
                         </TouchableOpacity>
-                        <TouchableOpacity activeOpacity={activeOpacity} style={styles.deleteButton} onPress={deleteCategory} hitSlop={5}>
+                        <TouchableOpacity activeOpacity={activeOpacity} style={styles.deleteButton} onPress={showDeletionConfirmation} hitSlop={5}>
                             <Icon name='delete' color='#F00000' size={20} />
                         </TouchableOpacity>
                     </View>

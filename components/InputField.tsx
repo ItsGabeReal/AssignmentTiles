@@ -3,7 +3,10 @@ import {
     View,
     Pressable,
     StyleSheet,
-    Text
+    Text,
+    DimensionValue,
+    StyleProp,
+    ViewStyle
 } from 'react-native';
 import { colors, fontSizes } from '../src/GlobalStyles';
 
@@ -16,15 +19,16 @@ type InputFieldProps = {
 
     onPress?: (() => void);
 
-    width?: number;
-
-    marginBottom?: number;
+    /**
+     * Style of entire container.
+     */
+    style?: StyleProp<ViewStyle>;
 };
 
 const InputField: React.FC<InputFieldProps> = (props) => {
     return (
-        <View style={{ marginBottom: props.marginBottom }}>
-            <Pressable style={[styles.parameterContainer, {width: props.width}]} onPress={props.onPress}>
+        <View style={props.style}>
+            <Pressable style={styles.parameterContainer} onPress={props.onPress}>
                 {props.children}
             </Pressable>
             <View style={styles.fieldHeaderContianer}>

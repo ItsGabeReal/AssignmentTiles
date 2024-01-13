@@ -9,6 +9,7 @@
 import React, { useState, forwardRef, useImperativeHandle, useRef, useContext } from 'react';
 import {
     ColorValue,
+    Keyboard,
     StyleProp,
     StyleSheet,
     TouchableOpacity,
@@ -54,6 +55,11 @@ type DropdownMenuProps = {
      * Color of the down-arrow icon.
      */
     dropIconColor?: ColorValue;
+
+    /**
+     * How much hit slop the touchable opacity has.
+     */
+    hitSlop?: number;
 }
 
 const DropdownMenu = forwardRef<DropdownMenuRef, DropdownMenuProps>((props, ref) => {
@@ -75,6 +81,17 @@ const DropdownMenu = forwardRef<DropdownMenuRef, DropdownMenuProps>((props, ref)
     }));
 
     function open() {
+        // If the keyboard is open, dismiss it, wait a moment for the keyboard to go away, then open the dropdown
+        if (Keyboard.isVisible()) {
+            Keyboard.dismiss();
+
+            setTimeout(dispatchDropdownMenu, 100);
+        }
+        else
+            dispatchDropdownMenu();
+    }
+
+    function dispatchDropdownMenu() {
         /**
          * Measure and send the dimensions of this component to
          * the dropdown appears on top of this component.
@@ -92,22 +109,8 @@ const DropdownMenu = forwardRef<DropdownMenuRef, DropdownMenuProps>((props, ref)
         });
     }
 
-    function onPress() {
-        touchableOpacityRef.current?.measure((x, y, w, h, pX, pY) => {
-            dropdownContext?.open({
-                geometry: {
-                    screenX: pX,
-                    screenY: pY,
-                    width: w
-                },
-                children: props.content,
-                style: props.contentContainerStyle
-            });
-        });
-    }
-
     return (
-        <TouchableOpacity ref={touchableOpacityRef} style={[styles.flexRow, props.style]} onPress={onPress}>
+        <TouchableOpacity ref={touchableOpacityRef} style={[styles.flexRow, props.style]} onPress={open} hitSlop={props.hitSlop}>
             <View style={styles.fillContainer}>
                 {props.children}
             </View>

@@ -8,16 +8,10 @@ import {
     View,
     Text,
     TextInput,
-    Pressable,
-    ColorValue,
     TouchableOpacity,
-    ScrollView
 } from 'react-native';
 import CompactDatePicker from './core/CompactDatePicker';
-import NumberInput from './core/NumberInput';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
-import ViewWithBackHandler from './core/ViewWithBackHandler';
-import CategoryListItem from './CategoryListItem';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { activeOpacity, colorTheme, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
@@ -30,9 +24,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { deleteEventAndBackup } from '../src/EventHelpers';
 import HideableView from './core/HideableView';
 import Checkbox from './core/Checkbox';
-import { lightenColor, mixColor } from '../src/ColorHelpers';
+import { RGBAColor, RGBAToColorValue, gray, mixColor, white } from '../src/ColorHelpers';
 import DropdownMenu, { DropdownMenuRef } from './core/DropdownMenu';
 import CategoryPickerDropdown from './CategoryPickerDropdown';
+import PressOutView, { PressOutViewRef } from './core/PressOutView';
+import CategoryInput, { CategoryInputRef } from './CategoryInput';
 
 export type RepeatSettings = {
     /**
@@ -85,9 +81,6 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     const memorizedEventInput = useAppSelector(state => state.general.memorizedEventInput);
     const dispatch = useAppDispatch();
 
-    // Opens/closes event input
-    const [enabled, setEnabled] = useState(false);
-
     // Input variables
     const [eventNameInput, setEventNameInput] = useState('');
     const [categoryInput, setCategoryInput] = useState<string | null>(null);
@@ -104,14 +97,16 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     const suggestedDate = useRef<DateYMD>(DateYMDHelpers.today()); // Used to store the day row that was tapped when creating an event
 
     // Component references
+    const pressOutViewRef = useRef<PressOutViewRef | null>(null);
     const eventNameInputRef = useRef<TextInput>(null);
     const dropdownMenuRef = useRef<DropdownMenuRef | null>(null);
+    const categoryInputRef = useRef<CategoryInputRef | null>(null);
 
 
     useImperativeHandle(ref, () => ({
         open(params) {
             // Setup
-            setEnabled(true);
+            pressOutViewRef.current?.open();
             mode.current = params.mode;
             initializeInputs();
 
@@ -163,26 +158,25 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         setTimeout(() => { eventNameInputRef.current?.focus(); }, 100);
     }
 
-    function getCategoryColor(): ColorValue {
-        if (!categoryInput) return colors.dimText;
+    function getCategoryColor(): RGBAColor {
+        if (!categoryInput) return gray;
 
         return categories[categoryInput].color;
     }
 
     // Returns the category color, but slightly darker and transparent
     function getBackgroundColor() {
-        const color = mixColor(getCategoryColor(), '#808080', 0.5);
+        const output = mixColor(getCategoryColor(), gray);
 
-        let colorStr = color.toString();
-
-        if (colorStr.length === 7) {
-            colorStr = colorStr + "B0";
-        }
-        else {
-            console.error('EventInput -> getBackgroundColor: Could not create background color. Unknown color string format.');
-        }
+        output.a = 225;
         
-        return colorStr;
+        return RGBAToColorValue(output);
+    }
+
+    function getCategoryTextColor() {
+        const output = mixColor(getCategoryColor(), white);
+
+        return RGBAToColorValue(output);
     }
 
     function getCategoryName() {
@@ -234,6 +228,12 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         dropdownMenuRef.current?.close();
     }
 
+    function onCategoryInputSubmit(categoryID: string, mode: 'create' | 'edit') {
+        if (mode === 'create') {
+            setCategoryInput(categoryID);
+        }
+    }
+
     // Handle edge cases regarding category deletion
     function handleCategoryDeleted(deletedCategoryID: string) {
         if (deletedCategoryID === categoryInput) {
@@ -259,7 +259,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     }
 
     function close() {
-        setEnabled(false);
+        pressOutViewRef.current?.close();
     }
 
     function onSelected() {
@@ -273,131 +273,127 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         close();
     }
 
-    if (enabled) {
-        return (
-            <ViewWithBackHandler
-                onRequestClose={submitAndClose}
-                onStartShouldSetResponder={() => true} // Absorb touch events. This prevents event input from closing when box is tapped
-                style={StyleSheet.absoluteFill}
-            >
-                <Pressable onPress={submitAndClose} style={styles.pressOutContainer}>
-                    <View style={styles.fieldsAndButtonsContainer}>
-                        <BlurView
-                            borderRadius={20}
-                            blurType={colorTheme}
-                            style={{ backgroundColor: getBackgroundColor(), ...styles.fieldsContainer }}
-                            onStartShouldSetResponder={() => true}
-                        >
-                            <InputField title='Name' marginBottom={20} width={275} onPress={() => focusTextInput(eventNameInputRef)}>
-                                <TextInputWithClearButton
-                                    ref={eventNameInputRef}
-                                    value={eventNameInput}
-                                    //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
-                                    onChangeText={setEventNameInput}
-                                    selectTextOnFocus={mode.current !== 'edit'} // Don't autoselect text in edit mode
-                                    style={styles.nameTextInput}
-                                    closeButtonColor='white'
-                                    textAlign='center'
-                                    maxLength={50}
+    return (
+        <>
+            <PressOutView ref={pressOutViewRef} style={styles.mainContainer}>
+                <BlurView
+                    borderRadius={20}
+                    blurType={colorTheme}
+                    style={{ backgroundColor: getBackgroundColor(), ...styles.fieldsContainer }}
+                    onStartShouldSetResponder={() => true} // Absorb touch events. This prevents event input from closing when box is tapped
+                >
+                    <InputField title='Name' style={{marginBottom: 20, width: 275}} onPress={() => focusTextInput(eventNameInputRef)}>
+                        <TextInputWithClearButton
+                            ref={eventNameInputRef}
+                            value={eventNameInput}
+                            //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
+                            onChangeText={setEventNameInput}
+                            selectTextOnFocus={mode.current !== 'edit'} // Don't autoselect text in edit mode
+                            style={styles.nameTextInput}
+                            closeButtonColor='white'
+                            textAlign='center'
+                            maxLength={50}
+                        />
+                    </InputField>
+                    <InputField title='Category' style={{marginBottom: 20, width: 215}}>
+                        <DropdownMenu
+                            ref={dropdownMenuRef}
+                            dropIconColor={'white'}
+                            content={
+                                <CategoryPickerDropdown
+                                    onCategorySelected={onCategorySelected}
+                                    onCreateCategory={() => {
+                                        categoryInputRef.current?.open({ mode: 'create' });
+                                        dropdownMenuRef.current?.close();
+                                    }}
+                                    onEditCategory={categoryID => {
+                                        categoryInputRef.current?.open({ mode: 'edit', categoryID });
+                                        dropdownMenuRef.current?.close();
+                                    }}
+                                    onCategoryDeleted={handleCategoryDeleted}
                                 />
-                            </InputField>
-                            <InputField title='Category' marginBottom={20} width={215}>
-                                <DropdownMenu
-                                    ref={dropdownMenuRef}
-                                    dropIconColor={'white'}
-                                    content={<CategoryPickerDropdown onCategorySelected={onCategorySelected} onCategoryDeleted={handleCategoryDeleted}/>}
-                                    contentContainerStyle={{backgroundColor: '#000000E0', borderRadius: 10, maxHeight: 250, overflow: 'hidden'}}
-                                >
-                                    <Text style={[styles.categoryText, { color: lightenColor(getCategoryColor(), 0.25) }]}>{getCategoryName()}</Text>
-                                </DropdownMenu>
-                            </InputField>
-                            <InputField title='Deadline' marginBottom={20} width={215} headerChildren={<Checkbox value={deadlineSwitchInput} onChange={setDeadlineSwitchInput} color='white' />}>
-                                <HideableView hidden={!deadlineSwitchInput} style={globalStyles.flexRow}>
-                                    <Text style={{ color: 'white', marginRight: 8 }}>Due Date</Text>
-                                    <CompactDatePicker value={dueDateInput} onChange={setDueDateInput} themeVariant='dark' />
-                                </HideableView>
-                            </InputField>
-                            {/*mode.current === 'create' ?
-                                <InputField title='Repeat' marginBottom={20} width={215} headerChildren={<Checkbox value={repeatSwitchInput} onChange={setRepeatSwitchInput} color='white' />} >
-                                    <HideableView hidden={!repeatSwitchInput}>
-                                        <View style={[globalStyles.flexRow, { marginBottom: 5 }]}>
-                                            <Text style={{color: 'white'}}>Every </Text>
-                                            <NumberInput
-                                                value={intervalInput}
-                                                onChangeNumber={setIntervalInput}
-                                                minimimValue={1}
-                                                maximumValue={999}
-                                                style={[globalStyles.numberInput, {color: 'white'}]}
-                                            />
-                                            <Text style={{color: 'white'}}> days</Text>
-                                        </View>
-                                        <View style={globalStyles.flexRow}>
-                                            <Text style={{color: 'white'}}>End after </Text>
-                                            <NumberInput
-                                                value={recurrencesInput}
-                                                onChangeNumber={setRecurrencesInput}
-                                                minimimValue={2}
-                                                maximumValue={100}
-                                                style={[globalStyles.numberInput, {color: 'white'}]}
-                                            />
-                                            <Text style={{color: 'white'}}> occurrences</Text>
-                                        </View>
-                                    </HideableView>
-                                </InputField>
-                            :
-                                null
-                            */}
-                            <InputField title='Notes' width={250}>
-                                <TextInput value={notesInput} onChangeText={setNotesInput} placeholder='Add notes here...' placeholderTextColor='#ffffff40' style={{ color: 'white', padding: 0, maxHeight: 100 }} multiline maxLength={500} />
-                            </InputField>
-                        </BlurView>
-                        {mode.current === 'create' ?
-                            <>
-                                <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
-                                    <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#00E000A0', width: 225, padding: 16, justifyContent: 'center', ...globalStyles.flexRow }}>
-                                        <Icon name='add-box' color='white' size={30} />
-                                        <Text style={{ marginLeft: 10, fontSize: 20, fontWeight: 'bold', color: 'white' }}>Create</Text>
-                                    </BlurView>
-                                </TouchableOpacity>
-                                <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
-                                    <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#C0C000A0', padding: 10, ...globalStyles.flexRow }}>
-                                        <Icon name='library-add' color='#FFFFFFB0' size={22} />
-                                        <Text style={{ marginLeft: 8, fontSize: 13, fontWeight: 'bold', color: '#FFFFFFB0' }}>Create Multiple</Text>
-                                    </BlurView>
-                                </TouchableOpacity>
-                            </>
-                        :
-                            <View style={[globalStyles.flexRow, { marginTop: 12 }]}>
-                                <TouchableOpacity activeOpacity={activeOpacity} onPress={onSelected}>
-                                    <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#0040FF80', padding: 12, ...globalStyles.flexRow }}>
-                                        <Icon name='check-box' color='#FFFFFFE0' size={24} />
-                                        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFE0', marginLeft: 8 }}>Select</Text>
-                                    </BlurView>
-                                </TouchableOpacity>
-                                <TouchableOpacity activeOpacity={activeOpacity} onPress={onDeleted} style={{ marginLeft: 12 }}>
-                                    <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#FF000080', padding: 12, ...globalStyles.flexRow }}>
-                                        <Icon name='delete' color='#FFFFFFE0' size={24} />
-                                        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFE0', marginLeft: 8 }}>Delete</Text>
-                                    </BlurView>
-                                </TouchableOpacity>
-                            </View>
-                        }
+                            }
+                            contentContainerStyle={{ backgroundColor: '#000000E0', borderRadius: 10, maxHeight: 250, overflow: 'hidden' }}
+                            hitSlop={10}
+                        >
+                            <Text style={[styles.categoryText, { color: getCategoryTextColor() }]}>{getCategoryName()}</Text>
+                        </DropdownMenu>
+                    </InputField>
+                    <InputField title='Deadline' style={{marginBottom: 20, width: 215}} headerChildren={<Checkbox value={deadlineSwitchInput} onChange={setDeadlineSwitchInput} color='white' />}>
+                        <HideableView hidden={!deadlineSwitchInput} style={globalStyles.flexRow}>
+                            <Text style={{ color: 'white', marginRight: 8 }}>Due Date</Text>
+                            <CompactDatePicker value={dueDateInput} onChange={setDueDateInput} themeVariant='dark' />
+                        </HideableView>
+                    </InputField>
+                    {/*<InputField title='Repeat' marginBottom={20} width={215} headerChildren={<Checkbox value={repeatSwitchInput} onChange={setRepeatSwitchInput} color='white' />} >
+                            <HideableView hidden={!repeatSwitchInput}>
+                                <View style={[globalStyles.flexRow, { marginBottom: 5 }]}>
+                                    <Text style={{color: 'white'}}>Every </Text>
+                                    <NumberInput
+                                        value={intervalInput}
+                                        onChangeNumber={setIntervalInput}
+                                        minimimValue={1}
+                                        maximumValue={999}
+                                        style={[globalStyles.numberInput, {color: 'white'}]}
+                                    />
+                                    <Text style={{color: 'white'}}> days</Text>
+                                </View>
+                                <View style={globalStyles.flexRow}>
+                                    <Text style={{color: 'white'}}>End after </Text>
+                                    <NumberInput
+                                        value={recurrencesInput}
+                                        onChangeNumber={setRecurrencesInput}
+                                        minimimValue={2}
+                                        maximumValue={100}
+                                        style={[globalStyles.numberInput, {color: 'white'}]}
+                                    />
+                                    <Text style={{color: 'white'}}> occurrences</Text>
+                                </View>
+                            </HideableView>
+                        </InputField>*/}
+                    <InputField title='Notes' style={{width: 250}}>
+                        <TextInput value={notesInput} onChangeText={setNotesInput} placeholder='Add notes here...' placeholderTextColor='#ffffff40' style={{ color: 'white', padding: 0, maxHeight: 100 }} multiline maxLength={500} />
+                    </InputField>
+                </BlurView>
+                {mode.current === 'create' ?
+                    <>
+                        <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
+                            <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#00E000A0', width: 225, padding: 16, justifyContent: 'center', ...globalStyles.flexRow }}>
+                                <Icon name='add-box' color='white' size={30} />
+                                <Text style={{ marginLeft: 10, fontSize: 20, fontWeight: 'bold', color: 'white' }}>Create</Text>
+                            </BlurView>
+                        </TouchableOpacity>
+                        <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
+                            <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#C0C000A0', padding: 10, ...globalStyles.flexRow }}>
+                                <Icon name='library-add' color='#FFFFFFB0' size={22} />
+                                <Text style={{ marginLeft: 8, fontSize: 13, fontWeight: 'bold', color: '#FFFFFFB0' }}>Create Multiple</Text>
+                            </BlurView>
+                        </TouchableOpacity>
+                    </>
+                :
+                    <View style={[globalStyles.flexRow, { marginTop: 12 }]}>
+                        <TouchableOpacity activeOpacity={activeOpacity} onPress={onSelected}>
+                            <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#0040FF80', padding: 12, ...globalStyles.flexRow }}>
+                                <Icon name='check-box' color='#FFFFFFE0' size={24} />
+                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFE0', marginLeft: 8 }}>Select</Text>
+                            </BlurView>
+                        </TouchableOpacity>
+                        <TouchableOpacity activeOpacity={activeOpacity} onPress={onDeleted} style={{ marginLeft: 12 }}>
+                            <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#FF000080', padding: 12, ...globalStyles.flexRow }}>
+                                <Icon name='delete' color='#FFFFFFE0' size={24} />
+                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFE0', marginLeft: 8 }}>Delete</Text>
+                            </BlurView>
+                        </TouchableOpacity>
                     </View>
-                </Pressable>
-            </ViewWithBackHandler>
-        )
-    }
-    else return null;
+                }
+            </PressOutView>
+            <CategoryInput ref={categoryInputRef} onSubmit={onCategoryInputSubmit} />
+        </>
+    )
 });
 
 const styles = StyleSheet.create({
-    pressOutContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#00000040'
-    },
-    fieldsAndButtonsContainer: {
+    mainContainer: {
         alignItems: 'center'
     },
     fieldsContainer: {

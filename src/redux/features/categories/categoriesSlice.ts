@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CategoriesState, Category } from "../../../../types/store-current";
-import { ColorValue } from 'react-native';
+import { RGBAColor } from '../../../ColorHelpers';
 
 const initialState: CategoriesState = {
     current: {},
@@ -20,7 +20,7 @@ export const categoriesSlice = createSlice({
             // Delete category
             delete state.current[action.payload.categoryID];
         },
-        edit(state, action: PayloadAction<{ categoryID: string, newName?: string, newColor?: ColorValue }>) {
+        edit(state, action: PayloadAction<{ categoryID: string, newName?: string, newColor?: RGBAColor }>) {
             const {
                 categoryID,
                 newName,

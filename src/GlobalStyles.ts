@@ -3,6 +3,7 @@ import {
     ColorValue,
     Appearance
 } from 'react-native';
+import { RGBAColor, hexToRGBA } from './ColorHelpers';
 
 export let colorTheme: 'dark' | 'light' = Appearance.getColorScheme() || 'dark';
 
@@ -49,15 +50,15 @@ const lightTheme: ColorScheme = {
 
 export const colors = colorTheme === 'light' ? lightTheme : darkTheme;
 
-export const categoryColorPalette: ColorValue[] = [
-    '#DE1212', // Red
-    '#E26912', // Orange
-    '#C9C91D', // Yellow
-    '#2EC610', // Green
-    '#10C6C6', // Aqua
-    '#2F60EE', // Blue
-    '#A22FEE', // Purple
-    '#E212E2', // Pink
+export const categoryColorPalette: RGBAColor[] = [
+    hexToRGBA('#DE1212'), // Red
+    hexToRGBA('#E26912'), // Orange
+    hexToRGBA('#C9C91D'), // Yellow
+    hexToRGBA('#2EC610'), // Green
+    hexToRGBA('#10C6C6'), // Aqua
+    hexToRGBA('#2F60EE'), // Blue
+    hexToRGBA('#A22FEE'), // Purple
+    hexToRGBA('#E212E2'), // Pink
 ];
 
 export const globalStyles = StyleSheet.create({

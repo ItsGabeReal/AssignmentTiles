@@ -5,184 +5,248 @@ import React, {
     forwardRef,
 } from 'react';
 import {
-    StyleSheet,
-    View,
-    Text,
     FlatList,
-    TouchableOpacity,
-    Pressable,
+    StyleSheet,
     TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import IosStyleButton from './core/IosStyleButton';
 import { Category } from '../types/store-current';
-import FloatingModal, { FloatingModalRef } from './core/FloatingModal';
-import { useAppDispatch } from '../src/redux/hooks';
+import PressOutView, { PressOutViewRef } from './core/PressOutView';
+import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
-import { activeOpacity, categoryColorPalette, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
+import { activeOpacity, categoryColorPalette, colorTheme, fontSizes } from '../src/GlobalStyles';
 import { focusTextInput } from '../src/GlobalHelpers';
+import BlurView from './core/BlurView';
+import InputField from './InputField';
+import { RGBAToColorValue, gray, mixColor } from '../src/ColorHelpers';
+import Button from './Button';
 
 export type CategoryInputRef = {
     /**
      * Opens the category input modal.
      */
-    open: (() => void);
+    open: ((params: { mode: 'edit', categoryID: string} | { mode: 'create' }) => void);
 }
 
 type CategoryInputProps = {
     /**
-     * Specifies the category input mode. If it's set to 'create',
-     * the submit button will create a new event. If it's set to
-     * 'edit', the category provided through editedCategory will be
-     * edited.
-     */
-    mode: 'create' | 'edit';
-
-    /**
-     * If mode is set to 'edit', the input fields will be autofilled
-     * from this category.
-     */
-    editedCategory?: Category;
-
-    /**
-     * If mode is set to 'edit', the category under this id will be edited.
-     */
-    editedCategoryID?: string | null;
-
-    /**
      * Called when a new category is created.
      */
-    onCategoryCreated?: ((categoryID: string) => void);
+    onSubmit: ((categoryID: string, mode: 'create' | 'edit') => void);
 }
 
 const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, ref) => {
     const dispatch = useAppDispatch();
-    
-    const [nameInput, setNameInput] = useState('');
-    const [selectedColor, setSelectedColor] = useState(categoryColorPalette[0]);
+    const categories = useAppSelector(state => state.categories.current);
 
-    const floatingModalRef = useRef<FloatingModalRef | null>(null);
-    const categoryNameInputRef = useRef<TextInput>(null);
+    // Input states
+    const [nameInput, setNameInput] = useState('');
+    const [colorInput, setColorInput] = useState(categoryColorPalette[0]);
+
+    // Component refs
+    const pressOutViewRef = useRef<PressOutViewRef | null>(null);
+    const nameInputRef = useRef<TextInput>(null);
+    
+    // Non-state variables
+    const editedCategoryID = useRef<string | null>(null);
+    const mode = useRef<'create' | 'edit'>('create');
 
     useImperativeHandle(ref, () => ({
-        open() {
-            floatingModalRef.current?.open();
+        open(params) {
+            pressOutViewRef.current?.open();
+            mode.current = params.mode;
             
-            if (props.mode === 'edit') {
-                if (!props.editedCategory) {
-                    console.error(`CategoryInput/open: No edited category provided in edit mode`);
+            if (params.mode === 'edit') {
+                const category = categories[params.categoryID];
+                if (!category) {
+                    console.warn(`CategoryInput -> open: Could not load category. Category not found.`);
                     return;
                 }
-                setNameInput(props.editedCategory.name);
-                setSelectedColor(props.editedCategory.color);
+
+                setNameInput(category.name);
+                setColorInput(category.color);
+                editedCategoryID.current = params.categoryID;
             }
             else {
                 setNameInput('');
+                setColorInput(categoryColorPalette[0]);
             }
         },
     }));
+    
+
+    function getBackgroundColor() {
+        let output = mixColor(colorInput, gray);
+
+        output.a = 225;
+        
+        return RGBAToColorValue(output);
+    }
 
     function readyToSubmit() {
         return nameInput.length > 0;
     }
 
-    function handleSubmit() {
-        floatingModalRef.current?.close();
+    function close() {
+        pressOutViewRef.current?.close();
+    }
 
-        if (props.mode === 'create') {
+    function submit() {
+        if (mode.current === 'create') {
             // Come up with a new id
             const id = Math.random().toString();
 
             // Create category
             const newCategory = {
                 name: nameInput,
-                color: selectedColor
+                color: colorInput
             }
             
             // Add category
             dispatch(categoriesActions.add({category: newCategory, id}));
             
-            props.onCategoryCreated?.(id);
+            props.onSubmit?.(id, 'create');
         }
         else {
-            if (!props.editedCategoryID) {
-                console.error(`CategoryInput -> handleSubmit: Could not edit category. No id provided`);
+            if (!editedCategoryID.current) {
+                console.error(`CategoryInput -> submit: Could not edit category. editedCategoryID.current is null.`);
                 return;
             }
 
-            dispatch(categoriesActions.edit({ categoryID: props.editedCategoryID, newName: nameInput, newColor: selectedColor }));
+            dispatch(categoriesActions.edit({ categoryID: editedCategoryID.current, newName: nameInput, newColor: colorInput }));
         }
     }
-    
+
     return (
-        <FloatingModal ref={floatingModalRef} style={styles.popup}>
-            <View style={styles.titleContainer}>
-                <Text style={styles.title}>{props.mode === 'edit' ? 'Edit Category' : 'Create Category'}</Text>
-            </View>
-            <Pressable
-                style={[globalStyles.parameterContainer, globalStyles.flexRow]}
-                onPress={() => focusTextInput(categoryNameInputRef)}
+        <PressOutView
+            ref={pressOutViewRef}
+            onClose={() => {
+                if (mode.current === 'edit')
+                    submit();
+
+                close();
+            }}
+            style={{alignItems: 'center'}}
+        >
+            <BlurView
+                borderRadius={20}
+                blurType={colorTheme}
+                style={[styles.mainContainer, {backgroundColor: getBackgroundColor()}]}
+                onStartShouldSetResponder={() => true} // Absorb touch events. This prevents event input from closing when box is tapped
             >
-                <Text style={globalStyles.fieldDescription}>Name:</Text>
-                <TextInputWithClearButton
-                    ref={categoryNameInputRef}
-                    value={nameInput}
-                    style={styles.textInput}
-                    selectTextOnFocus
-                    autoFocus
-                    onChangeText={newText => setNameInput(newText)}
-                />
-            </Pressable>
-            <View style={globalStyles.parameterContainer}>
-                <Text style={globalStyles.fieldDescription}>Color:</Text>
-                <View style={styles.colorPaletteContainer}>
-                    <FlatList
-                        data={categoryColorPalette}
-                        renderItem={({ item }) => {
-                            return (
-                                <TouchableOpacity
-                                    activeOpacity={activeOpacity}
-                                    style={[styles.colorButton, {
-                                        backgroundColor: item,
-                                        borderWidth: item == selectedColor ? 3 : 0,
-                                    }]}
-                                    onPress={() => setSelectedColor(item)}
-                                />
-                            );
-                        }}
-                        numColumns={4}
-                        keyboardShouldPersistTaps='handled'
+                <InputField title='Name' style={{marginBottom: 20}} onPress={() => focusTextInput(nameInputRef)}>
+                    <TextInputWithClearButton
+                        ref={nameInputRef}
+                        value={nameInput}
+                        //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
+                        onChangeText={setNameInput}
+                        selectTextOnFocus={mode.current !== 'edit'} // Don't autoselect text in edit mode
+                        style={styles.nameTextInput}
+                        closeButtonColor='white'
+                        textAlign='center'
+                        maxLength={50}
                     />
+                </InputField>
+                <InputField title='Color'>
+                    <View>
+                        <FlatList
+                            data={categoryColorPalette}
+                            renderItem={({ item }) => {
+                                return (
+                                    <TouchableOpacity
+                                        activeOpacity={activeOpacity}
+                                        style={[styles.colorButton, {
+                                            backgroundColor: RGBAToColorValue(item),
+                                            borderWidth: item === colorInput ? 3 : 0
+                                        }]}
+                                        onPress={() => setColorInput(item)}
+                                    />
+                                );
+                            }}
+                            numColumns={4}
+                            keyboardShouldPersistTaps='handled'
+                            style={{flexGrow: 0}}
+                        />
+                    </View>
+                    
+                </InputField>
+            </BlurView>
+            {mode.current === 'create' ?
+                <Button
+                    title='Create'
+                    titleSize={20}
+                    iconName='add'
+                    iconSize={26}
+                    backgroundColor={{r:0,g:255,b:0,a:128}}
+                    padding={16}
+                    borderRadius={20}
+                    style={{marginTop: 10, width: 175}}
+                    disabled={!readyToSubmit()}
+                    onPress={() => {
+                        submit();
+                        close();
+                    }}
+                />
+            :
+                null
+            }
+            {/*<View style={styles.titleContainer}>
+                    <Text style={styles.title}>{mode.current === 'edit' ? 'Edit Category' : 'Create Category'}</Text>
                 </View>
-            </View>
-            <View style={styles.submitButtonContainer}>
-                <IosStyleButton title={props.mode === 'edit' ? 'Save' : 'Done'} textStyle={styles.submitButton} disabled={!readyToSubmit()} onPress={handleSubmit} />
-            </View>
-        </FloatingModal>
+                <Pressable
+                    style={[globalStyles.parameterContainer, globalStyles.flexRow]}
+                    onPress={() => focusTextInput(categoryNameInputRef)}
+                >
+                    <Text style={globalStyles.fieldDescription}>Name:</Text>
+                    <TextInputWithClearButton
+                        ref={categoryNameInputRef}
+                        value={nameInput}
+                        style={styles.textInput}
+                        selectTextOnFocus
+                        autoFocus
+                        onChangeText={newText => setNameInput(newText)}
+                    />
+                </Pressable>
+                <View style={globalStyles.parameterContainer}>
+                    <Text style={globalStyles.fieldDescription}>Color:</Text>
+                    <View style={styles.colorPaletteContainer}>
+                        <FlatList
+                            data={categoryColorPalette}
+                            renderItem={({ item }) => {
+                                return (
+                                    <TouchableOpacity
+                                        activeOpacity={activeOpacity}
+                                        style={[styles.colorButton, {
+                                            backgroundColor: item,
+                                            borderWidth: item == colorInput ? 3 : 0,
+                                        }]}
+                                        onPress={() => setColorInput(item)}
+                                    />
+                                );
+                            }}
+                            numColumns={4}
+                            keyboardShouldPersistTaps='handled'
+                        />
+                    </View>
+                </View>
+                <View style={styles.submitButtonContainer}>
+                    <IosStyleButton title={mode.current === 'edit' ? 'Save' : 'Done'} textStyle={styles.submitButton} disabled={!readyToSubmit()} onPress={handleSubmit} />
+                        </View>*/}
+        </PressOutView>
     );
 });
 
 const styles = StyleSheet.create({
-    popup: {
-        width: 300,
-        padding: 15,
-        borderRadius: 10,
-        backgroundColor: colors.l1,
+    mainContainer: {
+        padding: 30
     },
-    titleContainer: {
-        alignItems: 'center',
-        marginBottom: 15
-    },
-    title: {
-        fontSize: fontSizes.title,
-        fontWeight: 'bold',
-        color: colors.text,
-    },
-    textInput: {
+    nameTextInput: {
         flex: 1,
+        fontSize: fontSizes.h1,
         padding: 0,
-        fontSize: fontSizes.p,
-        color: colors.text,
+        color: 'white'
     },
     colorPaletteContainer: {
         alignItems: 'center',
