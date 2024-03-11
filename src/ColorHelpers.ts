@@ -181,3 +181,4 @@ function hexCharToNumber(char: string) {
 export const white: RGBAColor = { r: 255, g: 255, b: 255, a: 255 };
 export const black: RGBAColor = { r: 0,   g: 0,   b: 0,   a: 255 };
 export const gray: RGBAColor =  { r: 128, g: 128, b: 128, a: 255 };
+export const green: RGBAColor = { r: 20,  g: 225, b: 20,  a: 255 };

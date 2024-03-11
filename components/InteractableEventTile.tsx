@@ -3,6 +3,7 @@ import {
     View,
     TouchableOpacity,
     GestureResponderEvent,
+    StyleSheet,
 } from 'react-native';
 import DateYMD from '../src/DateYMD';
 import EventTile from './EventTile';
@@ -12,6 +13,7 @@ import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { EventRegister } from 'react-native-event-listeners';
 import { activeOpacity } from '../src/GlobalStyles';
 import Checkbox from './core/Checkbox';
+import VisualSettings from '../src/VisualSettings';
 
 type InteractableEventTileProps = {
     /**
@@ -40,7 +42,6 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
             EventRegister.emit('onEventTilePressed', { eventID: props.eventID });
         }
     }
-
     
     function handleLongPress(e: GestureResponderEvent) {
         EventRegister.emit('onEventTileLongPressed', { eventID: props.eventID, gesture: e });
@@ -53,21 +54,32 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
                 onPress={handlePress}
                 onLongPress={handleLongPress}
                 delayLongPress={150}
+                style={styles.tileMargin}
             >
                 <EventTile {...props} />
-                <View style={{position: 'absolute', left: 0, top: 0}}>
-                    <Checkbox
-                        value={eventCompleted}
-                        visualStyle='round'
-                        color={eventCompleted ? '#00FF00' : '#FFFFFF80'}
-                        size={24}
-                        style={{marginLeft: 2, marginTop: 2}}
-                        onChange={() => {dispatch(eventActions.toggleComplete({eventID: props.eventID}))}}
-                    />
-                </View>
+                <Checkbox
+                    value={eventCompleted}
+                    visualStyle='round'
+                    color={eventCompleted ? '#2E2' : '#FFFFFF80'}
+                    size={24}
+                    style={styles.checkbox}
+                    onChange={() => { dispatch(eventActions.toggleComplete({ eventID: props.eventID })) }}
+                />
             </TouchableOpacity>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    tileMargin: {
+        marginRight: VisualSettings.EventTile.margin.right,
+        marginBottom: VisualSettings.EventTile.margin.bottom
+    },
+    checkbox: {
+        position: 'absolute',
+        right: 2,
+        top: 2
+    }
+});
 
 export default InteractableEventTile;

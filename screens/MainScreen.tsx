@@ -15,7 +15,6 @@ import {
 import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
 import EventInput,  { EventInputRef, OnEventInputSubmitParams } from "../components/EventInput";
 import DayList, { TodayRowVisibility } from "../components/DayList";
-import UndoPopup, { UndoPopupRef } from "../components/UndoPopup";
 import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
@@ -29,6 +28,8 @@ import { EventRegister } from "react-native-event-listeners";
 import { eventActions } from "../src/redux/features/events/eventsSlice";
 import SafeAreaView from "../components/core/SafeAreaView";
 import { vibrate } from "../src/GlobalHelpers";
+import Button from "../components/Button";
+import { hexToRGBA, white } from "../src/ColorHelpers";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -56,7 +57,6 @@ export default function MainScreen() {
     const eventInputRef = useRef<EventInputRef | null>(null);
     const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
-    const undoPopupRef = useRef<UndoPopupRef | null>(null);
 
     // Refs related to autoscroll while dragging event
     const currentDraggedEvent = useRef<string | null>(null);
@@ -67,8 +67,6 @@ export default function MainScreen() {
     
 
     useEffect(() => {
-        EventRegister.addEventListener('showUndoPopup', onShowUndoPopup);
-
         EventRegister.addEventListener('onEventTilePressed', onEventTilePressed)
 
         EventRegister.addEventListener('onEventTileLongPressed', onEventTileLongPressed);
@@ -97,12 +95,8 @@ export default function MainScreen() {
         }
     }, [multiselectState]);
 
-    function onShowUndoPopup({ prompt, onUndoPressed }: { prompt: string, onUndoPressed: (() => void)}) {
-        undoPopupRef.current?.open(prompt, onUndoPressed);
-    }
-
     function onEventTilePressed({eventID}: any) {
-        eventInputRef.current?.open({mode: 'edit', eventID})
+        eventInputRef.current?.open({mode: 'edit', eventID});
     }
 
     /**
@@ -137,6 +131,9 @@ export default function MainScreen() {
         virtualEventTileRef.current?.enable(gesture, eventID);
 
         setDraggedTileVisuals(eventID);
+
+        // If an undo popup hasn't been manually closed yet, go ahead and close it
+        EventRegister.emit('hideUndoPopup');
     }
 
     function onEventTileDrag({gesture}: any) {
@@ -199,46 +196,27 @@ export default function MainScreen() {
     
     function returnToTodayButton(variation: 'above' | 'beneath') {
         return (
-            <TouchableOpacity activeOpacity={activeOpacity} style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]} onPress={scrollToToday}>
-                <Text style={styles.returnToTodayText}>Today</Text>
-                <Icon name={variation === 'above' ? "arrow-upward" : "arrow-downward"} size={20} style={styles.returnToTodayIcon} />
-            </TouchableOpacity>
+            <Button
+                title="Today"
+                titleSize={fontSizes.p}
+                iconName={variation==='above' ? 'arrow-upward' : 'arrow-downward'}
+                fontColor={colors.text_rgba}
+                backgroundColor={colors.todayL2_rgba}
+                iconSpacing={5}
+                style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]}
+                onPress={scrollToToday}
+            />
         );
+
+        /*<TouchableOpacity activeOpacity={activeOpacity} style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]} onPress={scrollToToday}>
+            <Text style={styles.returnToTodayText}>Today</Text>
+            <Icon name={variation === 'above' ? "arrow-upward" : "arrow-downward"} size={20} style={styles.returnToTodayIcon} />
+        </TouchableOpacity>*/
     }
 
-    const addButtonInTestMode = false;
     function addEventButton() {
         const onPress = () => {
-            if (addButtonInTestMode) {
-                console.warn('MainScreen -> addEventButton: Add button is in test mode');
-
-                /*console.log('-----ENTIRE STATE-----')
-
-                // print events
-                console.log('events:')
-                entireState.events.forEach(item => console.log(item.details.name));
-
-                // print categories
-                console.log('categories:')
-                entireState.categories.forEach(item => console.log(item.name));
-
-                // print row plans
-
-                console.log('row plans:')
-                entireState.rowPlans.forEach(item => {
-                    console.log(`${DateYMDHelpers.toString(item.plannedDate)}:`);
-
-                    item.orderedEventIDs.forEach(eventID => {
-                        const event = entireState.events.find(evt => evt.id === eventID);
-
-                        if (!event) console.log(`id ${eventID} is not in events`);
-                        else console.log(event.details.name);
-                    })
-                })*/
-            }
-            else {
-                eventInputRef.current?.open({ mode: 'create' });
-            }
+            eventInputRef.current?.open({ mode: 'create' });
         }
 
         return (
@@ -265,7 +243,6 @@ export default function MainScreen() {
     }
 
     function multiselectButton(displayName: string, iconName: string, onPress: (() => void), disabled?: boolean, backgroundColor?: ColorValue) {
-
         return (
             <TouchableOpacity
                 activeOpacity={activeOpacity}
@@ -284,9 +261,9 @@ export default function MainScreen() {
         exitMultiselectMode();
 
         const pluralModifier = multiselectState.selectedEventIDs.length === 1 ? '' : 's';
-        undoPopupRef.current?.open(`${multiselectState.selectedEventIDs.length} Event${pluralModifier} Deleted`, () => {
-            restoreDeletedEventsFromBackup(dispatch);
-        });
+        const action = `${multiselectState.selectedEventIDs.length} Event${pluralModifier} Deleted`;
+
+        EventRegister.emit('showUndoPopup', { action, onPressed: ()=>{restoreDeletedEventsFromBackup(dispatch)} });
     }
 
     function onCategorySelectedDuringMultiselect(categoryID: string | null) {
@@ -295,20 +272,6 @@ export default function MainScreen() {
         });
 
         exitMultiselectMode();
-    }
-
-    function overlayButtons() {
-        return (
-            <>
-                {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
-                {!multiselectState.enabled ? addEventButton() : null}
-                <View style={styles.overlayFooterContainer}>
-                    {multiselectState.enabled ? multiselectButtons() : null}
-                    {todayRowVisibility === 'beneath' ? returnToTodayButton('beneath') : null}
-                    <UndoPopup ref={undoPopupRef} relativePosition />
-                </View>
-            </>
-        );
     }
 
     function onEventSubmitted(params: OnEventInputSubmitParams) {
@@ -356,7 +319,12 @@ export default function MainScreen() {
                 />
             </VETContainer>
             <SafeAreaView pointerEvents='box-none'>
-                {overlayButtons()}
+                {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
+                {!multiselectState.enabled ? addEventButton() : null}
+                <View style={styles.overlayFooterContainer}>
+                    {multiselectState.enabled ? multiselectButtons() : null}
+                    {todayRowVisibility === 'beneath' ? returnToTodayButton('beneath') : null}
+                </View>
             </SafeAreaView>
             <EventInput ref={eventInputRef} onSubmit={onEventSubmitted} />
         </View>
@@ -374,7 +342,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 20,
         padding: 10,
-        backgroundColor: colors.todayL2,
     },
     returnToTodayText: {
         color: colors.text,

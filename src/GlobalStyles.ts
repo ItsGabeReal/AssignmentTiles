@@ -26,6 +26,16 @@ export type ColorScheme = {
     todayL2: ColorValue;
     dimText: ColorValue;
     text: ColorValue;
+
+    l0_rgba: RGBAColor;
+    l1_rgba: RGBAColor;
+    l2_rgba: RGBAColor;
+    l3_rgba: RGBAColor;
+    l4_rgba: RGBAColor;
+    todayL1_rgba: RGBAColor;
+    todayL2_rgba: RGBAColor;
+    dimText_rgba: RGBAColor;
+    text_rgba: RGBAColor;
 }
 
 const darkTheme: ColorScheme = {
@@ -35,7 +45,16 @@ const darkTheme: ColorScheme = {
     l3: '#404040',
     l4: '#505050',
     dimText: '#A0A0A0',
-    text: 'white'
+    text: '#FFFFFF',
+
+    // These should be the same as above
+    l0_rgba: hexToRGBA('#101010'),
+    l1_rgba: hexToRGBA('#202020'),todayL1_rgba: hexToRGBA('#002448'),
+    l2_rgba: hexToRGBA('#303030'),todayL2_rgba: hexToRGBA('#0066CD'),
+    l3_rgba: hexToRGBA('#404040'),
+    l4_rgba: hexToRGBA('#505050'),
+    dimText_rgba: hexToRGBA('#A0A0A0'),
+    text_rgba: hexToRGBA('#FFFFFF')
 }
 
 const lightTheme: ColorScheme = {
@@ -45,7 +64,16 @@ const lightTheme: ColorScheme = {
     l3: '#f0f0f0',
     l4: '#ffffff',
     dimText: '#808080',
-    text: 'black'
+    text: '#000000',
+
+    // These should be the same as above
+    l0_rgba: hexToRGBA('#c0c0c0'),
+    l1_rgba: hexToRGBA('#d0d0d0'),todayL1_rgba: hexToRGBA('#accae5'),
+    l2_rgba: hexToRGBA('#e0e0e0'),todayL2_rgba: hexToRGBA('#A7D4FF'),
+    l3_rgba: hexToRGBA('#f0f0f0'),
+    l4_rgba: hexToRGBA('#ffffff'),
+    dimText_rgba: hexToRGBA('#808080'),
+    text_rgba: hexToRGBA('#000000')
 }
 
 export const colors = colorTheme === 'light' ? lightTheme : darkTheme;

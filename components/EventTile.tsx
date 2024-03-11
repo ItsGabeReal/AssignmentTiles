@@ -122,8 +122,6 @@ const styles = StyleSheet.create({
     mainContainer: {
         width: VisualSettings.EventTile.mainContainer.width,
         height: VisualSettings.EventTile.mainContainer.height,
-        marginRight: VisualSettings.EventTile.mainContainer.marginRight,
-        marginBottom: VisualSettings.EventTile.mainContainer.marginBottom,
         borderRadius: 13,
         overflow: 'hidden'
     },

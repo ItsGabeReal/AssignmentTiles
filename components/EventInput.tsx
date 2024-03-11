@@ -21,7 +21,7 @@ import { EventDetails } from '../types/store-current';
 import InputField from './InputField';
 import BlurView from './core/BlurView';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { deleteEventAndBackup } from '../src/EventHelpers';
+import { deleteEventAndBackup, restoreDeletedEventsFromBackup } from '../src/EventHelpers';
 import HideableView from './core/HideableView';
 import Checkbox from './core/Checkbox';
 import { RGBAColor, RGBAToColorValue, gray, mixColor, white } from '../src/ColorHelpers';
@@ -29,6 +29,8 @@ import DropdownMenu, { DropdownMenuRef } from './core/DropdownMenu';
 import CategoryPickerDropdown from './CategoryPickerDropdown';
 import PressOutView, { PressOutViewRef } from './core/PressOutView';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
+import { EventRegister } from 'react-native-event-listeners';
+import Button from './Button';
 
 export type RepeatSettings = {
     /**
@@ -134,6 +136,8 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                 setNotesInput(event.details.notes);
                 editedEventID.current = params.eventID;
             }
+
+            EventRegister.emit('hideUndoPopup');
         }
     }));
 
@@ -190,39 +194,6 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         return (eventNameInput.length > 0);
     }
 
-    function submit() {
-        const details: EventDetails = {
-            name: eventNameInput,
-            dueDate: deadlineSwitchInput ? DateYMDHelpers.fromDate(dueDateInput) : null,
-            categoryID: categoryInput,
-            notes: notesInput,
-        };
-
-        const repeatSettings: RepeatSettings = {
-            interval: intervalInput,
-            recurrences: recurrencesInput,
-        }
-
-        // Call onSubmit with the proper settings
-        if (mode.current === 'create') {
-            props.onSubmit({
-                mode: 'create',
-                details,
-                plannedDate: DateYMDHelpers.fromDate(dueDateInput),
-                repeatSettings
-            });
-        }
-        else {
-            props.onSubmit({
-                mode: 'edit',
-                details,
-                editedEventID: editedEventID.current
-            });
-        }
-
-        dispatch(generalStateActions.updateMemorizedEventInput({ name: details.name, categoryID: details.categoryID, deadlineEnabled: deadlineSwitchInput }));
-    }
-
     function onCategorySelected(categoryID: string | null) {
         setCategoryInput(categoryID);
         dropdownMenuRef.current?.close();
@@ -248,34 +219,67 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         dispatch(generalStateActions.updateMemorizedEventInput({categoryID: null}));
     }
 
-    // Closes the event input, and if in edit mode, those changes are submitted as well.
-    function submitAndClose() {
-        // If we're editing an event, we should submit on close
-        if (mode.current === 'edit') {
-            submit();
-        }
-
-        close();
-    }
-
-    function close() {
-        pressOutViewRef.current?.close();
-    }
-
-    function onSelected() {
+    function enterMultiselectMode() {
         dispatch(generalStateActions.setMultiselectEnabled({ enabled: true }));
         dispatch(generalStateActions.toggleEventIDSelected({ eventID: editedEventID.current }));
-        submitAndClose();
+        close();
     }
 
     function onDeleted() {
         deleteEventAndBackup(dispatch, editedEventID.current);
-        close();
+        EventRegister.emit('showUndoPopup', { action: 'Event Deleted', onPressed: ()=>{restoreDeletedEventsFromBackup(dispatch)} });
+        pressOutViewRef.current?.close();
+    }
+
+    function close() {
+        if (mode.current === 'edit') {
+            const details: EventDetails = {
+                name: eventNameInput,
+                dueDate: deadlineSwitchInput ? DateYMDHelpers.fromDate(dueDateInput) : null,
+                categoryID: categoryInput,
+                notes: notesInput,
+            };
+
+            props.onSubmit({
+                mode: 'edit',
+                details,
+                editedEventID: editedEventID.current
+            });
+
+            dispatch(generalStateActions.updateMemorizedEventInput({ name: details.name, categoryID: details.categoryID, deadlineEnabled: deadlineSwitchInput }));
+        }
+
+        EventRegister.emit('hideUndoPopup');
+
+        pressOutViewRef.current?.close();
+    }
+
+    function createEvent() {
+        const details: EventDetails = {
+            name: eventNameInput,
+            dueDate: deadlineSwitchInput ? DateYMDHelpers.fromDate(dueDateInput) : null,
+            categoryID: categoryInput,
+            notes: notesInput,
+        };
+
+        const repeatSettings: RepeatSettings = {
+            interval: intervalInput,
+            recurrences: recurrencesInput,
+        }
+
+        props.onSubmit({
+            mode: 'create',
+            details,
+            plannedDate: DateYMDHelpers.fromDate(dueDateInput),
+            repeatSettings
+        });
+
+        dispatch(generalStateActions.updateMemorizedEventInput({ name: details.name, categoryID: details.categoryID, deadlineEnabled: deadlineSwitchInput }));
     }
 
     return (
         <>
-            <PressOutView ref={pressOutViewRef} style={styles.mainContainer}>
+            <PressOutView ref={pressOutViewRef} style={styles.mainContainer} onClose={close}>
                 <BlurView
                     borderRadius={20}
                     blurType={colorTheme}
@@ -313,7 +317,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                     onCategoryDeleted={handleCategoryDeleted}
                                 />
                             }
-                            contentContainerStyle={{ backgroundColor: '#000000E0', borderRadius: 10, maxHeight: 250, overflow: 'hidden' }}
+                            contentContainerStyle={{ backgroundColor: '#333', borderRadius: 10, maxHeight: 250, overflow: 'hidden' }}
                             hitSlop={10}
                         >
                             <Text style={[styles.categoryText, { color: getCategoryTextColor() }]}>{getCategoryName()}</Text>
@@ -357,33 +361,48 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                 </BlurView>
                 {mode.current === 'create' ?
                     <>
-                        <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
-                            <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#00E000A0', width: 225, padding: 16, justifyContent: 'center', ...globalStyles.flexRow }}>
-                                <Icon name='add-box' color='white' size={30} />
-                                <Text style={{ marginLeft: 10, fontSize: 20, fontWeight: 'bold', color: 'white' }}>Create</Text>
-                            </BlurView>
-                        </TouchableOpacity>
-                        <TouchableOpacity activeOpacity={activeOpacity} onPress={() => { submit(); close(); }} style={{ marginTop: 12 }}>
-                            <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#C0C000A0', padding: 10, ...globalStyles.flexRow }}>
-                                <Icon name='library-add' color='#FFFFFFB0' size={22} />
-                                <Text style={{ marginLeft: 8, fontSize: 13, fontWeight: 'bold', color: '#FFFFFFB0' }}>Create Multiple</Text>
-                            </BlurView>
-                        </TouchableOpacity>
+                        <Button
+                            title='Create'
+                            titleSize={20}
+                            iconName='add-box'
+                            iconSize={30}
+                            fontColor={white}
+                            backgroundColor={{r:0,g:200,b:0,a:230}}
+                            onPress={() => { createEvent(); close(); }}
+                            style={{marginTop: 12, borderRadius: 20, width: 200, padding: 16}}
+                        />
+                        {/*<Button
+                            title='Create Multiple'
+                            titleSize={13}
+                            iconName='library-add'
+                            fontColor={{r:255,g:255,b:255,a:220}}
+                            backgroundColor={{r:192,g:192,b:0,a:230}}
+                            onPress={() => { createEvent(); close(); }}
+                            style={{marginTop: 12, borderRadius: 15 }}
+                        />*/}
                     </>
                 :
                     <View style={[globalStyles.flexRow, { marginTop: 12 }]}>
-                        <TouchableOpacity activeOpacity={activeOpacity} onPress={onSelected}>
-                            <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#0040FF80', padding: 12, ...globalStyles.flexRow }}>
-                                <Icon name='check-box' color='#FFFFFFE0' size={24} />
-                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFE0', marginLeft: 8 }}>Select</Text>
-                            </BlurView>
-                        </TouchableOpacity>
-                        <TouchableOpacity activeOpacity={activeOpacity} onPress={onDeleted} style={{ marginLeft: 12 }}>
-                            <BlurView borderRadius={15} blurType={colorTheme} style={{ backgroundColor: '#FF000080', padding: 12, ...globalStyles.flexRow }}>
-                                <Icon name='delete' color='#FFFFFFE0' size={24} />
-                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#FFFFFFE0', marginLeft: 8 }}>Delete</Text>
-                            </BlurView>
-                        </TouchableOpacity>
+                        <Button
+                            title='Select'
+                            titleSize={12}
+                            iconName='check-box'
+                            iconSize={24}
+                            fontColor={{r:255,g:255,b:255,a:224}}
+                            backgroundColor={{r:0,g:64,b:255,a:210}}
+                            onPress={enterMultiselectMode}
+                            style={{borderRadius: 15}}
+                        />
+                        <Button
+                            title='Delete'
+                            titleSize={12}
+                            iconName='delete'
+                            iconSize={24}
+                            fontColor={{r:255,g:255,b:255,a:224}}
+                            backgroundColor={{r:225,g:0,b:0,a:210}}
+                            onPress={onDeleted}
+                            style={{marginLeft: 12, borderRadius: 15}}
+                        />
                     </View>
                 }
             </PressOutView>

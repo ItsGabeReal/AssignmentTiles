@@ -5,30 +5,33 @@
 import React from 'react';
 import {
     StyleProp,
+    StyleSheet,
     Text,
     TouchableOpacity,
+    View,
     ViewStyle
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import BlurView from './core/BlurView';
 import { globalStyles, activeOpacity, colorTheme } from '../src/GlobalStyles';
-import { RGBAColor, RGBAToColorValue, gray, mixColor, white } from '../src/ColorHelpers';
+import { RGBAColor, RGBAToColorValue, black, gray, hexToRGBA, mixColor, white } from '../src/ColorHelpers';
+
+type ButtonStyle = Omit<ViewStyle, 'backgroundColor'>;
 
 type ButtonProps = {
     /**
      * Text displayed on the button.
      */
-    title: string;
-
-    /**
-     * Name of the icon used (uses material icons).
-     */
-    iconName: string;
+    title?: string;
 
     /**
      * Font size of the button title.
      */
     titleSize?: number;
+
+    /**
+     * Name of the icon used (uses material icons).
+     */
+    iconName?: string;
 
     /**
      * Size of the icon.
@@ -46,11 +49,6 @@ type ButtonProps = {
     backgroundColor?: RGBAColor;
 
     /**
-     * Padding between the edge of the button and the title/icon.
-     */
-    padding?: number;
-
-    /**
      * The space between the icon and the title.
      */
     iconSpacing?: number;
@@ -58,18 +56,13 @@ type ButtonProps = {
     /**
      * The style of the button's background.
      */
-    style?: StyleProp<ViewStyle>;
+    style?: StyleProp<ButtonStyle>;
 
     /**
      * Disables the button from being pressed, and greys the button's
      * background color.
      */
     disabled?: boolean;
-
-    /**
-     * The border radius of the buttons corners.
-     */
-    borderRadius?: number;
 
     /**
      * Called when the button is pressed.
@@ -80,12 +73,10 @@ type ButtonProps = {
 const Button: React.FC<ButtonProps> = (props) => {
     const {
         titleSize = 14,
-        iconSize = 16,
+        iconSize = 20,
         fontColor = white,
         backgroundColor = {r:128,g:128,b:128,a:128},
-        padding = 10,
-        iconSpacing = 10,
-        borderRadius = 1000,
+        iconSpacing = 8,
         disabled = false,
     } = props;
 
@@ -102,19 +93,29 @@ const Button: React.FC<ButtonProps> = (props) => {
         let output = backgroundColor;
 
         if (disabled)
-            output = mixColor(output, gray);
+            output = mixColor(output, hexToRGBA('#444'), 0.9);
 
         return RGBAToColorValue(output);
     }
 
     return (
-        <TouchableOpacity activeOpacity={activeOpacity} onPress={props.onPress} style={props.style}>
-            <BlurView borderRadius={borderRadius} blurType={colorTheme} style={{ backgroundColor: getButtonColor(), padding: padding, justifyContent: 'center', ...globalStyles.flexRow }}>
-                <Icon name={props.iconName} color={getFontColor()} size={iconSize} />
-                <Text style={{ marginLeft: iconSpacing, fontSize: titleSize, fontWeight: 'bold', color: getFontColor() }}>{props.title}</Text>
-            </BlurView>
+        <TouchableOpacity disabled={props.disabled} activeOpacity={activeOpacity} onPress={props.onPress} style={[styles.defaultContainer, props.style, {backgroundColor: getButtonColor()}]}>
+            <View style={[globalStyles.flexRow, styles.justifyCenter]}>
+                { props.iconName!==undefined ? <Icon name={props.iconName} color={getFontColor()} size={iconSize} style={{marginRight: props.title===undefined ? 0 : iconSpacing}}/> : null }
+                { props.title!==undefined ? <Text style={{ fontSize: titleSize, fontWeight: 'bold', color: getFontColor() }}>{props.title}</Text> : null }
+            </View>
         </TouchableOpacity>
     );
 }
+
+const styles = StyleSheet.create({
+    defaultContainer: {
+        padding: 12,
+        borderRadius: 1000,
+    },
+    justifyCenter: {
+        justifyContent: 'center',
+    }
+});
 
 export default Button;

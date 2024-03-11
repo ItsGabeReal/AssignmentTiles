@@ -18,10 +18,12 @@ const VisualSettings = {
     EventTile: {
         mainContainer: {
             height: 90,
-            width: 90,
-            marginRight: 8,
-            marginBottom: 8,
+            width: 90
         },
+        margin: {
+            right: 8,
+            bottom: 8
+        }
     },
 }
 
@@ -29,7 +31,7 @@ export function getNumEventColunms() {
     const { width } = Dimensions.get('screen');
 
     const dateAreaWidth = VisualSettings.DayRow.dateTextContainer.width;
-    const tileWidth = VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight;
+    const tileWidth = VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.margin.right;
 
     const tileContainerWidth = width - dateAreaWidth;
 

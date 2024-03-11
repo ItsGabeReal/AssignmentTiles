@@ -2,7 +2,7 @@
  * An area fiew that can safely display content on both Android and iOS.
  * 
  * For iOS, this is just a wrapper for the SafeAreaView component.
- * For Android, this prevents content from going within the top bar, and navigation bar.
+ * For Android, this is a view that sits between the status bar and navigation bar.
  */
 
 import React from 'react';

@@ -20,12 +20,12 @@ export function getDayRowHeight(rowPlans: {[key: string]: RowPlan}, date: DateYM
         eventContainerHeight = eventTileHeight;
     }
     else {
-        const verticalSpaceBetweenTiles = VisualSettings.EventTile.mainContainer.marginBottom;
+        const verticalSpaceBetweenTiles = VisualSettings.EventTile.margin.bottom;
         const numTileRows = Math.ceil(rowPlans[key].orderedEventIDs.length / getNumEventColunms());
         eventContainerHeight = eventTileHeight * numTileRows + verticalSpaceBetweenTiles * (numTileRows - 1);
     }
 
-    const topAndBottomMargin = VisualSettings.DayRow.flatListContainer.paddingTop + VisualSettings.EventTile.mainContainer.marginBottom;
+    const topAndBottomMargin = VisualSettings.DayRow.flatListContainer.paddingTop + VisualSettings.EventTile.margin.bottom;
 
     return (eventContainerHeight + topAndBottomMargin);
 }
@@ -79,11 +79,11 @@ export function getEventTilePosition(rowYOffset: number, eventRowOrder: number) 
 
     const xPosition = (VisualSettings.DayRow.dateTextContainer.width
         + VisualSettings.DayRow.flatListContainer.paddingLeft
-        + tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.mainContainer.marginRight));
+        + tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.margin.right));
 
     const yPosition = (rowYOffset
         + VisualSettings.DayRow.flatListContainer.paddingTop
-        + tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.EventTile.mainContainer.marginBottom));
+        + tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.EventTile.margin.bottom));
 
     const outputDimensions: Vector2D = {
         x: xPosition,
@@ -98,8 +98,8 @@ export function getInsertionIndexFromGesture(visibleDays: DateYMD[], visibleDays
     // Constants
     const numColumns = getNumEventColunms();
     const tileWidth = VisualSettings.EventTile.mainContainer.width;
-    const tileYMargin = VisualSettings.EventTile.mainContainer.marginBottom;
-    const tileXMargin = VisualSettings.EventTile.mainContainer.marginRight;
+    const tileYMargin = VisualSettings.EventTile.margin.bottom;
+    const tileXMargin = VisualSettings.EventTile.margin.right;
     const dayRowYMargin = VisualSettings.App.dayRowSeparater.height;
 
     const rowPlanKey = DateYMDHelpers.toString(visibleDays[visibleDaysIndex]);

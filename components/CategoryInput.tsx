@@ -20,8 +20,9 @@ import { activeOpacity, categoryColorPalette, colorTheme, fontSizes } from '../s
 import { focusTextInput } from '../src/GlobalHelpers';
 import BlurView from './core/BlurView';
 import InputField from './InputField';
-import { RGBAToColorValue, gray, mixColor } from '../src/ColorHelpers';
+import { RGBAToColorValue, gray, green, mixColor } from '../src/ColorHelpers';
 import Button from './Button';
+import { EventRegister } from 'react-native-event-listeners';
 
 export type CategoryInputRef = {
     /**
@@ -117,6 +118,9 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
 
             dispatch(categoriesActions.edit({ categoryID: editedCategoryID.current, newName: nameInput, newColor: colorInput }));
         }
+
+        // If an undo popup hasn't been manually closed yet, go ahead and close it
+        EventRegister.emit('hideUndoPopup');
     }
 
     return (
@@ -170,7 +174,6 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                             style={{flexGrow: 0}}
                         />
                     </View>
-                    
                 </InputField>
             </BlurView>
             {mode.current === 'create' ?
@@ -179,15 +182,10 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                     titleSize={20}
                     iconName='add'
                     iconSize={26}
-                    backgroundColor={{r:0,g:255,b:0,a:128}}
-                    padding={16}
-                    borderRadius={20}
+                    backgroundColor={green}
                     style={{marginTop: 10, width: 175}}
                     disabled={!readyToSubmit()}
-                    onPress={() => {
-                        submit();
-                        close();
-                    }}
+                    onPress={() => { submit(); close(); }}
                 />
             :
                 null
