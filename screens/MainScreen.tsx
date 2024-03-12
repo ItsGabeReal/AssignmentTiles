@@ -29,7 +29,7 @@ import { eventActions } from "../src/redux/features/events/eventsSlice";
 import SafeAreaView from "../components/core/SafeAreaView";
 import { vibrate } from "../src/GlobalHelpers";
 import Button from "../components/Button";
-import { hexToRGBA, white } from "../src/ColorHelpers";
+import { green, hexToRGBA, white } from "../src/ColorHelpers";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -207,22 +207,23 @@ export default function MainScreen() {
                 onPress={scrollToToday}
             />
         );
-
-        /*<TouchableOpacity activeOpacity={activeOpacity} style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]} onPress={scrollToToday}>
-            <Text style={styles.returnToTodayText}>Today</Text>
-            <Icon name={variation === 'above' ? "arrow-upward" : "arrow-downward"} size={20} style={styles.returnToTodayIcon} />
-        </TouchableOpacity>*/
     }
 
     function addEventButton() {
         const onPress = () => {
             eventInputRef.current?.open({ mode: 'create' });
         }
-
-        return (
-            <TouchableOpacity activeOpacity={activeOpacity} style={styles.addButton} onPress={onPress}>
+            /*<TouchableOpacity activeOpacity={activeOpacity} style={styles.addButton} onPress={onPress}>
                 <Icon name="add" color={'white'} size={40} />
-            </TouchableOpacity>
+            </TouchableOpacity>*/
+        return (
+            <Button
+                iconName="add"
+                iconSize={40}
+                backgroundColor={green}
+                style={styles.addButton}
+                onPress={onPress}
+            />
         );
     }
 
@@ -353,14 +354,9 @@ const styles = StyleSheet.create({
     },
     addButton: {
         position: 'absolute',
-        width: 70,
-        height: 70,
         right: 15,
         bottom: 15,
-        borderRadius: 100,
-        backgroundColor: '#01C000',
-        alignItems: 'center',
-        justifyContent: 'center',
+        padding: 15
     },
     overlayFooterContainer: {
         position: 'absolute',
