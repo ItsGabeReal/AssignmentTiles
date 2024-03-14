@@ -72,68 +72,46 @@ function _getDayRowAtScreenPosition(visibleDays: DateYMD[], rowPlans: {[key: str
     return _getDayRowAtScreenPosition(visibleDays, rowPlans, scrollYOffset, screenPosition, midIndex+1, end);
 }
 
-export function getEventTilePosition(rowYOffset: number, eventRowOrder: number) {
-    const numColumns = getNumEventColunms();
-    const tilesToTheLeft = eventRowOrder % numColumns;
-    const tilesAbove = Math.floor(eventRowOrder / numColumns);
-
-    const xPosition = (VisualSettings.DayRow.dateTextContainer.width
-        + VisualSettings.DayRow.flatListContainer.paddingLeft
-        + tilesToTheLeft * (VisualSettings.EventTile.mainContainer.width + VisualSettings.EventTile.margin.right));
-
-    const yPosition = (rowYOffset
-        + VisualSettings.DayRow.flatListContainer.paddingTop
-        + tilesAbove * (VisualSettings.EventTile.mainContainer.height + VisualSettings.EventTile.margin.bottom));
-
-    const outputDimensions: Vector2D = {
-        x: xPosition,
-        y: yPosition
-    }
-
-    return outputDimensions;
-}
-
+// Finds the position a tile should be inserted based on the position of a drag gesture.
 export function getInsertionIndexFromGesture(visibleDays: DateYMD[], visibleDaysIndex: number, rowPlans: {[key: string]: RowPlan}, scrollYOffset: number, gesture: Vector2D) {
-    //const dimensionsForAllTiles = getDimensionsForAllTilesInRow(visibleDays, rowPlans, scrollYOffset, visibleDaysIndex);
     // Constants
-    const numColumns = getNumEventColunms();
     const tileWidth = VisualSettings.EventTile.mainContainer.width;
+    const tileHeight = VisualSettings.EventTile.mainContainer.height;
     const tileYMargin = VisualSettings.EventTile.margin.bottom;
     const tileXMargin = VisualSettings.EventTile.margin.right;
-    const dayRowYMargin = VisualSettings.App.dayRowSeparater.height;
+    const flatlistPaddingtop = VisualSettings.DayRow.flatListContainer.paddingTop;
+    const flatlistPaddingLeft = VisualSettings.DayRow.flatListContainer.paddingLeft;
+    const dateTextContainerWidth = VisualSettings.DayRow.dateTextContainer.width;
 
     const rowPlanKey = DateYMDHelpers.toString(visibleDays[visibleDaysIndex]);
     const rowYOffset = getDayRowScreenYOffset(visibleDays, rowPlans, scrollYOffset, visibleDaysIndex);
 
     const numTiles = rowPlans[rowPlanKey]?.orderedEventIDs.length || 0;
-    for (let i = 0; i < numTiles; i++) {
-        const tilePosition = getEventTilePosition(rowYOffset, i);
 
-        // Intermediate variables
-        const inFirstRow = Math.floor(i / numColumns) === 0;
-        
-        // Overlap checks
-        const yStart = tilePosition.y - tileYMargin - (inFirstRow ? dayRowYMargin : 0);
-        const yEnd = tilePosition.y + tileWidth + tileYMargin;
-        const gestureYOverlapsTile = gesture.y > yStart && gesture.y < yEnd;
+    const numColumns = getNumEventColunms();
+    const numRows = (numTiles === 0 ? 1 : Math.ceil(numTiles / numColumns));
 
-        const xStart = tilePosition.x;
-        const xEnd = tilePosition.x + tileWidth + tileXMargin;
-        const gestureXOverlapsTile = gesture.x > xStart && gesture.x < xEnd;
-        
-        // Return insert index
-        if (gestureYOverlapsTile) {
-            if (gestureXOverlapsTile) {
-                return i;
-            }
-            
-            const firstInRow = (i % numColumns) === 0;
-            if (firstInRow && (gesture.x < tilePosition.x)) { // Handle edge case where gesture is in the left margin of the screen
-                return i;
-            }
+    // Find insertion row
+    let insertionRow = numRows-1;
+    for (let i = 1; i < numRows; i++) {
+        const rowEndY = rowYOffset + flatlistPaddingtop + i*(tileHeight + tileYMargin);
+
+        if (gesture.y < rowEndY) {
+            insertionRow = i-1;
+            break;
         }
     }
 
-    // If no index can be found, return an insertion index at the end of the row
-    return numTiles;
+    // Find insertion column
+    let insertionColumn = numColumns-1;
+    for (let i = 1; i < numColumns; i++) {
+        const columnEndX = dateTextContainerWidth + flatlistPaddingLeft + i*(tileWidth + tileXMargin);
+        
+        if (gesture.x < columnEndX) {
+            insertionColumn = i-1;
+            break;
+        }
+    }
+
+    return insertionRow*numColumns + insertionColumn;
 }
