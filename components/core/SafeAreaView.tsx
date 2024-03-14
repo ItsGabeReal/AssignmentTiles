@@ -21,8 +21,9 @@ const SafeAreaView: React.FC<ViewProps> = (props) => {
         
     if (Platform.OS === 'ios') {
         return (
-            <IOSSafeAreaView style={[styles.iosSafeView, style]} {...otherProps}>
+            <IOSSafeAreaView style={[styles.androidSafeView, style]} {...otherProps}>
                 {children}
+                <View pointerEvents='box-none' style={[StyleSheet.absoluteFill, {backgroundColor: '#0f04', margin: 10}]}></View>
             </IOSSafeAreaView>
         );
     }
@@ -31,6 +32,7 @@ const SafeAreaView: React.FC<ViewProps> = (props) => {
         return (
             <View style={[styles.androidSafeView, style]} {...otherProps}>
                 {children}
+                <View pointerEvents='box-none' style={[StyleSheet.absoluteFill, {backgroundColor: '#0f04', margin: 10}]}></View>
             </View>
         );
     }
