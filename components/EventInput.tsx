@@ -8,19 +8,17 @@ import {
     View,
     Text,
     TextInput,
-    TouchableOpacity,
 } from 'react-native';
 import CompactDatePicker from './core/CompactDatePicker';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
-import { activeOpacity, colorTheme, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
+import { colorTheme, fontSizes, globalStyles } from '../src/GlobalStyles';
 import { focusTextInput } from '../src/GlobalHelpers';
 import { generalStateActions } from '../src/redux/features/general/generalSlice';
 import { EventDetails } from '../types/store-current';
 import InputField from './InputField';
 import BlurView from './core/BlurView';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import { deleteEventAndBackup, restoreDeletedEventsFromBackup } from '../src/EventHelpers';
 import HideableView from './core/HideableView';
 import Checkbox from './core/Checkbox';
@@ -163,7 +161,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     }
 
     function getCategoryColor(): RGBAColor {
-        if (!categoryInput) return gray;
+        if (!categoryInput || categories[categoryInput] === undefined) return gray;
 
         return categories[categoryInput].color;
     }
@@ -185,6 +183,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
 
     function getCategoryName() {
         if (!categoryInput) return 'None';
+        if (categories[categoryInput] === undefined) return 'undefined';
 
         return categories[categoryInput].name;
     }
@@ -299,7 +298,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             maxLength={50}
                         />
                     </InputField>
-                    <InputField title='Category' style={{marginBottom: 20, width: 215}}>
+                    <InputField title='Category' style={{marginBottom: 20, width: 215}} /*onPress={dropdownMenuRef.current?.open}*/>
                         <DropdownMenu
                             ref={dropdownMenuRef}
                             dropIconColor={'white'}
@@ -370,6 +369,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             backgroundColor={{r:0,g:200,b:0,a:230}}
                             onPress={() => { createEvent(); close(); }}
                             style={{marginTop: 12, borderRadius: 20, width: 200, padding: 16}}
+                            disabled={!readyToCreate()}
                         />
                         {/*<Button
                             title='Create Multiple'

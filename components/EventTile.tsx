@@ -110,7 +110,7 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
                     }
                 </View>
                 {/*event.completed ? completedCheckmarkView() : */null}
-                {isSelected ? <View style={[StyleSheet.absoluteFill, styles.selectedColorOverlay]} /> : null}
+                {isSelected ? <View style={styles.selectedColorOverlay} /> : null}
             </View>
             {isSelected ? selectedIcon() : null}
         </>
@@ -132,13 +132,20 @@ const styles = StyleSheet.create({
         padding: 5,
     },
     selectedColorOverlay: {
-        backgroundColor: '#04f8',
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        borderWidth: 4,
+        borderRadius: 13,
+        borderColor: 'white'
     },
     selectedCheckIconContainer: {
         position: 'absolute',
         transform: [
-            { translateX: -10 },
-            { translateY: -10 },
+            { translateX: -8 },
+            { translateY: -8 },
         ],
         backgroundColor: 'white',
         borderRadius: 20,

@@ -16,7 +16,7 @@ import PressOutView, { PressOutViewRef } from './core/PressOutView';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 import TextInputWithClearButton from './core/TextInputWithClearButton';
-import { activeOpacity, categoryColorPalette, colorTheme, fontSizes } from '../src/GlobalStyles';
+import { categoryColorPalette, colorTheme, fontSizes } from '../src/GlobalStyles';
 import { focusTextInput } from '../src/GlobalHelpers';
 import BlurView from './core/BlurView';
 import InputField from './InputField';
@@ -33,7 +33,10 @@ export type CategoryInputRef = {
 
 type CategoryInputProps = {
     /**
-     * Called when a new category is created.
+     * Called when a category is either created or edited.
+     * 
+     * Note: When mode='create', there is no need to add the category to state.
+     * That's already handled.
      */
     onSubmit: ((categoryID: string, mode: 'create' | 'edit') => void);
 }
@@ -160,7 +163,6 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                             renderItem={({ item }) => {
                                 return (
                                     <TouchableOpacity
-                                        activeOpacity={activeOpacity}
                                         style={[styles.colorButton, {
                                             backgroundColor: RGBAToColorValue(item),
                                             borderWidth: item === colorInput ? 3 : 0

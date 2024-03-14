@@ -67,7 +67,7 @@ const UndoPopupOverlay: React.FC<UndoPopupOverlayProps> = (props) => {
         <View style={StyleSheet.absoluteFill}>
             {props.children}
             {visible ?
-                <SafeAreaView>
+                <SafeAreaView pointerEvents='box-none'>
                     <View style={styles.mainContainer}>
                         <CloseButton onPress={close} color={colors.dimText} size={18} hitSlop={12} />
                         <Text style={styles.promptText}>{actionDescription}</Text>

@@ -31,8 +31,10 @@ const InputField: React.FC<InputFieldProps> = (props) => {
             <Pressable style={styles.parameterContainer} onPress={props.onPress}>
                 {props.children}
             </Pressable>
-            <View style={styles.fieldHeaderContianer}>
-                <Text style={styles.fieldTitle}>{props.title}</Text>
+            <View pointerEvents='box-none' style={styles.fieldHeaderContianer}>
+                <View pointerEvents='none'>
+                    <Text style={styles.fieldTitle}>{props.title}</Text>
+                </View>
                 {props.headerChildren}
             </View>
         </View>

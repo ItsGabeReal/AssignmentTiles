@@ -51,6 +51,7 @@ const TextInputWithClearButton = forwardRef<TextInput, TextInputWithClearButtonP
     function onClearButtonPressed() {
         textInputRef.current?.clear();
         textInputRef.current?.focus();
+        props.onChangeText?.("");
     }
 
     return (

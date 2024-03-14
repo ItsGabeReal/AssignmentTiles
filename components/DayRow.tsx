@@ -10,7 +10,7 @@ import DateYMD, { DateYMDHelpers } from "../src/DateYMD";
 import VisualSettings, {getNumEventColunms} from "../src/VisualSettings"
 import { useAppSelector } from "../src/redux/hooks";
 import InteractableEventTile from "./InteractableEventTile";
-import { activeOpacity, colors, fontSizes } from "../src/GlobalStyles";
+import { colors, fontSizes } from "../src/GlobalStyles";
 
 type DayRowProps = {
     /**
@@ -70,7 +70,7 @@ const DayRow: React.FC<DayRowProps> = memo((props) => {
     }
 
     return (
-        <TouchableOpacity activeOpacity={activeOpacity} onPress={handlePress} disabled={multiselectEnabled}>
+        <TouchableOpacity onPress={handlePress} disabled={multiselectEnabled}>
             <View style={styles.mainContainer}>
                 <View style={[styles.dateTextContainer, { backgroundColor: (isToday ? colors.todayL2 : colors.l2) }]}>
                     <Text style={styles.dayNameText}>{DateYMDHelpers.dayNameAbrev(props.date)}</Text>

@@ -20,7 +20,7 @@ import { DateYMDHelpers } from "../src/DateYMD";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
 import { createEvent, deleteMultipleEventsAndBackup, restoreDeletedEventsFromBackup } from "../src/EventHelpers";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { activeOpacity, colors, fontSizes } from "../src/GlobalStyles";
+import { colors, fontSizes } from "../src/GlobalStyles";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
 import { Vector2D } from "../types/General";
 import { updateEventPlanFromDragPosition } from "../src/RowPlansHelpers";
@@ -29,7 +29,8 @@ import { eventActions } from "../src/redux/features/events/eventsSlice";
 import SafeAreaView from "../components/core/SafeAreaView";
 import { vibrate } from "../src/GlobalHelpers";
 import Button from "../components/Button";
-import { green, hexToRGBA, white } from "../src/ColorHelpers";
+import { green, hexToRGBA, red, white } from "../src/ColorHelpers";
+import FloatingCategoryPicker, { FloatingCategoryPickerRef } from "../components/FloatingCategoryPicker";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -57,6 +58,7 @@ export default function MainScreen() {
     const eventInputRef = useRef<EventInputRef | null>(null);
     const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
+    const multiselectCategoryPickerRef = useRef<FloatingCategoryPickerRef | null>(null);
 
     // Refs related to autoscroll while dragging event
     const currentDraggedEvent = useRef<string | null>(null);
@@ -210,19 +212,15 @@ export default function MainScreen() {
     }
 
     function addEventButton() {
-        const onPress = () => {
-            eventInputRef.current?.open({ mode: 'create' });
-        }
-            /*<TouchableOpacity activeOpacity={activeOpacity} style={styles.addButton} onPress={onPress}>
-                <Icon name="add" color={'white'} size={40} />
-            </TouchableOpacity>*/
         return (
             <Button
                 iconName="add"
                 iconSize={40}
                 backgroundColor={green}
                 style={styles.addButton}
-                onPress={onPress}
+                onPress={() => {
+                    eventInputRef.current?.open({ mode: 'create' });
+                }}
             />
         );
     }
@@ -232,29 +230,33 @@ export default function MainScreen() {
 
         return (
             <View style={styles.multiselectMainContainer}>
-                {multiselectButton('Delete', 'delete', onMultiselectDeletePressed, !anyTilesSelected, '#d00')}
-                {/*multiselectButton('Set Category', 'category', () => multiselectCategoryPickerRef.current?.open(), !anyTilesSelected)*/}
-                {multiselectButton('Cancel', 'close', exitMultiselectMode)}
+                <Button
+                    title="Delete"
+                    iconName="delete"
+                    onPress={onMultiselectDeletePressed}
+                    disabled={!anyTilesSelected}
+                    backgroundColor={red}
+                    style={styles.multiselectButton}
+                />
+                <Button
+                    title="Set Category"
+                    iconName="category"
+                    onPress={() => multiselectCategoryPickerRef.current?.open()}
+                    disabled={!anyTilesSelected}
+                    style={styles.multiselectButton}
+                />
+                <Button
+                    title="Cancel"
+                    iconName="close"
+                    onPress={exitMultiselectMode}
+                    style={styles.multiselectButton}
+                />
             </View>
         );
     }
 
     function exitMultiselectMode() {
         dispatch(generalStateActions.setMultiselectEnabled({ enabled: false }));
-    }
-
-    function multiselectButton(displayName: string, iconName: string, onPress: (() => void), disabled?: boolean, backgroundColor?: ColorValue) {
-        return (
-            <TouchableOpacity
-                activeOpacity={activeOpacity}
-                style={[styles.multiselectButton, { backgroundColor: backgroundColor || '#888', opacity: disabled ? 0.5 : 1 }]}
-                onPress={onPress}
-                disabled={disabled}
-            >
-                <Icon name={iconName} color={'white'} size={24} />
-                <Text style={styles.multiselectText}>{displayName}</Text>
-            </TouchableOpacity>
-        )
     }
 
     function onMultiselectDeletePressed() {
@@ -267,7 +269,7 @@ export default function MainScreen() {
         EventRegister.emit('showUndoPopup', { action, onPressed: ()=>{restoreDeletedEventsFromBackup(dispatch)} });
     }
 
-    function onCategorySelectedDuringMultiselect(categoryID: string | null) {
+    function onMultiselectCategoryPicked(categoryID: string | null) {
         multiselectState.selectedEventIDs.forEach(item => {
             dispatch(eventActions.setCategoryID({eventID: item, categoryID}));
         });
@@ -320,6 +322,7 @@ export default function MainScreen() {
                 />
             </VETContainer>
             <SafeAreaView pointerEvents='box-none'>
+                {/*<View style={[StyleSheet.absoluteFill, {backgroundColor: '#0f04', margin: 10}]}></View>*/}
                 {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
                 {!multiselectState.enabled ? addEventButton() : null}
                 <View style={styles.overlayFooterContainer}>
@@ -328,6 +331,10 @@ export default function MainScreen() {
                 </View>
             </SafeAreaView>
             <EventInput ref={eventInputRef} onSubmit={onEventSubmitted} />
+            <FloatingCategoryPicker
+                ref={multiselectCategoryPickerRef}
+                onCategorySelected={onMultiselectCategoryPicked}
+            />
         </View>
     );
 }
@@ -372,8 +379,6 @@ const styles = StyleSheet.create({
     multiselectButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 40,
         marginTop: 8,
     },
     multiselectText: {

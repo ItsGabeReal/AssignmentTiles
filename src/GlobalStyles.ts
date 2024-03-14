@@ -130,11 +130,3 @@ export const globalStyles = StyleSheet.create({
         alignItems: 'center',
     },
 });
-
-/**
- * The opacity of a TouchableOpacity when pressed.
- * 
- * This should be applied to every TouchableOpaclty
- * component in the app.
- */
-export const activeOpacity = 0.5;

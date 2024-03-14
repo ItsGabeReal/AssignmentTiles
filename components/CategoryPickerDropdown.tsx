@@ -1,6 +1,4 @@
-import React, {
-    useRef,
-} from 'react';
+import React from 'react';
 import {
     StyleSheet,
     View,
@@ -10,15 +8,15 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
-import { activeOpacity, colors, fontSizes, globalStyles } from '../src/GlobalStyles';
+import { fontSizes } from '../src/GlobalStyles';
 import { deleteCategoryAndBackup, restoreCategoryFromBackup } from '../src/CategoriesHelpers';
-import { RGBAToColorValue, gray, green, hexToRGBA, white } from '../src/ColorHelpers';
+import { RGBAToColorValue, gray, green } from '../src/ColorHelpers';
 import { Category } from '../types/store-current';
 import Button from './Button';
 import { EventRegister } from 'react-native-event-listeners';
 
 // Constants
-const CATEGORY_VERTICAL_SPACING = 15;
+const CATEGORY_VERTICAL_SPACING = 8;
 
 type CategoryPickerDropdownProps = {
     /**
@@ -87,19 +85,14 @@ const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) =>
                     onSelect={props.onCategorySelected}
                 />
                 {createCategoryListItems()}
+                <View style={{height: CATEGORY_VERTICAL_SPACING}}/>
             </ScrollView>
-            {/*<TouchableOpacity
-                style={[globalStyles.flexRow, { backgroundColor: '#2F28', padding: 10 }]}
-                onPress={props.onCreateCategory}
-            >
-                <Icon name='add' color={'white'}/>
-                <Text style={{ color: 'white', fontSize: fontSizes.p, marginLeft: 5 }}>Create</Text>
-            </TouchableOpacity>*/}
             <Button
-                title='Create'
+                title='New Category'
                 iconName='add'
                 backgroundColor={green}
                 onPress={props.onCreateCategory}
+                style={styles.createButton}
             />
         </>
     );
@@ -159,15 +152,15 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
 
     return (
         <>
-            <TouchableOpacity activeOpacity={activeOpacity} onPress={() => props.onSelect(props.categoryID)} style={styles.categoryListItemContainer} hitSlop={5}>
+            <TouchableOpacity onPress={() => props.onSelect(props.categoryID)} style={styles.categoryListItemContainer}>
                 <Text style={[styles.categoryText, {color: RGBAToColorValue(category.color)}]}>{category.name}</Text>
                 {!hideCategoryActions ?
                     <View style={styles.actionButtonContainer}>
-                        <TouchableOpacity activeOpacity={activeOpacity} onPress={props.onEditPressed} hitSlop={5}>
-                            <Icon name='edit' color='#DD0' size={20} />
+                        <TouchableOpacity onPress={props.onEditPressed} hitSlop={5}>
+                            <Icon name='edit' color='#882' size={20} />
                         </TouchableOpacity>
-                        <TouchableOpacity activeOpacity={activeOpacity} style={styles.deleteButton} onPress={deleteCategory} hitSlop={5}>
-                            <Icon name='delete' color='#F00000' size={20} />
+                        <TouchableOpacity style={styles.deleteButton} onPress={deleteCategory} hitSlop={5}>
+                            <Icon name='delete' color='#A22' size={20} />
                         </TouchableOpacity>
                     </View>
                     : null
@@ -184,7 +177,7 @@ const styles = StyleSheet.create({
     categoryListItemContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: CATEGORY_VERTICAL_SPACING
+        paddingVertical: CATEGORY_VERTICAL_SPACING
     },
     categoryText: {
         fontSize: fontSizes.h3,
@@ -196,6 +189,10 @@ const styles = StyleSheet.create({
     deleteButton: {
         marginLeft: 10,
     },
+    createButton: {
+        padding: 8,
+        borderRadius: 0
+    }
 });
 
 export default CategoryPickerDropdown;

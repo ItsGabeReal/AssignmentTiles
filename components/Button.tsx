@@ -12,8 +12,8 @@ import {
     ViewStyle
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { globalStyles, activeOpacity, colorTheme } from '../src/GlobalStyles';
-import { RGBAColor, RGBAToColorValue, black, gray, hexToRGBA, mixColor, white } from '../src/ColorHelpers';
+import { globalStyles } from '../src/GlobalStyles';
+import { RGBAColor, RGBAToColorValue, gray, hexToRGBA, mixColor, white } from '../src/ColorHelpers';
 
 type ButtonStyle = Omit<ViewStyle, 'backgroundColor'>;
 
@@ -98,11 +98,19 @@ const Button: React.FC<ButtonProps> = (props) => {
         return RGBAToColorValue(output);
     }
 
+    function onPress() {
+        if (!props.disabled) props.onPress?.();
+    }
+
     return (
-        <TouchableOpacity disabled={props.disabled} activeOpacity={activeOpacity} onPress={props.onPress} style={[styles.defaultContainer, props.style, {backgroundColor: getButtonColor()}]}>
+        <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={onPress}
+            style={[styles.defaultContainer, props.style, { backgroundColor: getButtonColor() }]}
+        >
             <View style={[globalStyles.flexRow, styles.justifyCenter]}>
-                { props.iconName!==undefined ? <Icon name={props.iconName} color={getFontColor()} size={iconSize} style={{marginRight: props.title===undefined ? 0 : iconSpacing}}/> : null }
-                { props.title!==undefined ? <Text style={{ fontSize: titleSize, fontWeight: 'bold', color: getFontColor() }}>{props.title}</Text> : null }
+                {props.iconName !== undefined ? <Icon name={props.iconName} color={getFontColor()} size={iconSize} style={{ marginRight: props.title === undefined ? 0 : iconSpacing }} /> : null}
+                {props.title !== undefined ? <Text style={{ fontSize: titleSize, fontWeight: 'bold', color: getFontColor() }}>{props.title}</Text> : null}
             </View>
         </TouchableOpacity>
     );

@@ -17,18 +17,17 @@ import {
 } from 'react-native';
 
 const SafeAreaView: React.FC<ViewProps> = (props) => {
-    
+        const { style, children, ...otherProps } = props;
+        
     if (Platform.OS === 'ios') {
         return (
-            <IOSSafeAreaView {...props}>
-                {props.children}
+            <IOSSafeAreaView style={[styles.iosSafeView, style]} {...otherProps}>
+                {children}
             </IOSSafeAreaView>
         );
     }
     
     if (Platform.OS === 'android') {
-        const { style, children, ...otherProps } = props;
-
         return (
             <View style={[styles.androidSafeView, style]} {...otherProps}>
                 {children}
@@ -37,12 +36,15 @@ const SafeAreaView: React.FC<ViewProps> = (props) => {
     }
 
     // Default return case (neither iOS or Android)
-    return props.children;
+    return children;
 }
 
 const statusBarHeight = StatusBar.currentHeight || 0;
 
 const styles = StyleSheet.create({
+    iosSafeView: {
+        flex: 1
+    },
     androidSafeView: {
         position: 'absolute',
         left: 0,

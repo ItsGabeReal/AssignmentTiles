@@ -11,7 +11,6 @@ import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { generalStateActions } from '../src/redux/features/general/generalSlice';
 import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { EventRegister } from 'react-native-event-listeners';
-import { activeOpacity } from '../src/GlobalStyles';
 import Checkbox from './core/Checkbox';
 import VisualSettings from '../src/VisualSettings';
 
@@ -50,21 +49,23 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     return (
         <View style={{ opacity: isBeingDragged ? 0.25 : 1 }}>
             <TouchableOpacity
-                activeOpacity={activeOpacity}
                 onPress={handlePress}
                 onLongPress={handleLongPress}
                 delayLongPress={150}
                 style={styles.tileMargin}
             >
                 <EventTile {...props} />
-                <Checkbox
-                    value={eventCompleted}
-                    visualStyle='round'
-                    color={eventCompleted ? '#2E2' : '#FFFFFF80'}
-                    size={24}
-                    style={styles.checkbox}
-                    onChange={() => { dispatch(eventActions.toggleComplete({ eventID: props.eventID })) }}
-                />
+                { multiselectEnabled ? null :
+                    <Checkbox
+                        value={eventCompleted}
+                        visualStyle='round'
+                        color={eventCompleted ? '#0E0' : '#FFFFFF80'}
+                        size={24}
+                        style={styles.checkbox}
+                        onChange={() => { dispatch(eventActions.toggleComplete({ eventID: props.eventID })) }}
+                    />
+                }
+                
             </TouchableOpacity>
         </View>
     )
