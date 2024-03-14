@@ -10,6 +10,7 @@ export type EventTileDimensions = {
     height: number;
 }
 
+// Returns the height of a day row (not including the separator between rows)
 export function getDayRowHeight(rowPlans: {[key: string]: RowPlan}, date: DateYMD) {
     const eventTileHeight = VisualSettings.EventTile.mainContainer.height;
     let eventContainerHeight;
@@ -30,6 +31,7 @@ export function getDayRowHeight(rowPlans: {[key: string]: RowPlan}, date: DateYM
     return (eventContainerHeight + topAndBottomMargin);
 }
 
+// Returns the y position of the top of the day row relative to the view it's stored in
 export function getDayRowYOffset(visibleDays: DateYMD[], rowPlans: {[key: string]: RowPlan}, visibleDaysIndex: number) {
     const rowsAbove = visibleDaysIndex;
     const spaceBetweenRows = VisualSettings.App.dayRowSeparater.height;
@@ -41,35 +43,25 @@ export function getDayRowYOffset(visibleDays: DateYMD[], rowPlans: {[key: string
     return (sumOfDayRowHeights + spaceBetweenRows * rowsAbove);
 }
 
+// Returns the screen y position of the top of a day row
 export function getDayRowScreenYOffset(visibleDays: DateYMD[], rowPlans: {[key: string]: RowPlan}, scrollYOffset: number, visibleDaysIndex: number) {
     return getDayRowYOffset(visibleDays, rowPlans, visibleDaysIndex) - scrollYOffset;
 }
 
-// Uses a binary search method to find the day row at the given screen position
+// Returns the index of the day row at the specified screen position
 export function getDayRowAtScreenPosition(visibleDays: DateYMD[], rowPlans: {[key: string]: RowPlan}, scrollYOffset: number, screenPosition: { x: number, y: number }) {
-    return _getDayRowAtScreenPosition(visibleDays, rowPlans, scrollYOffset, screenPosition, 0, visibleDays.length-1);
-}
+    const rowSeparatorHeight = VisualSettings.App.dayRowSeparater.height;
+    let sumOfDayRowHeights = 0;
+    for (let i = 0; i < visibleDays.length; i++) {
+        sumOfDayRowHeights += getDayRowHeight(rowPlans, visibleDays[i]) + rowSeparatorHeight;
 
-// Recursive implementation of getDayRowAtScreenPosition
-function _getDayRowAtScreenPosition(visibleDays: DateYMD[], rowPlans: {[key: string]: RowPlan}, scrollYOffset: number, screenPosition: { x: number, y: number }, start: number, end: number) {
-    const midIndex = start + Math.floor((end - start) / 2);
-
-    // Check for overlap
-    const rowScreenYOffset = getDayRowScreenYOffset(visibleDays, rowPlans, scrollYOffset, midIndex);
-    const rowHeight = getDayRowHeight(rowPlans, visibleDays[midIndex]);
-    if (screenPosition.y > rowScreenYOffset && screenPosition.y < rowScreenYOffset + rowHeight + VisualSettings.DayRow.flatListContainer.paddingTop)
-        return visibleDays[midIndex];
-
-    // Check if we're out of elements to search
-    if (start === end)
-        return null;
-
-    // Check for overshoot
-    if (screenPosition.y < rowScreenYOffset)
-        return _getDayRowAtScreenPosition(visibleDays, rowPlans, scrollYOffset, screenPosition, start, midIndex-1);
-
-    // If we make it here, we've undershot
-    return _getDayRowAtScreenPosition(visibleDays, rowPlans, scrollYOffset, screenPosition, midIndex+1, end);
+        if (screenPosition.y <= sumOfDayRowHeights-scrollYOffset) {
+            return i;
+        }
+    }
+    
+    // Default return value in case a row couldn't be found
+    return 0;
 }
 
 // Finds the position a tile should be inserted based on the position of a drag gesture.

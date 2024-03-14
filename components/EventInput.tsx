@@ -190,7 +190,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
 
     // Determines whether the "create event" button is enabled or disabled
     function readyToCreate(): boolean {
-        return (eventNameInput.length > 0);
+        return eventNameInput.trim().length > 0;
     }
 
     function onCategorySelected(categoryID: string | null) {
@@ -233,10 +233,10 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     function close() {
         if (mode.current === 'edit') {
             const details: EventDetails = {
-                name: eventNameInput,
+                name: eventNameInput.trim(),
                 dueDate: deadlineSwitchInput ? DateYMDHelpers.fromDate(dueDateInput) : null,
                 categoryID: categoryInput,
-                notes: notesInput,
+                notes: notesInput.trim(),
             };
 
             props.onSubmit({
@@ -255,10 +255,10 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
 
     function createEvent() {
         const details: EventDetails = {
-            name: eventNameInput,
+            name: eventNameInput.trim(),
             dueDate: deadlineSwitchInput ? DateYMDHelpers.fromDate(dueDateInput) : null,
             categoryID: categoryInput,
-            notes: notesInput,
+            notes: notesInput.trim(),
         };
 
         const repeatSettings: RepeatSettings = {
@@ -298,7 +298,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             maxLength={50}
                         />
                     </InputField>
-                    <InputField title='Category' style={{marginBottom: 20, width: 215}} /*onPress={dropdownMenuRef.current?.open}*/>
+                    <InputField title='Category' style={{marginBottom: 20, width: 215}}>
                         <DropdownMenu
                             ref={dropdownMenuRef}
                             dropIconColor={'white'}

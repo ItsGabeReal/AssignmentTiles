@@ -20,11 +20,8 @@ export function updateEventPlanFromDragPosition(
         return;
     }
 
-    const overlappingRowDate = getDayRowAtScreenPosition(visibleDays, rowPlans, scrollYOffset, dragPosition);
-    if (!overlappingRowDate) {
-        console.error('RowPlansHelpers -> updateEventPlanFromDragPosition: Could not find row overlapping drop position');
-        return;
-    }
+    const overlappingRowIndex = getDayRowAtScreenPosition(visibleDays, rowPlans, scrollYOffset, dragPosition);
+    const overlappingRowDate = visibleDays[overlappingRowIndex];
 
     const samePlannedDate = DateYMDHelpers.datesEqual(currentEventPlan.plannedDate, overlappingRowDate);
 

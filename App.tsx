@@ -6,22 +6,25 @@ import { PersistGate } from "redux-persist/integration/react";
 import { StatusBar } from "react-native";
 import DropdownMenuProvider from "./components/core/DropdownMenuProvider";
 import UndoPopupOverlay from "./components/UndoPopupOverlay";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function App() {
     return (
-        <Provider store={store}>
-            <PersistGate persistor={persistedStore}>
-                <UndoPopupOverlay>
-                    <DropdownMenuProvider>
-                        <StatusBar
-                            translucent
-                            backgroundColor='#00000040'
-                            barStyle='light-content'
-                        />
-                        <MainScreen />
-                    </DropdownMenuProvider>
-                </UndoPopupOverlay>
-            </PersistGate>
-        </Provider>
+        <SafeAreaProvider>
+            <Provider store={store}>
+                <PersistGate persistor={persistedStore}>
+                    <UndoPopupOverlay>
+                        <DropdownMenuProvider>
+                            <StatusBar
+                                translucent
+                                backgroundColor='#00000040'
+                                barStyle='light-content'
+                            />
+                            <MainScreen />
+                        </DropdownMenuProvider>
+                    </UndoPopupOverlay>
+                </PersistGate>
+            </Provider>
+        </SafeAreaProvider>
     );
 }

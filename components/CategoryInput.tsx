@@ -11,7 +11,6 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Category } from '../types/store-current';
 import PressOutView, { PressOutViewRef } from './core/PressOutView';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
@@ -90,7 +89,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     }
 
     function readyToSubmit() {
-        return nameInput.length > 0;
+        return nameInput.trim().length > 0;
     }
 
     function close() {
@@ -104,7 +103,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
 
             // Create category
             const newCategory = {
-                name: nameInput,
+                name: nameInput.trim(),
                 color: colorInput
             }
             
@@ -119,7 +118,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 return;
             }
 
-            dispatch(categoriesActions.edit({ categoryID: editedCategoryID.current, newName: nameInput, newColor: colorInput }));
+            dispatch(categoriesActions.edit({ categoryID: editedCategoryID.current, newName: nameInput.trim(), newColor: colorInput }));
         }
 
         // If an undo popup hasn't been manually closed yet, go ahead and close it

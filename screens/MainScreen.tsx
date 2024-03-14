@@ -321,7 +321,7 @@ export default function MainScreen() {
                     onStartReached={onStartReached}
                 />
             </VETContainer>
-            <SafeAreaView pointerEvents='box-none'>
+            <SafeAreaView pointerEvents="box-none">
                 {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
                 {!multiselectState.enabled ? addEventButton() : null}
                 <View style={styles.overlayFooterContainer}>
