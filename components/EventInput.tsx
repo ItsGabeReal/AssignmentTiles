@@ -9,23 +9,23 @@ import {
     Text,
     TextInput,
 } from 'react-native';
-import CompactDatePicker from './core/CompactDatePicker';
-import TextInputWithClearButton from './core/TextInputWithClearButton';
+import CompactDatePicker from './core/input/CompactDatePicker';
+import TextInputWithClearButton from './core/input/TextInputWithClearButton';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { colorTheme, fontSizes, globalStyles } from '../src/GlobalStyles';
-import { focusTextInput } from '../src/GlobalHelpers';
+import { focusTextInput } from '../src/helpers/GlobalHelpers';
 import { generalStateActions } from '../src/redux/features/general/generalSlice';
 import { EventDetails } from '../types/store-current';
 import InputField from './InputField';
-import BlurView from './core/BlurView';
-import { deleteEventAndBackup, restoreDeletedEventsFromBackup } from '../src/EventHelpers';
-import HideableView from './core/HideableView';
-import Checkbox from './core/Checkbox';
-import { RGBAColor, RGBAToColorValue, gray, mixColor, white } from '../src/ColorHelpers';
-import DropdownMenu, { DropdownMenuRef } from './core/DropdownMenu';
+import BlurView from './core/wrappers/BlurView';
+import { deleteEventAndBackup, restoreDeletedEventsFromBackup } from '../src/helpers/EventHelpers';
+import HideableView from './core/views/HideableView';
+import Checkbox from './core/input/Checkbox';
+import { RGBAColor, RGBAToColorValue, gray, mixColor, white } from '../src/helpers/ColorHelpers';
+import DropdownMenu, { DropdownMenuRef } from './core/dropdown/DropdownMenu';
 import CategoryPickerDropdown from './CategoryPickerDropdown';
-import PressOutView, { PressOutViewRef } from './core/PressOutView';
+import PressOutView, { PressOutViewRef } from './core/views/PressOutView';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { EventRegister } from 'react-native-event-listeners';
 import Button from './Button';

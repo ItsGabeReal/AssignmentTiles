@@ -9,8 +9,8 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { fontSizes } from '../src/GlobalStyles';
-import { deleteCategoryAndBackup, restoreCategoryFromBackup } from '../src/CategoriesHelpers';
-import { RGBAToColorValue, gray, green } from '../src/ColorHelpers';
+import { deleteCategoryAndBackup, restoreCategoryFromBackup } from '../src/helpers/CategoriesHelpers';
+import { RGBAToColorValue, gray, green } from '../src/helpers/ColorHelpers';
 import { Category } from '../types/store-current';
 import Button from './Button';
 import { EventRegister } from 'react-native-event-listeners';

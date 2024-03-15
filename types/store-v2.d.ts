@@ -8,7 +8,7 @@
  *      4. Create a migration function in migration.ts to translate data to the new version
  */
 
-import { RGBAColor } from "../src/ColorHelpers";
+import { RGBAColor } from "../src/helpers/ColorHelpers";
 import DateYMD from "../src/DateYMD";
 
 

@@ -9,9 +9,9 @@ import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
-import { nullEvent } from '../src/EventHelpers';
+import { nullEvent } from '../src/helpers/EventHelpers';
 import { fontSizes } from '../src/GlobalStyles';
-import { RGBAToColorValue, gray, mixColor } from '../src/ColorHelpers';
+import { RGBAToColorValue, gray, mixColor } from '../src/helpers/ColorHelpers';
 
 type EventTileProps = {
     /**

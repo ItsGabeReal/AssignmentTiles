@@ -11,15 +11,15 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import PressOutView, { PressOutViewRef } from './core/PressOutView';
+import PressOutView, { PressOutViewRef } from './core/views/PressOutView';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
-import TextInputWithClearButton from './core/TextInputWithClearButton';
+import TextInputWithClearButton from './core/input/TextInputWithClearButton';
 import { categoryColorPalette, colorTheme, fontSizes } from '../src/GlobalStyles';
-import { focusTextInput } from '../src/GlobalHelpers';
-import BlurView from './core/BlurView';
+import { focusTextInput } from '../src/helpers/GlobalHelpers';
+import BlurView from './core/wrappers/BlurView';
 import InputField from './InputField';
-import { RGBAToColorValue, gray, green, mixColor } from '../src/ColorHelpers';
+import { RGBAToColorValue, gray, green, mixColor } from '../src/helpers/ColorHelpers';
 import Button from './Button';
 import { EventRegister } from 'react-native-event-listeners';
 

@@ -3,7 +3,7 @@ import {
     ColorValue,
     Appearance
 } from 'react-native';
-import { RGBAColor, hexToRGBA } from './ColorHelpers';
+import { RGBAColor, hexToRGBA } from './helpers/ColorHelpers';
 
 export let colorTheme: 'dark' | 'light' = Appearance.getColorScheme() || 'dark';
 

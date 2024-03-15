@@ -1,9 +1,9 @@
-import { Vector2D } from "../types/General";
-import { RowPlan, VisibleDaysState } from "../types/store-current";
-import { DateYMDHelpers } from "./DateYMD";
+import { Vector2D } from "../../types/General";
+import { RowPlan, VisibleDaysState } from "../../types/store-current";
+import { DateYMDHelpers } from "../DateYMD";
 import { getDayRowAtScreenPosition, getInsertionIndexFromGesture } from "./VisibleDaysHelpers";
-import { getEventPlan, rowPlansActions } from "./redux/features/rowPlans/rowPlansSlice";
-import { AppDispatch } from "./redux/store";
+import { getEventPlan, rowPlansActions } from "../redux/features/rowPlans/rowPlansSlice";
+import { AppDispatch } from "../redux/store";
 
 // Updates the row plan for an event if nescesary. Should be called for each update in the drag loop.
 export function updateEventPlanFromDragPosition(

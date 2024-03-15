@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import DateYMD, { DateYMDHelpers } from '../src/DateYMD';
 import DayRow from './DayRow';
 import VisualSettings from '../src/VisualSettings';
-import { getDayRowHeight, getDayRowYOffset } from '../src/VisibleDaysHelpers';
+import { getDayRowHeight, getDayRowYOffset } from '../src/helpers/VisibleDaysHelpers';
 import { visibleDaysActions } from '../src/redux/features/visibleDays/visibleDaysSlice';
 import { RowPlan } from '../types/store-current';
 

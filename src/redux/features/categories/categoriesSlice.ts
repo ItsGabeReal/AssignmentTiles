@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CategoriesState, Category } from "../../../../types/store-current";
-import { RGBAColor } from '../../../ColorHelpers';
+import { RGBAColor } from '../../../helpers/ColorHelpers';
 
 const initialState: CategoriesState = {
     current: {},

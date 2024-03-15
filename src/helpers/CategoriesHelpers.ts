@@ -1,6 +1,6 @@
-import { categoriesActions } from './redux/features/categories/categoriesSlice';
-import { eventActions } from './redux/features/events/eventsSlice';
-import { AppDispatch } from './redux/store';
+import { categoriesActions } from '../redux/features/categories/categoriesSlice';
+import { eventActions } from '../redux/features/events/eventsSlice';
+import { AppDispatch } from '../redux/store';
 
 export function deleteCategoryAndBackup(dispatch: AppDispatch, categoryID: string) {
     dispatch(eventActions.removeCategoryAndBackup({ categoryID }));

@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { store, persistedStore } from "./src/redux/store";
 import { PersistGate } from "redux-persist/integration/react";
 import { StatusBar } from "react-native";
-import DropdownMenuProvider from "./components/core/DropdownMenuProvider";
+import DropdownMenuProvider from "./components/core/dropdown/DropdownMenuProvider";
 import UndoPopupOverlay from "./components/UndoPopupOverlay";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 

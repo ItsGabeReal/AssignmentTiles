@@ -1,4 +1,4 @@
-import { hexToRGBA } from "./src/ColorHelpers";
+import { hexToRGBA } from "./src/helpers/ColorHelpers";
 
 
 const categoryColorPalette: string[] = [

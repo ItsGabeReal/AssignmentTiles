@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { globalStyles } from '../src/GlobalStyles';
-import { RGBAColor, RGBAToColorValue, gray, hexToRGBA, mixColor, white } from '../src/ColorHelpers';
+import { RGBAColor, RGBAToColorValue, gray, hexToRGBA, mixColor, white } from '../src/helpers/ColorHelpers';
 
 type ButtonStyle = Omit<ViewStyle, 'backgroundColor'>;
 

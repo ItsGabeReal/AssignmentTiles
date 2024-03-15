@@ -20,12 +20,12 @@ import {
     StyleSheet,
     Text,
 } from 'react-native';
-import CloseButton from './core/CloseButton';
+import CloseButton from './core/input/CloseButton';
 import { colors, fontSizes } from '../src/GlobalStyles';
-import IosStyleButton from './core/IosStyleButton';
+import IosStyleButton from './core/input/IosStyleButton';
 import { EventRegister } from 'react-native-event-listeners';
-import SafeAreaView from './core/SafeAreaView';
-
+import SafeAreaView from './core/wrappers/SafeAreaView';
+CloseButton
 type UndoPopupOverlayProps = {
     children?: React.ReactNode;
 }

@@ -15,7 +15,7 @@ import {
     View,
     ViewStyle,
 } from 'react-native';
-import ViewWithBackHandler from './ViewWithBackHandler';
+import ViewWithBackHandler from '../views/ViewWithBackHandler';
 
 
 

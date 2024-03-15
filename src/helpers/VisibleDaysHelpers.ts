@@ -1,7 +1,7 @@
-import DateYMD, { DateYMDHelpers } from "./DateYMD";
-import { RowPlan } from "../types/store-current";
-import VisualSettings, {getNumEventColunms} from "./VisualSettings";
-import { Vector2D } from "../types/General";
+import DateYMD, { DateYMDHelpers } from "../DateYMD";
+import { RowPlan } from "../../types/store-current";
+import VisualSettings, {getNumEventColunms} from "../VisualSettings";
+import { Vector2D } from "../../types/General";
 
 export type EventTileDimensions = {
     x: number;

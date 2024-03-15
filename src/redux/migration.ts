@@ -4,7 +4,7 @@ import { RootState as RootStateV1 } from "../../types/store-v1";
 import { RootState as RootStateV2, Category as CategoryV2, Event as EventV2, RowPlan as RowPlanV2 } from "../../types/store-v2";
 import { latestStoreVersion } from "./store";
 import { DateYMDHelpers } from "../DateYMD";
-import { hexToRGBA } from "../ColorHelpers";
+import { hexToRGBA } from "../helpers/ColorHelpers";
 
 /**
  * These methods should convert FROM the version in the key TO the next version.

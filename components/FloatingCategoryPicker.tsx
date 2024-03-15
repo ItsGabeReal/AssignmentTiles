@@ -1,8 +1,8 @@
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
-import PressOutView, { PressOutViewRef } from './core/PressOutView';
+import PressOutView, { PressOutViewRef } from './core/views/PressOutView';
 import CategoryPickerDropdown from './CategoryPickerDropdown';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
-import BlurView from './core/BlurView';
+import BlurView from './core/wrappers/BlurView';
 import { colorTheme } from '../src/GlobalStyles';
 import { StyleSheet } from 'react-native';
 

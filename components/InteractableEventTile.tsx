@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { generalStateActions } from '../src/redux/features/general/generalSlice';
 import { eventActions } from '../src/redux/features/events/eventsSlice';
 import { EventRegister } from 'react-native-event-listeners';
-import Checkbox from './core/Checkbox';
+import Checkbox from './core/input/Checkbox';
 import VisualSettings from '../src/VisualSettings';
 
 type InteractableEventTileProps = {
