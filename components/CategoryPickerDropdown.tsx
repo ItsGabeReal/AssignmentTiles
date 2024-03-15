@@ -77,7 +77,7 @@ const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) =>
             <ScrollView
                 style={styles.scrollView}
             >
-                <View style={{height: CATEGORY_VERTICAL_SPACING}}/>
+                <View style={styles.spacer}/>
                 <CategoryListItem
                     key={''}
                     categoryID={null}
@@ -85,7 +85,7 @@ const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) =>
                     onSelect={props.onCategorySelected}
                 />
                 {createCategoryListItems()}
-                <View style={{height: CATEGORY_VERTICAL_SPACING}}/>
+                <View style={styles.spacer}/>
             </ScrollView>
             <Button
                 title='New Category'
@@ -173,6 +173,9 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
 const styles = StyleSheet.create({
     scrollView: {
         paddingHorizontal: 15
+    },
+    spacer: {
+        height: CATEGORY_VERTICAL_SPACING
     },
     categoryListItemContainer: {
         flexDirection: 'row',

@@ -285,7 +285,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                     style={{ backgroundColor: getBackgroundColor(), ...styles.fieldsContainer }}
                     onStartShouldSetResponder={() => true} // Absorb touch events. This prevents event input from closing when box is tapped
                 >
-                    <InputField title='Name' style={{marginBottom: 20, width: 275}} onPress={() => focusTextInput(eventNameInputRef)}>
+                    <InputField title='Name' style={styles.topInputField} onPress={() => focusTextInput(eventNameInputRef)}>
                         <TextInputWithClearButton
                             ref={eventNameInputRef}
                             value={eventNameInput}
@@ -298,7 +298,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             maxLength={50}
                         />
                     </InputField>
-                    <InputField title='Category' style={{marginBottom: 20, width: 215}}>
+                    <InputField title='Category' style={styles.middleInputField}>
                         <DropdownMenu
                             ref={dropdownMenuRef}
                             dropIconColor={'white'}
@@ -316,15 +316,15 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                     onCategoryDeleted={handleCategoryDeleted}
                                 />
                             }
-                            contentContainerStyle={{ backgroundColor: '#333', borderRadius: 10, maxHeight: 250, overflow: 'hidden' }}
+                            contentContainerStyle={styles.categoryDropdownContainer}
                             hitSlop={10}
                         >
                             <Text style={[styles.categoryText, { color: getCategoryTextColor() }]}>{getCategoryName()}</Text>
                         </DropdownMenu>
                     </InputField>
-                    <InputField title='Deadline' style={{marginBottom: 20, width: 215}} headerChildren={<Checkbox value={deadlineSwitchInput} onChange={setDeadlineSwitchInput} color='white' />}>
+                    <InputField title='Deadline' style={styles.middleInputField} headerChildren={<Checkbox value={deadlineSwitchInput} onChange={setDeadlineSwitchInput} color='white' />}>
                         <HideableView hidden={!deadlineSwitchInput} style={globalStyles.flexRow}>
-                            <Text style={{ color: 'white', marginRight: 8 }}>Due Date</Text>
+                            <Text style={styles.dueDateText}>Due Date</Text>
                             <CompactDatePicker value={dueDateInput} onChange={setDueDateInput} themeVariant='dark' />
                         </HideableView>
                     </InputField>
@@ -354,7 +354,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                 </View>
                             </HideableView>
                         </InputField>*/}
-                    <InputField title='Notes' style={{width: 250}}>
+                    <InputField title='Notes' style={styles.bottomInputField}>
                         <TextInput value={notesInput} onChangeText={setNotesInput} placeholder='Add notes here...' placeholderTextColor='#ffffff40' style={{ color: 'white', padding: 0, maxHeight: 100 }} multiline maxLength={500} />
                     </InputField>
                 </BlurView>
@@ -368,7 +368,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             fontColor={white}
                             backgroundColor={{r:0,g:200,b:0,a:230}}
                             onPress={() => { createEvent(); close(); }}
-                            style={{marginTop: 12, borderRadius: 20, width: 200, padding: 16}}
+                            style={styles.createButton}
                             disabled={!readyToCreate()}
                         />
                         {/*<Button
@@ -391,7 +391,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             fontColor={{r:255,g:255,b:255,a:224}}
                             backgroundColor={{r:0,g:64,b:255,a:210}}
                             onPress={enterMultiselectMode}
-                            style={{borderRadius: 15}}
+                            style={styles.selectButton}
                         />
                         <Button
                             title='Delete'
@@ -401,7 +401,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             fontColor={{r:255,g:255,b:255,a:224}}
                             backgroundColor={{r:225,g:0,b:0,a:210}}
                             onPress={onDeleted}
-                            style={{marginLeft: 12, borderRadius: 15}}
+                            style={styles.deleatButton}
                         />
                     </View>
                 }
@@ -419,6 +419,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 30
     },
+    topInputField: {
+        marginBottom: 20,
+        width: 275
+    },
+    middleInputField: {
+        marginBottom: 20,
+        width: 215
+    },
+    bottomInputField: {
+        width: 250
+    },
     nameTextInput: {
         flex: 1,
         fontSize: fontSizes.h1,
@@ -429,7 +440,30 @@ const styles = StyleSheet.create({
         fontSize: fontSizes.h2,
         padding: 0,
         textAlign: 'center'
-    }
+    },
+    categoryDropdownContainer: {
+        backgroundColor: '#333',
+        borderRadius: 10,
+        maxHeight: 250,
+        overflow: 'hidden'
+    },
+    dueDateText: {
+        color: 'white',
+        marginRight: 8
+    },
+    createButton: {
+        marginTop: 12,
+        borderRadius: 20,
+        width: 200,
+        padding: 16
+    },
+    selectButton: {
+        borderRadius: 15
+    },
+    deleatButton: {
+        marginLeft: 12,
+        borderRadius: 15
+    },
 });
 
 export default EventInput;

@@ -134,7 +134,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
 
                 close();
             }}
-            style={{alignItems: 'center'}}
+            style={styles.pressOutContainer}
         >
             <BlurView
                 borderRadius={20}
@@ -142,7 +142,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                 style={[styles.mainContainer, {backgroundColor: getBackgroundColor()}]}
                 onStartShouldSetResponder={() => true} // Absorb touch events. This prevents event input from closing when box is tapped
             >
-                <InputField title='Name' style={{marginBottom: 20}} onPress={() => focusTextInput(nameInputRef)}>
+                <InputField title='Name' style={styles.inputField} onPress={() => focusTextInput(nameInputRef)}>
                     <TextInputWithClearButton
                         ref={nameInputRef}
                         value={nameInput}
@@ -172,7 +172,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                             }}
                             numColumns={4}
                             keyboardShouldPersistTaps='handled'
-                            style={{flexGrow: 0}}
+                            style={styles.flatlist}
                         />
                     </View>
                 </InputField>
@@ -184,72 +184,32 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                     iconName='add'
                     iconSize={26}
                     backgroundColor={green}
-                    style={{marginTop: 10, width: 175}}
+                    style={styles.createButton}
                     disabled={!readyToSubmit()}
                     onPress={() => { submit(); close(); }}
                 />
             :
                 null
             }
-            {/*<View style={styles.titleContainer}>
-                    <Text style={styles.title}>{mode.current === 'edit' ? 'Edit Category' : 'Create Category'}</Text>
-                </View>
-                <Pressable
-                    style={[globalStyles.parameterContainer, globalStyles.flexRow]}
-                    onPress={() => focusTextInput(categoryNameInputRef)}
-                >
-                    <Text style={globalStyles.fieldDescription}>Name:</Text>
-                    <TextInputWithClearButton
-                        ref={categoryNameInputRef}
-                        value={nameInput}
-                        style={styles.textInput}
-                        selectTextOnFocus
-                        autoFocus
-                        onChangeText={newText => setNameInput(newText)}
-                    />
-                </Pressable>
-                <View style={globalStyles.parameterContainer}>
-                    <Text style={globalStyles.fieldDescription}>Color:</Text>
-                    <View style={styles.colorPaletteContainer}>
-                        <FlatList
-                            data={categoryColorPalette}
-                            renderItem={({ item }) => {
-                                return (
-                                    <TouchableOpacity
-                                        activeOpacity={activeOpacity}
-                                        style={[styles.colorButton, {
-                                            backgroundColor: item,
-                                            borderWidth: item == colorInput ? 3 : 0,
-                                        }]}
-                                        onPress={() => setColorInput(item)}
-                                    />
-                                );
-                            }}
-                            numColumns={4}
-                            keyboardShouldPersistTaps='handled'
-                        />
-                    </View>
-                </View>
-                <View style={styles.submitButtonContainer}>
-                    <IosStyleButton title={mode.current === 'edit' ? 'Save' : 'Done'} textStyle={styles.submitButton} disabled={!readyToSubmit()} onPress={handleSubmit} />
-                        </View>*/}
         </PressOutView>
     );
 });
 
 const styles = StyleSheet.create({
+    pressOutContainer: {
+        alignItems: 'center'
+    },
     mainContainer: {
         padding: 30
+    },
+    inputField: {
+        marginBottom: 20
     },
     nameTextInput: {
         flex: 1,
         fontSize: fontSizes.h1,
         padding: 0,
         color: 'white'
-    },
-    colorPaletteContainer: {
-        alignItems: 'center',
-        marginTop: 10,
     },
     colorButton: {
         width: 46,
@@ -258,12 +218,12 @@ const styles = StyleSheet.create({
         borderColor: 'white',
         margin: 5,
     },
-    submitButtonContainer: {
-        alignItems: 'center',
+    flatlist: {
+        flexGrow: 0
     },
-    submitButton: {
-        fontSize: fontSizes.h1,
-        fontWeight: 'bold',
+    createButton: {
+        marginTop: 10,
+        width: 175
     }
 });
 

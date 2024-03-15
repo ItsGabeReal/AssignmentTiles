@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
 import EventInput,  { EventInputRef, OnEventInputSubmitParams } from "../components/EventInput";
-import DayList, { TodayRowVisibility } from "../components/DayList";
+import DayList from "../components/DayList";
 import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
@@ -31,6 +31,8 @@ import { vibrate } from "../src/GlobalHelpers";
 import Button from "../components/Button";
 import { green, hexToRGBA, red, white } from "../src/ColorHelpers";
 import FloatingCategoryPicker, { FloatingCategoryPickerRef } from "../components/FloatingCategoryPicker";
+import ReturnToTodayButton, { ReturnToTodayButtonRef } from "../components/ReturnToTodayButton";
+import { RowPlan } from "../types/store-current";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -44,21 +46,24 @@ export default function MainScreen() {
     const visibleDays_closureSafeRef = useRef(visibleDays);
     visibleDays_closureSafeRef.current = visibleDays;
 
-    const rowPlans = useAppSelector(state => state.rowPlans.current);
-    const rowPlans_closureSafeRef = useRef(rowPlans);
-    rowPlans_closureSafeRef.current = rowPlans;
+    // This is a sneaky hack to retrieve the rowPlans state without triggering a rerender.
+    const rowPlans_closureSafeRef = useRef<{[key: string]: RowPlan}>({});
+    const rowPlans = useAppSelector(state => {
+        rowPlans_closureSafeRef.current = state.rowPlans.current;
+        return null
+    });
 
     const multiselectState = useAppSelector(state => state.general.multiselect);
     const multiselectState_closureSafeRef = useRef(multiselectState);
     multiselectState_closureSafeRef.current = multiselectState;
-
-    const [todayRowVisibility, setTodayRowVisibility] = useState<TodayRowVisibility>('visible');
 
     const scrollYOffset = useRef(0);
     const eventInputRef = useRef<EventInputRef | null>(null);
     const virtualEventTileRef = useRef<VirtualEventTileRef | null>(null);
     const flatListRef = useRef<FlatList<any> | null>(null);
     const multiselectCategoryPickerRef = useRef<FloatingCategoryPickerRef | null>(null);
+    const returnToTodayAboveRef = useRef<ReturnToTodayButtonRef | null>(null);
+    const returnToTodayBeneathRef = useRef<ReturnToTodayButtonRef | null>(null);
 
     // Refs related to autoscroll while dragging event
     const currentDraggedEvent = useRef<string | null>(null);
@@ -195,21 +200,6 @@ export default function MainScreen() {
     function restoreDraggedTileVisuals() {
         dispatch(generalStateActions.clearDraggedEvent());
     }
-    
-    function returnToTodayButton(variation: 'above' | 'beneath') {
-        return (
-            <Button
-                title="Today"
-                titleSize={fontSizes.p}
-                iconName={variation==='above' ? 'arrow-upward' : 'arrow-downward'}
-                fontColor={colors.text_rgba}
-                backgroundColor={colors.todayL2_rgba}
-                iconSpacing={5}
-                style={[styles.returnToTodayButton, variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]}
-                onPress={scrollToToday}
-            />
-        );
-    }
 
     function addEventButton() {
         return (
@@ -298,6 +288,23 @@ export default function MainScreen() {
         })
     }
 
+    function onTodayRowVisibilityChanged(newVisibility: 'visible' | 'beneath' | 'above') {
+        switch (newVisibility) {
+            case 'above':
+                returnToTodayAboveRef.current?.show();
+                returnToTodayBeneathRef.current?.hide();
+                break;
+            case 'beneath':
+                returnToTodayAboveRef.current?.hide();
+                returnToTodayBeneathRef.current?.show();
+                break;
+            case 'visible':
+                returnToTodayAboveRef.current?.hide();
+                returnToTodayBeneathRef.current?.hide();
+                break;
+        }
+    }
+
     function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
         scrollYOffset.current = event.nativeEvent.contentOffset.y;
     }
@@ -316,17 +323,17 @@ export default function MainScreen() {
                 <DayList
                     ref={flatListRef}
                     onRequestOpenEventCreator={(suggestedDueDate) => eventInputRef.current?.open({ mode: 'create', suggestedDueDate })}
-                    onTodayRowVisibilityChanged={setTodayRowVisibility}
+                    onTodayRowVisibilityChanged={onTodayRowVisibilityChanged}
                     onScroll={onScroll}
                     onStartReached={onStartReached}
                 />
             </VETContainer>
             <SafeAreaView pointerEvents="box-none">
-                {todayRowVisibility === 'above' ? returnToTodayButton('above') : null}
+                <ReturnToTodayButton ref={returnToTodayAboveRef} variation="above" onPress={scrollToToday} />
                 {!multiselectState.enabled ? addEventButton() : null}
                 <View style={styles.overlayFooterContainer}>
                     {multiselectState.enabled ? multiselectButtons() : null}
-                    {todayRowVisibility === 'beneath' ? returnToTodayButton('beneath') : null}
+                    <ReturnToTodayButton ref={returnToTodayBeneathRef} variation="beneath" onPress={scrollToToday} />
                 </View>
             </SafeAreaView>
             <EventInput ref={eventInputRef} onSubmit={onEventSubmitted} />
@@ -342,13 +349,6 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: colors.l0,
         flex: 1
-    },
-    returnToTodayButton: {
-        alignSelf: 'center',
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 20,
-        padding: 10,
     },
     returnToTodayText: {
         color: colors.text,

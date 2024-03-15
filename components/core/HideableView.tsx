@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+    StyleSheet,
     View,
     ViewProps,
 } from 'react-native';
@@ -16,12 +17,20 @@ const HideableView: React.FC<HideableViewProps> = (props) => {
     const isHidden = props.hidden !== undefined ? props.hidden : false;
 
     return (
-        <View style={isHidden ? {width: 0, height: 0, overflow: 'hidden'} : {}}>
+        <View style={isHidden ? styles.hiddenContainer : {}}>
             <View style={props.style}>
                 {props.children}
             </View>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    hiddenContainer: {
+        width: 0,
+        height: 0,
+        overflow: 'hidden'
+    },
+});
 
 export default HideableView;

@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback } from 'react';
+import React, { forwardRef, useCallback, useRef } from 'react';
 import {
     StyleSheet,
     View,
@@ -13,8 +13,7 @@ import DayRow from './DayRow';
 import VisualSettings from '../src/VisualSettings';
 import { getDayRowHeight, getDayRowYOffset } from '../src/VisibleDaysHelpers';
 import { visibleDaysActions } from '../src/redux/features/visibleDays/visibleDaysSlice';
-
-export type TodayRowVisibility = 'visible' | 'beneath' | 'above';
+import { RowPlan } from '../types/store-current';
 
 type DayListProps = {
     /**
@@ -27,7 +26,7 @@ type DayListProps = {
      * changes. Should be used to set the visibility of the 'return to
      * today' buttons.
      */
-    onTodayRowVisibilityChanged: ((newVisibility: TodayRowVisibility) => void);
+    onTodayRowVisibilityChanged: ((newVisibility: 'visible' | 'beneath' | 'above') => void);
 
     /**
      * Called when the list is scrolled.
@@ -42,11 +41,18 @@ type DayListProps = {
     onStartReached?: ((heightOfNewRows: number) => void);
 }
 
-const DayList = forwardRef<FlatList, DayListProps>((props, ref) => {
+const DayList =forwardRef<FlatList, DayListProps>((props, ref) => {
     const dispatch = useAppDispatch();
 
     const visibleDays = useAppSelector(state => state.visibleDays);
-    const rowPlans = useAppSelector(state => state.rowPlans.current);
+
+    // This is a sneaky hack to retrieve the rowPlans state without triggering a rerender.
+    const rowPlans_closureSafeRef = useRef<{[key: string]: RowPlan}>({});
+    const rowPlans = useAppSelector(state => {
+        rowPlans_closureSafeRef.current = state.rowPlans.current;
+        return null
+    });
+    //const rowPlans = useAppSelector(state => state.rowPlans.current);
 
     function renderItem({ item }: { item: DateYMD }) {
         return <DayRow
@@ -61,8 +67,8 @@ const DayList = forwardRef<FlatList, DayListProps>((props, ref) => {
 
     function getItemLayout(data: ArrayLike<DateYMD> | null | undefined, index: number) {
         return ({
-            length: getDayRowHeight(rowPlans, visibleDays[index]),
-            offset: getDayRowYOffset(visibleDays, rowPlans, index),
+            length: getDayRowHeight(rowPlans_closureSafeRef.current, visibleDays[index]),
+            offset: getDayRowYOffset(visibleDays, rowPlans_closureSafeRef.current, index),
             index
         });
     }
@@ -107,7 +113,7 @@ const DayList = forwardRef<FlatList, DayListProps>((props, ref) => {
 
     function getHeightOfAddedRows(numAddedRows: number, dateOfFirstNewRow: DateYMD) {
         const addedDaysArray = DateYMDHelpers.createSequentialDateArray(DateYMDHelpers.subtractDays(dateOfFirstNewRow, numAddedRows), numAddedRows);
-        const heightOfNewRows = getDayRowYOffset(addedDaysArray, rowPlans, numAddedRows);
+        const heightOfNewRows = getDayRowYOffset(addedDaysArray, rowPlans_closureSafeRef.current, numAddedRows);
         return heightOfNewRows;
     }
 
