@@ -25,7 +25,7 @@ import { colors, fontSizes } from '../src/GlobalStyles';
 import IosStyleButton from './core/input/IosStyleButton';
 import { EventRegister } from 'react-native-event-listeners';
 import SafeAreaView from './core/wrappers/SafeAreaView';
-CloseButton
+
 type UndoPopupOverlayProps = {
     children?: React.ReactNode;
 }

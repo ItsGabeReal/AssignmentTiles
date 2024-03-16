@@ -8,12 +8,10 @@ export function deleteCategoryAndBackup(dispatch: AppDispatch, categoryID: strin
 }
 
 /**
- * Note: This only works properly if the last events backup was due
- * to a category deletion. For example, if an event is deleted after
- * a category is deleted, calling this function will cause unintended
- * results.
+ * Note: Only call this function after deleteCategoryAndBackup.
+ * Do not call after using deleteEventAndBackup or deleteMultipleEventsAndBackup.
  */
 export function restoreCategoryFromBackup(dispatch: AppDispatch) {
-    dispatch(eventActions.restoreBackup());
     dispatch(categoriesActions.restoreBackup());
+    dispatch(eventActions.restoreBackup());
 }

@@ -99,12 +99,12 @@ const Button: React.FC<ButtonProps> = (props) => {
     }
 
     function onPress() {
-        if (!props.disabled) props.onPress?.();
+        if (!disabled) props.onPress?.();
     }
 
     return (
         <TouchableOpacity
-            activeOpacity={0.75}
+            activeOpacity={disabled ? 1 : 0.75}
             onPress={onPress}
             style={[styles.defaultContainer, props.style, { backgroundColor: getButtonColor() }]}
         >

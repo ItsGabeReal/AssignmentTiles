@@ -19,7 +19,7 @@ import { categoryColorPalette, colorTheme, fontSizes } from '../src/GlobalStyles
 import { focusTextInput } from '../src/helpers/GlobalHelpers';
 import BlurView from './core/wrappers/BlurView';
 import InputField from './InputField';
-import { RGBAToColorValue, gray, green, mixColor } from '../src/helpers/ColorHelpers';
+import { RGBAToColorValue, colorsEqual, gray, green, mixColor } from '../src/helpers/ColorHelpers';
 import Button from './Button';
 import { EventRegister } from 'react-native-event-listeners';
 
@@ -146,7 +146,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                     <TextInputWithClearButton
                         ref={nameInputRef}
                         value={nameInput}
-                        //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
+                        autoFocus={true}
                         onChangeText={setNameInput}
                         selectTextOnFocus={mode.current !== 'edit'} // Don't autoselect text in edit mode
                         style={styles.nameTextInput}
@@ -164,7 +164,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                                     <TouchableOpacity
                                         style={[styles.colorButton, {
                                             backgroundColor: RGBAToColorValue(item),
-                                            borderWidth: item === colorInput ? 3 : 0
+                                            borderWidth: colorsEqual(item, colorInput) ? 3 : 0
                                         }]}
                                         onPress={() => setColorInput(item)}
                                     />

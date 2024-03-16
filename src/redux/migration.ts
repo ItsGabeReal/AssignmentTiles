@@ -47,7 +47,7 @@ const migrations = {
          * 
          * Categories, events, and rowPlans are now stored in large objects with key lookups
          * instead of being stored in an array. This massively improves search time when finding
-         * an element.
+         * an element because object keys are stored as a hash table (I think).
          * 
          * CategoryID has been removed and category objects can no longer have a null id (not sure
          * why that was a thing to begin with).

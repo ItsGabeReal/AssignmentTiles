@@ -11,7 +11,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
 import { nullEvent } from '../src/helpers/EventHelpers';
 import { fontSizes } from '../src/GlobalStyles';
-import { RGBAToColorValue, gray, mixColor } from '../src/helpers/ColorHelpers';
+import { RGBAToColorValue, black, gray, mixColor } from '../src/helpers/ColorHelpers';
 
 type EventTileProps = {
     /**
@@ -23,6 +23,12 @@ type EventTileProps = {
      * The date on which this event is scheduled.
      */
     plannedDate?: DateYMD;
+
+    /**
+     * If true, all parts of the tile will be slightly transparent, except
+     * for the due date text.
+     */
+    beingDragged?: boolean;
 }
 
 const EventTile: React.FC<EventTileProps> = memo((props) => {
@@ -42,14 +48,18 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     }
 
     function getBackgroundColor() {
-        let output = gray;
+        let output = {...gray};
 
         if (event.details.categoryID !== null) {
-            output = categories[event.details.categoryID].color;
+            output = mixColor(categories[event.details.categoryID].color, black, 0.2);
         }
         
         if (event.completed) {
             output = mixColor(output, gray, 0.5);
+        }
+
+        if (props.beingDragged === true) {
+            output.a = 64;
         }
         
         return RGBAToColorValue(output);
@@ -71,18 +81,10 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
         return '';
     }
 
-    function completedCheckmarkView() {
-        return (
-            <View style={styles.checkmarkOverlayContainer}>
-                <Icon name='check' size={60} color='#0e0' />
-            </View>
-        );
-    }
-
     function getDueDateStyle(): TextStyle {
         if (overdue) return {
-            color: '#f00',
-            fontSize: fontSizes.p,
+            color: '#F42',
+            fontSize: fontSizes.small,
             fontWeight: 'bold',
         }
         else return {
@@ -102,21 +104,20 @@ const EventTile: React.FC<EventTileProps> = memo((props) => {
     return (
         <>
             <View style={styles.mainContainer}>
-                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: event.completed ? 0.25 : 1 }]}>
-                    <Text style={styles.eventNameText}>{event.details.name}</Text>
+                <View style={[styles.tileBackground, { backgroundColor: getBackgroundColor(), opacity: (event.completed && !props.beingDragged) ? 0.25 : 1 }]}>
+                    <Text style={[styles.eventNameText, {opacity: props.beingDragged ? 0.25 : 1 }]}>{event.details.name}</Text>
                     {event.details.dueDate && props.plannedDate ?
                         <Text style={[styles.dueDateText, getDueDateStyle()]}>{getDueDateText()}</Text>
                         : <></>
                     }
                 </View>
-                {/*event.completed ? completedCheckmarkView() : */null}
                 {isSelected ? <View style={styles.selectedColorOverlay} /> : null}
             </View>
             {isSelected ? selectedIcon() : null}
         </>
         
     );
-}, (prevProps, newProps) => prevProps.eventID === newProps.eventID);
+}, (prevProps, newProps) => (prevProps.eventID === newProps.eventID && prevProps.beingDragged === newProps.beingDragged));
 
 const styles = StyleSheet.create({
     mainContainer: {

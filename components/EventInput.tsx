@@ -22,7 +22,7 @@ import BlurView from './core/wrappers/BlurView';
 import { deleteEventAndBackup, restoreDeletedEventsFromBackup } from '../src/helpers/EventHelpers';
 import HideableView from './core/views/HideableView';
 import Checkbox from './core/input/Checkbox';
-import { RGBAColor, RGBAToColorValue, gray, mixColor, white } from '../src/helpers/ColorHelpers';
+import { RGBAColor, RGBAToColorValue, gray, green, mixColor, white } from '../src/helpers/ColorHelpers';
 import DropdownMenu, { DropdownMenuRef } from './core/dropdown/DropdownMenu';
 import CategoryPickerDropdown from './CategoryPickerDropdown';
 import PressOutView, { PressOutViewRef } from './core/views/PressOutView';
@@ -94,7 +94,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     // Non-input variables
     const mode = useRef<'create' | 'edit'>('create');
     const editedEventID = useRef('');
-    const suggestedDate = useRef<DateYMD>(DateYMDHelpers.today()); // Used to store the day row that was tapped when creating an event
+    const suggestedDate = useRef<DateYMD | null>(null); // Used to store the day row that was tapped when creating an event
 
     // Component references
     const pressOutViewRef = useRef<PressOutViewRef | null>(null);
@@ -117,7 +117,6 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                 setDeadlineSwitchInput(memorizedEventInput.deadlineEnabled);
                 suggestedDate.current = params.suggestedDueDate || DateYMDHelpers.today();
                 setDueDateInput(DateYMDHelpers.toDate(suggestedDate.current));
-                autoFocusNameInput();
             }
             else {
                 // Initialize input from provided event id
@@ -149,15 +148,6 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         setRecurrencesInput(2);
         setIntervalInput(7);
         setNotesInput('');
-    }
-
-    function autoFocusNameInput() {
-        /**
-         * Note: There's a bug on android where enabling autofocus
-         * on text inputs doesn't automatically show the keyboard.
-         * This is fixed by calling focus after a short timeout.
-         */
-        setTimeout(() => { eventNameInputRef.current?.focus(); }, 100);
     }
 
     function getCategoryColor(): RGBAColor {
@@ -232,8 +222,11 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
 
     function close() {
         if (mode.current === 'edit') {
+            const originalDetails = events[editedEventID.current];
+            const newName = eventNameInput.trim();
+
             const details: EventDetails = {
-                name: eventNameInput.trim(),
+                name: newName.length > 0 ? newName : originalDetails.details.name,
                 dueDate: deadlineSwitchInput ? DateYMDHelpers.fromDate(dueDateInput) : null,
                 categoryID: categoryInput,
                 notes: notesInput.trim(),
@@ -269,7 +262,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         props.onSubmit({
             mode: 'create',
             details,
-            plannedDate: DateYMDHelpers.fromDate(dueDateInput),
+            plannedDate: suggestedDate.current || DateYMDHelpers.fromDate(dueDateInput),
             repeatSettings
         });
 
@@ -289,7 +282,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                         <TextInputWithClearButton
                             ref={eventNameInputRef}
                             value={eventNameInput}
-                            //autoFocus={true} <- This doesn't work right on android. The workaround is in useEffect.
+                            autoFocus={true}
                             onChangeText={setEventNameInput}
                             selectTextOnFocus={mode.current !== 'edit'} // Don't autoselect text in edit mode
                             style={styles.nameTextInput}
@@ -303,18 +296,20 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             ref={dropdownMenuRef}
                             dropIconColor={'white'}
                             content={
-                                <CategoryPickerDropdown
-                                    onCategorySelected={onCategorySelected}
-                                    onCreateCategory={() => {
-                                        categoryInputRef.current?.open({ mode: 'create' });
-                                        dropdownMenuRef.current?.close();
-                                    }}
-                                    onEditCategory={categoryID => {
-                                        categoryInputRef.current?.open({ mode: 'edit', categoryID });
-                                        dropdownMenuRef.current?.close();
-                                    }}
-                                    onCategoryDeleted={handleCategoryDeleted}
-                                />
+                                <View style={styles.dropdownOverflowHider}>
+                                    <CategoryPickerDropdown
+                                        onCategorySelected={onCategorySelected}
+                                        onCreateCategory={() => {
+                                            categoryInputRef.current?.open({ mode: 'create' });
+                                            dropdownMenuRef.current?.close();
+                                        }}
+                                        onEditCategory={categoryID => {
+                                            categoryInputRef.current?.open({ mode: 'edit', categoryID });
+                                            dropdownMenuRef.current?.close();
+                                        }}
+                                        onCategoryDeleted={handleCategoryDeleted}
+                                    />
+                                </View>
                             }
                             contentContainerStyle={styles.categoryDropdownContainer}
                             hitSlop={10}
@@ -328,32 +323,6 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             <CompactDatePicker value={dueDateInput} onChange={setDueDateInput} themeVariant='dark' />
                         </HideableView>
                     </InputField>
-                    {/*<InputField title='Repeat' marginBottom={20} width={215} headerChildren={<Checkbox value={repeatSwitchInput} onChange={setRepeatSwitchInput} color='white' />} >
-                            <HideableView hidden={!repeatSwitchInput}>
-                                <View style={[globalStyles.flexRow, { marginBottom: 5 }]}>
-                                    <Text style={{color: 'white'}}>Every </Text>
-                                    <NumberInput
-                                        value={intervalInput}
-                                        onChangeNumber={setIntervalInput}
-                                        minimimValue={1}
-                                        maximumValue={999}
-                                        style={[globalStyles.numberInput, {color: 'white'}]}
-                                    />
-                                    <Text style={{color: 'white'}}> days</Text>
-                                </View>
-                                <View style={globalStyles.flexRow}>
-                                    <Text style={{color: 'white'}}>End after </Text>
-                                    <NumberInput
-                                        value={recurrencesInput}
-                                        onChangeNumber={setRecurrencesInput}
-                                        minimimValue={2}
-                                        maximumValue={100}
-                                        style={[globalStyles.numberInput, {color: 'white'}]}
-                                    />
-                                    <Text style={{color: 'white'}}> occurrences</Text>
-                                </View>
-                            </HideableView>
-                        </InputField>*/}
                     <InputField title='Notes' style={styles.bottomInputField}>
                         <TextInput value={notesInput} onChangeText={setNotesInput} placeholder='Add notes here...' placeholderTextColor='#ffffff40' style={{ color: 'white', padding: 0, maxHeight: 100 }} multiline maxLength={500} />
                     </InputField>
@@ -366,7 +335,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             iconName='add-box'
                             iconSize={30}
                             fontColor={white}
-                            backgroundColor={{r:0,g:200,b:0,a:230}}
+                            backgroundColor={green}
                             onPress={() => { createEvent(); close(); }}
                             style={styles.createButton}
                             disabled={!readyToCreate()}
@@ -389,7 +358,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             iconName='check-box'
                             iconSize={24}
                             fontColor={{r:255,g:255,b:255,a:224}}
-                            backgroundColor={{r:0,g:64,b:255,a:210}}
+                            backgroundColor={{r:0,g:64,b:255,a:224}}
                             onPress={enterMultiselectMode}
                             style={styles.selectButton}
                         />
@@ -399,7 +368,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             iconName='delete'
                             iconSize={24}
                             fontColor={{r:255,g:255,b:255,a:224}}
-                            backgroundColor={{r:225,g:0,b:0,a:210}}
+                            backgroundColor={{r:225,g:0,b:0,a:224}}
                             onPress={onDeleted}
                             style={styles.deleatButton}
                         />
@@ -441,11 +410,22 @@ const styles = StyleSheet.create({
         padding: 0,
         textAlign: 'center'
     },
+    dropdownOverflowHider: {
+        borderRadius: 10,
+        overflow: 'hidden',
+
+        // Android's elevation shadow won't work in categoryDropdownContainer for some reason, so this is the workaround
+        backgroundColor: '#333',
+        elevation: 4,
+    },
     categoryDropdownContainer: {
         backgroundColor: '#333',
         borderRadius: 10,
         maxHeight: 250,
-        overflow: 'hidden'
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2},
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
     dueDateText: {
         color: 'white',

@@ -178,6 +178,10 @@ function hexCharToNumber(char: string) {
     }
 }
 
+export function colorsEqual(color1: RGBAColor, color2: RGBAColor) {
+    return (color1.r === color2.r && color1.g === color2.g && color1.b === color2.b && color1.a === color2.a)
+}
+
 export const white: RGBAColor = { r: 255, g: 255, b: 255, a: 255 };
 export const black: RGBAColor = { r: 0,   g: 0,   b: 0,   a: 255 };
 export const gray: RGBAColor =  { r: 128, g: 128, b: 128, a: 255 };

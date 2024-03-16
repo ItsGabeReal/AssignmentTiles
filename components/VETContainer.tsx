@@ -117,8 +117,7 @@ const VETContainer = forwardRef<VirtualEventTileRef, VirtualEventTileProps>((pro
 
 const styles = StyleSheet.create({
     mainContainer: {
-        position: 'absolute',
-        opacity: 0.8,
+        position: 'absolute'
     }
 });
 

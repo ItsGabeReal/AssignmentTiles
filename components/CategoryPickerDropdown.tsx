@@ -184,13 +184,14 @@ const styles = StyleSheet.create({
     },
     categoryText: {
         fontSize: fontSizes.h3,
+        marginRight: 8,
+        flex: 1
     },
     actionButtonContainer: {
-        flexDirection: 'row',
-        marginLeft: 'auto',
+        flexDirection: 'row'
     },
     deleteButton: {
-        marginLeft: 10,
+        marginLeft: 8,
     },
     createButton: {
         padding: 8,

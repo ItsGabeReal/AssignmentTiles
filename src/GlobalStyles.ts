@@ -85,8 +85,8 @@ export const categoryColorPalette: RGBAColor[] = [
     hexToRGBA('#2EC610'), // Green
     hexToRGBA('#10C6C6'), // Aqua
     hexToRGBA('#2F60EE'), // Blue
-    hexToRGBA('#A22FEE'), // Purple
-    hexToRGBA('#E212E2'), // Pink
+    hexToRGBA('#982FEE'), // Purple
+    hexToRGBA('#CB10CB'), // Pink
 ];
 
 export const globalStyles = StyleSheet.create({

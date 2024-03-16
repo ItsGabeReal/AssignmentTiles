@@ -1,5 +1,5 @@
 /**
- * Defines version 0 of the app's persisted data.
+ * Defines version 0 of the app's persisted data model.
  * 
  * If any breaking changes are made to the root state:
  *      1. Add changes to a new version file

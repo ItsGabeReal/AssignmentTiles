@@ -29,7 +29,7 @@ type InteractableEventTileProps = {
 const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     const dispatch = useAppDispatch();
 
-    const isBeingDragged = useAppSelector(state => state.general.draggedEvent?.eventID ? (state.general.draggedEvent.eventID === props.eventID) : false);
+    const isBeingDragged = useAppSelector(state => state.general.draggedEvent?.eventID === props.eventID);
     const multiselectEnabled = useAppSelector(state => state.general.multiselect.enabled);
     const eventCompleted = useAppSelector(state => state.events.current[props.eventID].completed);
 
@@ -47,27 +47,25 @@ const InteractableEventTile: React.FC<InteractableEventTileProps> = (props) => {
     }
 
     return (
-        <View style={{ opacity: isBeingDragged ? 0.25 : 1 }}>
-            <TouchableOpacity
-                onPress={handlePress}
-                onLongPress={handleLongPress}
-                delayLongPress={150}
-                style={styles.tileMargin}
-            >
-                <EventTile {...props} />
-                { multiselectEnabled ? null :
-                    <Checkbox
-                        value={eventCompleted}
-                        visualStyle='round'
-                        color={eventCompleted ? '#0E0' : '#FFFFFF80'}
-                        size={24}
-                        style={styles.checkbox}
-                        onChange={() => { dispatch(eventActions.toggleComplete({ eventID: props.eventID })) }}
-                    />
-                }
-                
-            </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+            onPress={handlePress}
+            onLongPress={handleLongPress}
+            delayLongPress={150}
+            style={styles.tileMargin}
+        >
+            <EventTile {...props} beingDragged={isBeingDragged} />
+            {multiselectEnabled ? null :
+                <Checkbox
+                    value={eventCompleted}
+                    visualStyle='round'
+                    color={eventCompleted ? '#0E0' : '#FFFFFF80'}
+                    size={24}
+                    style={[styles.checkbox, {opacity: isBeingDragged ? 0.25 : 1}]}
+                    onChange={() => { dispatch(eventActions.toggleComplete({ eventID: props.eventID })) }}
+                />
+            }
+
+        </TouchableOpacity>
     )
 }
 
