@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CategoriesState, Category } from "../../../../types/store-current";
 import { RGBAColor } from '../../../helpers/ColorHelpers';
+import { createTimestamp } from '../../../General';
 
 const initialState: CategoriesState = {
     current: {},
@@ -11,8 +12,12 @@ export const categoriesSlice = createSlice({
     name: 'categories',
     initialState,
     reducers: {
-        add(state, action: PayloadAction<{ category: Category, id: string }>) {
-            state.current[action.payload.id] = action.payload.category;
+        add(state, action: PayloadAction<{ name: string, color: RGBAColor, id: string }>) {
+            state.current[action.payload.id] = {
+                name: action.payload.name,
+                color: action.payload.color,
+                createdAt: createTimestamp()
+            };
         },
         removeAndBackup(state, action: PayloadAction<{ categoryID: string }>) {
             state.backup = deepCopyCategories(state.current);
@@ -28,6 +33,7 @@ export const categoriesSlice = createSlice({
             } = action.payload;
             
             const editedCategory = {
+                ...state.current[categoryID],
                 name: newName || state.current[categoryID].name,
                 color: newColor || state.current[categoryID].color
             }

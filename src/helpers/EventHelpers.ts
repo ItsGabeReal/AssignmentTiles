@@ -1,6 +1,7 @@
 import { RepeatSettings } from "../../components/EventInput";
 import { Event, EventDetails } from "../../types/store-current";
 import DateYMD, { DateYMDHelpers } from "../DateYMD";
+import { generateUID } from "../General";
 import { eventActions } from "../redux/features/events/eventsSlice";
 import { getInitialPlannedDateForEvent, rowPlansActions } from "../redux/features/rowPlans/rowPlansSlice";
 import { AppDispatch } from "../redux/store";
@@ -24,8 +25,7 @@ export function createRepeatedEvents(dispatch: AppDispatch, details: EventDetail
 
 // A standardized way to create events and call the proper dispatches
 export function createEvent(dispatch: AppDispatch, details: EventDetails, initialPlannedDate?: DateYMD) {
-    // Come up with a unique id
-    const id = Math.random().toString();
+    const id = generateUID();
     
     // Create event object
     const newEvent: Event = {

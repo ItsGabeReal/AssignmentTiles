@@ -18,6 +18,7 @@ import DateYMD from "../src/DateYMD";
 export type Category = {
     name: string;
     color: RGBAColor;
+    createdAt: number; // Unix timestamp
 }
 
 export type CategoriesState = {

@@ -15,13 +15,14 @@ import PressOutView, { PressOutViewRef } from './core/views/PressOutView';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { categoriesActions } from '../src/redux/features/categories/categoriesSlice';
 import TextInputWithClearButton from './core/input/TextInputWithClearButton';
-import { categoryColorPalette, colorTheme, fontSizes } from '../src/GlobalStyles';
+import { categoryColorPalette, colorTheme, fontSizes, globalStyles } from '../src/GlobalStyles';
 import { focusTextInput } from '../src/helpers/GlobalHelpers';
 import BlurView from './core/wrappers/BlurView';
 import InputField from './InputField';
 import { RGBAToColorValue, colorsEqual, gray, green, mixColor } from '../src/helpers/ColorHelpers';
 import Button from './Button';
 import { EventRegister } from 'react-native-event-listeners';
+import { generateUID } from '../src/General';
 
 export type CategoryInputRef = {
     /**
@@ -79,9 +80,8 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
         },
     }));
     
-
     function getBackgroundColor() {
-        let output = mixColor(colorInput, gray);
+        let output = mixColor(colorInput, gray, 0.6);
 
         output.a = 225;
         
@@ -98,17 +98,10 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
 
     function submit() {
         if (mode.current === 'create') {
-            // Come up with a new id
-            const id = Math.random().toString();
-
-            // Create category
-            const newCategory = {
-                name: nameInput.trim(),
-                color: colorInput
-            }
+            const id = generateUID();
             
             // Add category
-            dispatch(categoriesActions.add({category: newCategory, id}));
+            dispatch(categoriesActions.add({name: nameInput.trim(), color: colorInput, id}));
             
             props.onSubmit?.(id, 'create');
         }
@@ -162,7 +155,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                             renderItem={({ item }) => {
                                 return (
                                     <TouchableOpacity
-                                        style={[styles.colorButton, {
+                                        style={[styles.colorButton, globalStyles.dropShadow, {
                                             backgroundColor: RGBAToColorValue(item),
                                             borderWidth: colorsEqual(item, colorInput) ? 3 : 0
                                         }]}
@@ -173,6 +166,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                             numColumns={4}
                             keyboardShouldPersistTaps='handled'
                             style={styles.flatlist}
+                            scrollEnabled={false}
                         />
                     </View>
                 </InputField>
@@ -184,7 +178,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                     iconName='add'
                     iconSize={26}
                     backgroundColor={green}
-                    style={styles.createButton}
+                    style={[styles.createButton, globalStyles.dropShadow]}
                     disabled={!readyToSubmit()}
                     onPress={() => { submit(); close(); }}
                 />

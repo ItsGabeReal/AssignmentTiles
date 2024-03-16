@@ -57,14 +57,18 @@ const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) =>
     function createCategoryListItems() {
         const categoryListItems: React.ReactNode[] = [];
 
-        for (let categoryID in categories) {
+        // Sort categories by recently created
+        const sortedCategories = Object.keys(categories).sort((a, b) => categories[b].createdAt - categories[a].createdAt);
+        
+        // Create category list items
+        for (let i = 0; i < sortedCategories.length; i++) {
             categoryListItems.push(
                 <CategoryListItem
-                    key={categoryID}
-                    categoryID={categoryID}
+                    key={sortedCategories[i]}
+                    categoryID={sortedCategories[i]}
                     onSelect={props.onCategorySelected}
                     onDeleted={props.onCategoryDeleted}
-                    onEditPressed={() => props.onEditCategory(categoryID)}
+                    onEditPressed={() => props.onEditCategory(sortedCategories[i])}
                 />
             )
         }

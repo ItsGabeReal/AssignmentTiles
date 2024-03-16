@@ -10,7 +10,7 @@ import VisualSettings from '../src/VisualSettings';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useAppSelector } from '../src/redux/hooks';
 import { nullEvent } from '../src/helpers/EventHelpers';
-import { fontSizes } from '../src/GlobalStyles';
+import { fontSizes, globalStyles } from '../src/GlobalStyles';
 import { RGBAToColorValue, black, gray, mixColor } from '../src/helpers/ColorHelpers';
 
 type EventTileProps = {

@@ -158,7 +158,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
 
     // Returns the category color, but slightly darker and transparent
     function getBackgroundColor() {
-        const output = mixColor(getCategoryColor(), gray);
+        const output = mixColor(getCategoryColor(), gray, 0.6);
 
         output.a = 225;
         
@@ -222,23 +222,30 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
 
     function close() {
         if (mode.current === 'edit') {
-            const originalDetails = events[editedEventID.current];
-            const newName = eventNameInput.trim();
+            const originalDetails = events[editedEventID.current].details;
 
-            const details: EventDetails = {
-                name: newName.length > 0 ? newName : originalDetails.details.name,
+            const newName = eventNameInput.trim();
+            const newDetails: EventDetails = {
+                name: newName.length > 0 ? newName : originalDetails.name,
                 dueDate: deadlineSwitchInput ? DateYMDHelpers.fromDate(dueDateInput) : null,
                 categoryID: categoryInput,
                 notes: notesInput.trim(),
             };
 
-            props.onSubmit({
-                mode: 'edit',
-                details,
-                editedEventID: editedEventID.current
-            });
+            // Don't submit unless something's actually changed
+            const nameChanged = newDetails.name !== originalDetails.name;
+            const categoryChanged = newDetails.categoryID !== originalDetails.categoryID;
+            const dueDateChanged = !DateYMDHelpers.datesEqual(newDetails.dueDate, originalDetails.dueDate);
+            if (nameChanged || categoryChanged || dueDateChanged) {
+                props.onSubmit({
+                    mode: 'edit',
+                    details: newDetails,
+                    editedEventID: editedEventID.current
+                });
+                
+                dispatch(generalStateActions.updateMemorizedEventInput({ name: newDetails.name, categoryID: newDetails.categoryID, deadlineEnabled: deadlineSwitchInput }));
 
-            dispatch(generalStateActions.updateMemorizedEventInput({ name: details.name, categoryID: details.categoryID, deadlineEnabled: deadlineSwitchInput }));
+            }
         }
 
         EventRegister.emit('hideUndoPopup');
@@ -337,7 +344,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             fontColor={white}
                             backgroundColor={green}
                             onPress={() => { createEvent(); close(); }}
-                            style={styles.createButton}
+                            style={[styles.createButton, globalStyles.dropShadow]}
                             disabled={!readyToCreate()}
                         />
                         {/*<Button
@@ -360,7 +367,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             fontColor={{r:255,g:255,b:255,a:224}}
                             backgroundColor={{r:0,g:64,b:255,a:224}}
                             onPress={enterMultiselectMode}
-                            style={styles.selectButton}
+                            style={[styles.selectButton, globalStyles.dropShadow]}
                         />
                         <Button
                             title='Delete'
@@ -370,7 +377,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             fontColor={{r:255,g:255,b:255,a:224}}
                             backgroundColor={{r:225,g:0,b:0,a:224}}
                             onPress={onDeleted}
-                            style={styles.deleatButton}
+                            style={[styles.deleatButton, globalStyles.dropShadow]}
                         />
                     </View>
                 }

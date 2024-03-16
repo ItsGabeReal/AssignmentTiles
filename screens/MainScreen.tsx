@@ -1,15 +1,12 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import {
     StyleSheet,
     View,
-    Text,
     FlatList,
-    TouchableOpacity,
     useWindowDimensions,
     NativeSyntheticEvent,
     NativeScrollEvent,
     BackHandler,
-    ColorValue,
     GestureResponderEvent,
 } from "react-native";
 import VETContainer, { VirtualEventTileRef } from "../components/VETContainer";
@@ -19,8 +16,7 @@ import VisualSettings from "../src/VisualSettings";
 import { DateYMDHelpers } from "../src/DateYMD";
 import { useAppSelector, useAppDispatch } from "../src/redux/hooks";
 import { createEvent, deleteMultipleEventsAndBackup, restoreDeletedEventsFromBackup } from "../src/helpers/EventHelpers";
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { colors, fontSizes } from "../src/GlobalStyles";
+import { colors, fontSizes, globalStyles } from "../src/GlobalStyles";
 import { generalStateActions } from "../src/redux/features/general/generalSlice";
 import { Vector2D } from "../types/General";
 import { updateEventPlanFromDragPosition } from "../src/helpers/RowPlansHelpers";
@@ -29,7 +25,7 @@ import { eventActions } from "../src/redux/features/events/eventsSlice";
 import SafeAreaView from "../components/core/wrappers/SafeAreaView";
 import { vibrate } from "../src/helpers/GlobalHelpers";
 import Button from "../components/Button";
-import { green, hexToRGBA, red, white } from "../src/helpers/ColorHelpers";
+import { green, red } from "../src/helpers/ColorHelpers";
 import FloatingCategoryPicker, { FloatingCategoryPickerRef } from "../components/FloatingCategoryPicker";
 import ReturnToTodayButton, { ReturnToTodayButtonRef } from "../components/ReturnToTodayButton";
 import { RowPlan } from "../types/store-current";
@@ -40,7 +36,21 @@ export default function MainScreen() {
     const dispatch = useAppDispatch();
 
     // Used for testing
-    //const entireState = useAppSelector(state => state);
+    /*const entireState = useAppSelector(state => {
+        console.warn("MainScreen: Accessing entire state as a test. Please disable this before release.");
+        
+        console.log("Events:");
+        const events = state.events.current;
+        for (let eventId in events) {
+            console.log(`${eventId}: ${events[eventId].details.name}`);
+        }
+        
+        console.log("\nRow Plans:");
+        const rowPlans = state.rowPlans.current;
+        for (let date in rowPlans) {
+            console.log(`${date}: ${rowPlans[date].orderedEventIDs}`);
+        }
+    });*/
 
     const visibleDays = useAppSelector(state => state.visibleDays);
     const visibleDays_closureSafeRef = useRef(visibleDays);
@@ -201,20 +211,6 @@ export default function MainScreen() {
         dispatch(generalStateActions.clearDraggedEvent());
     }
 
-    function addEventButton() {
-        return (
-            <Button
-                iconName="add"
-                iconSize={40}
-                backgroundColor={green}
-                style={styles.addButton}
-                onPress={() => {
-                    eventInputRef.current?.open({ mode: 'create' });
-                }}
-            />
-        );
-    }
-
     function multiselectButtons() {
         const anyTilesSelected = multiselectState.selectedEventIDs.length > 0;
 
@@ -226,20 +222,20 @@ export default function MainScreen() {
                     onPress={onMultiselectDeletePressed}
                     disabled={!anyTilesSelected}
                     backgroundColor={red}
-                    style={styles.multiselectButton}
+                    style={[styles.multiselectButton, globalStyles.dropShadow]}
                 />
                 <Button
                     title="Set Category"
                     iconName="category"
                     onPress={() => multiselectCategoryPickerRef.current?.open()}
                     disabled={!anyTilesSelected}
-                    style={styles.multiselectButton}
+                    style={[styles.multiselectButton, globalStyles.dropShadow]}
                 />
                 <Button
                     title="Cancel"
                     iconName="close"
                     onPress={exitMultiselectMode}
-                    style={styles.multiselectButton}
+                    style={[styles.multiselectButton, globalStyles.dropShadow]}
                 />
             </View>
         );
@@ -330,7 +326,17 @@ export default function MainScreen() {
             </VETContainer>
             <SafeAreaView pointerEvents="box-none">
                 <ReturnToTodayButton ref={returnToTodayAboveRef} variation="above" onPress={scrollToToday} />
-                {!multiselectState.enabled ? addEventButton() : null}
+                {!multiselectState.enabled ?
+                    <Button
+                        iconName="add"
+                        iconSize={40}
+                        backgroundColor={green}
+                        style={[styles.addButton, globalStyles.dropShadow]}
+                        onPress={() => {
+                            eventInputRef.current?.open({ mode: 'create' });
+                        }}
+                    />
+                : null}
                 <View style={styles.overlayFooterContainer}>
                     {multiselectState.enabled ? multiselectButtons() : null}
                     <ReturnToTodayButton ref={returnToTodayBeneathRef} variation="beneath" onPress={scrollToToday} />

@@ -9,7 +9,7 @@
 
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import Button from './Button';
-import { colors, fontSizes } from '../src/GlobalStyles';
+import { colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 import { StyleSheet } from 'react-native';
 
 export type ReturnToTodayButtonRef = {
@@ -57,7 +57,7 @@ const ReturnToTodayButton = forwardRef<ReturnToTodayButtonRef, ReturnToTodayButt
                 fontColor={colors.text_rgba}
                 backgroundColor={colors.todayL2_rgba}
                 iconSpacing={5}
-                style={[styles.ReturnToTodayButton, props.variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]}
+                style={[styles.ReturnToTodayButton, globalStyles.dropShadow, props.variation === 'above' ? { position: 'absolute', top: 20 } : { marginBottom: 20 }]}
                 onPress={props.onPress}
             />
         )

@@ -79,14 +79,14 @@ const lightTheme: ColorScheme = {
 export const colors = colorTheme === 'light' ? lightTheme : darkTheme;
 
 export const categoryColorPalette: RGBAColor[] = [
-    hexToRGBA('#DE1212'), // Red
-    hexToRGBA('#E26912'), // Orange
-    hexToRGBA('#C9C91D'), // Yellow
-    hexToRGBA('#2EC610'), // Green
-    hexToRGBA('#10C6C6'), // Aqua
-    hexToRGBA('#2F60EE'), // Blue
-    hexToRGBA('#982FEE'), // Purple
-    hexToRGBA('#CB10CB'), // Pink
+    hexToRGBA('#E01F1F'), // Red
+    hexToRGBA('#EC6D13'), // Orange
+    hexToRGBA('#D6D61F'), // Yellow
+    hexToRGBA('#33D912'), // Green
+    hexToRGBA('#12D9D9'), // Aqua
+    hexToRGBA('#386AFF'), // Blue
+    hexToRGBA('#A333FF'), // Purple
+    hexToRGBA('#DD13DD'), // Pink
 ];
 
 export const globalStyles = StyleSheet.create({
@@ -119,11 +119,11 @@ export const globalStyles = StyleSheet.create({
         borderRadius: 5,
     },
     dropShadow: {
-        shadowRadius: 10,
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2},
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 4,
     },
     flexRow: {
         flexDirection: 'row',

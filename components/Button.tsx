@@ -75,7 +75,7 @@ const Button: React.FC<ButtonProps> = (props) => {
         titleSize = 14,
         iconSize = 20,
         fontColor = white,
-        backgroundColor = {r:128,g:128,b:128,a:128},
+        backgroundColor = {r:128,g:128,b:128,a:224},
         iconSpacing = 8,
         disabled = false,
     } = props;

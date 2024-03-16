@@ -21,7 +21,7 @@ import {
     Text,
 } from 'react-native';
 import CloseButton from './core/input/CloseButton';
-import { colors, fontSizes } from '../src/GlobalStyles';
+import { colors, fontSizes, globalStyles } from '../src/GlobalStyles';
 import IosStyleButton from './core/input/IosStyleButton';
 import { EventRegister } from 'react-native-event-listeners';
 import SafeAreaView from './core/wrappers/SafeAreaView';
@@ -68,7 +68,7 @@ const UndoPopupOverlay: React.FC<UndoPopupOverlayProps> = (props) => {
             {props.children}
             {visible ?
                 <SafeAreaView pointerEvents='box-none'>
-                    <View style={styles.mainContainer}>
+                    <View style={[styles.mainContainer, globalStyles.dropShadow]}>
                         <CloseButton onPress={close} color={colors.dimText} size={18} hitSlop={12} />
                         <Text style={styles.promptText}>{actionDescription}</Text>
                         <IosStyleButton title='Undo' onPress={onUndoPressed} textStyle={styles.undoText} containerStyle={styles.undoButtonContainer} hitSlop={10} />

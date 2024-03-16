@@ -54,7 +54,7 @@ const migrations = {
          */
 
         // Convert categories
-        const oldCategories = oldState.categories.current;
+        const oldCategories = oldState.categories.current; // Sorted from oldest to newest
         const newCategories: {[key: string]: CategoryV2} = {};
         for (let i = 0; i < oldCategories.length; i++) {
             // Remove null posibility from category id (it should have been impossible for a category to be assigned a null id)
@@ -64,7 +64,8 @@ const migrations = {
             // Create entry
             newCategories[newID] = {
                 name: oldCategories[i].name,
-                color: hexToRGBA(oldCategories[i].color.toString()) // Convert color hex codes to RGBA objects
+                color: hexToRGBA(oldCategories[i].color.toString()), // Convert color hex codes to RGBA objects
+                createdAt: i, // We don't know when this category was created, so just give newer categories a higher number than older categories
             };
         }
 

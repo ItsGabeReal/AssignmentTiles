@@ -36,12 +36,12 @@ export function updateEventPlanFromDragPosition(
     const numEventsInRow = rowPlans[currentEventPlan.rowPlansKey].orderedEventIDs.length;
 
     /**
-     * If a tile is dragged to the end of a row, the insertion index will
-     * equal the index for the next element to be added. However, if the tile
-     * is already in the row, this could cause a lot of unnecesary rerenders,
-     * so whenever that's the case, decrement it back down to rowPlans.length - 1.
+     * The insertion index might not be valid if the tile is dragged beyond the end of the row.
+     * Also, we must handle the edge case where the tile is already in the row.
      */
-    if (samePlannedDate && insertionIndex > numEventsInRow - 1) insertionIndex--;
+    if (insertionIndex > numEventsInRow - 1) {
+        insertionIndex = (samePlannedDate ? numEventsInRow - 1 : numEventsInRow);
+    }
 
     const insertionIndexChanged = insertionIndex !== currentEventPlan.rowOrder;
 
