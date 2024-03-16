@@ -19,7 +19,7 @@ import { categoryColorPalette, colorTheme, fontSizes, globalStyles } from '../sr
 import { focusTextInput } from '../src/helpers/GlobalHelpers';
 import BlurView from './core/wrappers/BlurView';
 import InputField from './InputField';
-import { RGBAToColorValue, colorsEqual, gray, green, mixColor } from '../src/helpers/ColorHelpers';
+import { RGBAToColorValue, colorsEqual, gray, green, mixColor, red } from '../src/helpers/ColorHelpers';
 import Button from './Button';
 import { EventRegister } from 'react-native-event-listeners';
 import { generateUID } from '../src/General';
@@ -39,13 +39,19 @@ type CategoryInputProps = {
      * That's already handled.
      */
     onSubmit: ((categoryID: string, mode: 'create' | 'edit') => void);
+
+    /**
+     * Called when the user pressed the delete button when editing a category.
+     */
+    onDelete: ((categoryID: string) => void);
 }
 
 const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, ref) => {
     const dispatch = useAppDispatch();
     const categories = useAppSelector(state => state.categories.current);
 
-    // Input states
+    // States
+    const [mode, setMode] = useState<'create' | 'edit'>('create');
     const [nameInput, setNameInput] = useState('');
     const [colorInput, setColorInput] = useState(categoryColorPalette[0]);
 
@@ -55,12 +61,11 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     
     // Non-state variables
     const editedCategoryID = useRef<string | null>(null);
-    const mode = useRef<'create' | 'edit'>('create');
 
     useImperativeHandle(ref, () => ({
         open(params) {
             pressOutViewRef.current?.open();
-            mode.current = params.mode;
+            setMode(params.mode);
             
             if (params.mode === 'edit') {
                 const category = categories[params.categoryID];
@@ -92,12 +97,23 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
         return nameInput.trim().length > 0;
     }
 
+    function onDeletePressed() {
+        if (editedCategoryID.current === null) {
+            console.log("CategoryInput -> onDeletePressed: Unable to delete category because editedCategoryID is null.");
+            return;
+        }
+
+        props.onDelete(editedCategoryID.current);
+        
+        close();
+    }
+
     function close() {
         pressOutViewRef.current?.close();
     }
 
     function submit() {
-        if (mode.current === 'create') {
+        if (mode === 'create') {
             const id = generateUID();
             
             // Add category
@@ -122,7 +138,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
         <PressOutView
             ref={pressOutViewRef}
             onClose={() => {
-                if (mode.current === 'edit')
+                if (mode === 'edit')
                     submit();
 
                 close();
@@ -141,7 +157,6 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                         value={nameInput}
                         autoFocus={true}
                         onChangeText={setNameInput}
-                        selectTextOnFocus={mode.current !== 'edit'} // Don't autoselect text in edit mode
                         style={styles.nameTextInput}
                         closeButtonColor='white'
                         textAlign='center'
@@ -171,7 +186,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                     </View>
                 </InputField>
             </BlurView>
-            {mode.current === 'create' ?
+            {mode === 'create' ?
                 <Button
                     title='Create'
                     titleSize={20}
@@ -183,7 +198,14 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
                     onPress={() => { submit(); close(); }}
                 />
             :
-                null
+                <Button
+                    title='Delete'
+                    iconName='delete'
+                    backgroundColor={red}
+                    style={[styles.deleteButton, globalStyles.dropShadow]}
+                    disabled={!readyToSubmit()}
+                    onPress={onDeletePressed}
+                />
             }
         </PressOutView>
     );
@@ -218,6 +240,9 @@ const styles = StyleSheet.create({
     createButton: {
         marginTop: 10,
         width: 175
+    },
+    deleteButton: {
+        marginTop: 10
     }
 });
 

@@ -43,12 +43,6 @@ type CategoryPickerDropdownProps = {
      * component is confined within the dropdown menu).
      */
     onCreateCategory: (() => void);
-    
-    /**
-     * Called when the user deletes a category. This should be
-     * used to handle any edge cases releated to category deletion.
-     */
-    onCategoryDeleted?: ((categoryID: string) => void);
 }
 
 const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) => {
@@ -67,7 +61,6 @@ const CategoryPickerDropdown: React.FC<CategoryPickerDropdownProps> = (props) =>
                     key={sortedCategories[i]}
                     categoryID={sortedCategories[i]}
                     onSelect={props.onCategorySelected}
-                    onDeleted={props.onCategoryDeleted}
                     onEditPressed={() => props.onEditCategory(sortedCategories[i])}
                 />
             )
@@ -119,11 +112,6 @@ type CategoryListItemProps = {
     onSelect: ((categoryID: string | null) => void);
 
     /**
-     * Called if this category is deleted.
-     */
-    onDeleted?: ((categoryID: string) => void);
-
-    /**
      * Called if the user presses the edit button next to the category.
      */
     onEditPressed?: (() => void);
@@ -138,35 +126,15 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
         name: 'None',
         color: gray
     };
-    
-    const dispatch = useAppDispatch();
-
-
-    function deleteCategory() {
-        if (!props.categoryID) {
-            console.warn('CategoryPicker -> deleteCategory: Could not delete category because no category was provided to CategoryListItem');
-            return;
-        }
-
-        deleteCategoryAndBackup(dispatch, props.categoryID);
-        EventRegister.emit('showUndoPopup', { action: 'Category Deleted', onPressed: ()=>{restoreCategoryFromBackup(dispatch)} });
-
-        props.onDeleted?.(props.categoryID);
-    }
 
     return (
         <>
             <TouchableOpacity onPress={() => props.onSelect(props.categoryID)} style={styles.categoryListItemContainer}>
                 <Text style={[styles.categoryText, {color: RGBAToColorValue(category.color)}]}>{category.name}</Text>
                 {!hideCategoryActions ?
-                    <View style={styles.actionButtonContainer}>
-                        <TouchableOpacity onPress={props.onEditPressed} hitSlop={5}>
-                            <Icon name='edit' color='#882' size={20} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.deleteButton} onPress={deleteCategory} hitSlop={5}>
-                            <Icon name='delete' color='#A22' size={20} />
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity onPress={props.onEditPressed} hitSlop={5}>
+                        <Icon name='edit' color='#882' size={20} />
+                    </TouchableOpacity>
                     : null
                 }
             </TouchableOpacity>
@@ -190,12 +158,6 @@ const styles = StyleSheet.create({
         fontSize: fontSizes.h3,
         marginRight: 8,
         flex: 1
-    },
-    actionButtonContainer: {
-        flexDirection: 'row'
-    },
-    deleteButton: {
-        marginLeft: 8,
     },
     createButton: {
         padding: 8,

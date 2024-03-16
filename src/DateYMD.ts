@@ -6,10 +6,15 @@
 * well using redux.
 */
 
+// Set this to manually overwrite the app's "today" date (set to null to disable)
+const testDate: DateYMD | null = {year: 2024, month: 3, date: 14};
+
 const MONTH_NAMES = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTH_NAMES_ABREV = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DAY_NAMES_ABREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+if (testDate) console.warn("Date manually set for testing purposes. Please remove before final release.");
 
 export namespace DateYMDHelpers {
     export function toDate(date: DateYMD) {
@@ -42,6 +47,8 @@ export namespace DateYMDHelpers {
     }
 
     export function isToday(date: DateYMD) {
+        if (testDate) return datesEqual(date, testDate);
+        
         const today = new Date();
         return date.year === today.getFullYear()
             && date.month === (today.getMonth() + 1)
@@ -77,7 +84,9 @@ export namespace DateYMDHelpers {
         return fromDate(_date);
     }
 
-    export function today() {
+    export function today(): DateYMD {
+        if (testDate) return testDate;
+        
         return fromDate(new Date());
     }
 

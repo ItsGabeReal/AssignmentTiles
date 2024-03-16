@@ -29,6 +29,7 @@ import PressOutView, { PressOutViewRef } from './core/views/PressOutView';
 import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import { EventRegister } from 'react-native-event-listeners';
 import Button from './Button';
+import { deleteCategoryAndBackup, restoreCategoryFromBackup } from '../src/helpers/CategoriesHelpers';
 
 export type RepeatSettings = {
     /**
@@ -194,18 +195,19 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
         }
     }
 
-    // Handle edge cases regarding category deletion
-    function handleCategoryDeleted(deletedCategoryID: string) {
-        if (deletedCategoryID === categoryInput) {
+    function deleteCategory(categoryID: string) {
+        deleteCategoryAndBackup(dispatch, categoryID);
+        EventRegister.emit('showUndoPopup', { action: 'Category Deleted', onPressed: ()=>{restoreCategoryFromBackup(dispatch)} });
+
+        // Handle edge case where tile was using the deleted category
+        if (categoryID === categoryInput) {
             setCategoryInput(null);
         }
 
-        /**
-         * Set remembered category id to null.
-         * This prevents event input from autofilling a category
-         * that doesn't exist.
-         */
-        dispatch(generalStateActions.updateMemorizedEventInput({categoryID: null}));
+        // Handle edge case where the deleted category is in memorized input
+        if (memorizedEventInput.categoryID === categoryID) {
+            dispatch(generalStateActions.updateMemorizedEventInput({categoryID: null}));
+        }
     }
 
     function enterMultiselectMode() {
@@ -314,7 +316,6 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                                             categoryInputRef.current?.open({ mode: 'edit', categoryID });
                                             dropdownMenuRef.current?.close();
                                         }}
-                                        onCategoryDeleted={handleCategoryDeleted}
                                     />
                                 </View>
                             }
@@ -382,7 +383,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                     </View>
                 }
             </PressOutView>
-            <CategoryInput ref={categoryInputRef} onSubmit={onCategoryInputSubmit} />
+            <CategoryInput ref={categoryInputRef} onSubmit={onCategoryInputSubmit} onDelete={deleteCategory} />
         </>
     )
 });
