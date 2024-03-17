@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CategoriesState, Category } from "../../../../types/store-current";
 import { RGBAColor } from '../../../helpers/ColorHelpers';
-import { createTimestamp } from '../../../General';
+import { getUnixTimestamp } from '../../../General';
 
 const initialState: CategoriesState = {
     current: {},
@@ -16,7 +16,7 @@ export const categoriesSlice = createSlice({
             state.current[action.payload.id] = {
                 name: action.payload.name,
                 color: action.payload.color,
-                createdAt: createTimestamp()
+                createdAt: getUnixTimestamp()
             };
         },
         removeAndBackup(state, action: PayloadAction<{ categoryID: string }>) {

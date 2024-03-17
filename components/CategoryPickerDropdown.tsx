@@ -133,7 +133,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
                 <Text style={[styles.categoryText, {color: RGBAToColorValue(category.color)}]}>{category.name}</Text>
                 {!hideCategoryActions ?
                     <TouchableOpacity onPress={props.onEditPressed} hitSlop={5}>
-                        <Icon name='edit' color='#882' size={20} />
+                        <Icon name='edit' color='#AA2' size={20} />
                     </TouchableOpacity>
                     : null
                 }

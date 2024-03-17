@@ -7,7 +7,7 @@
 */
 
 // Set this to manually overwrite the app's "today" date (set to null to disable)
-const testDate: DateYMD | null = {year: 2024, month: 3, date: 14};
+const testDate: DateYMD | null = null;
 
 const MONTH_NAMES = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTH_NAMES_ABREV = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

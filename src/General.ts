@@ -1,5 +1,5 @@
 // Returns number of seconds since January 1, 1970 UTC
-export function createTimestamp() {
+export function getUnixTimestamp() {
     return Math.floor((new Date()).getTime() / 1000);
 }
 

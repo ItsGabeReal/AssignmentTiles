@@ -64,14 +64,14 @@ export function hexToRGBA(hexStr: string) {
     }
 
     // Ensure this is a hex string
-    if (hexStr.at(0) !== '#') {
+    if (hexStr.charAt(0) !== '#') {
         console.warn('ColorHelpers -> hexToRGBA: hexStr is not a hex string.');
         return output;
     }
 
     // Convert hex string to rgba values
     for (let i = 1; i < hexStr.length; i++) {
-        const char = hexStr.at(i);
+        const char = hexStr.charAt(i);
         if (!char) {
             console.error(`ColorHelpers -> colorToRGBA: Error while processing hex code. Character at position ${i} is undefined.`);
             break;
@@ -186,4 +186,4 @@ export const white: RGBAColor = { r: 255, g: 255, b: 255, a: 255 };
 export const black: RGBAColor = { r: 0,   g: 0,   b: 0,   a: 255 };
 export const gray: RGBAColor =  { r: 128, g: 128, b: 128, a: 255 };
 export const green: RGBAColor = { r: 18,  g: 183, b: 18,  a: 255 };
-export const red: RGBAColor =   { r: 225, g: 10,  b: 10,  a: 255 };
+export const red: RGBAColor =   { r: 180, g: 10,  b: 10,  a: 255 };

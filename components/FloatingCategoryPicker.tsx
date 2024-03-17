@@ -5,6 +5,9 @@ import CategoryInput, { CategoryInputRef } from './CategoryInput';
 import BlurView from './core/wrappers/BlurView';
 import { colorTheme } from '../src/GlobalStyles';
 import { StyleSheet } from 'react-native';
+import { deleteCategoryAndBackup, restoreCategoryFromBackup } from '../src/helpers/CategoriesHelpers';
+import { EventRegister } from 'react-native-event-listeners';
+import { useAppDispatch } from '../src/redux/hooks';
 
 export type FloatingCategoryPickerRef = {
     /**
@@ -23,6 +26,8 @@ type FloatingCategoryPickerProps = {
 }
 
 const FloatingCategoryPicker = forwardRef<CategoryInputRef, FloatingCategoryPickerProps>((props, ref) => {
+    const dispatch = useAppDispatch();
+
     const pressOutViewRef = useRef<PressOutViewRef | null>(null);
     const categoryInputRef = useRef<CategoryInputRef | null>(null);
 
@@ -36,6 +41,11 @@ const FloatingCategoryPicker = forwardRef<CategoryInputRef, FloatingCategoryPick
         if (mode === 'create') {
             onCategorySelected(categoryID);
         }
+    }
+
+    function deleteCategory(categoryID: string) {
+        deleteCategoryAndBackup(dispatch, categoryID);
+        EventRegister.emit('showUndoPopup', { action: 'Category Deleted', onPressed: ()=>{restoreCategoryFromBackup(dispatch)} });
     }
 
     function onCategorySelected(categoryId: string | null) {
@@ -59,7 +69,7 @@ const FloatingCategoryPicker = forwardRef<CategoryInputRef, FloatingCategoryPick
                     />
                 </BlurView>
             </PressOutView>
-            <CategoryInput ref={categoryInputRef} onSubmit={onCategoryInputSubmitted}/>
+            <CategoryInput ref={categoryInputRef} onSubmit={onCategoryInputSubmitted} onDelete={deleteCategory}/>
         </>
     );
 });

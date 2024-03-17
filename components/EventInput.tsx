@@ -22,7 +22,7 @@ import BlurView from './core/wrappers/BlurView';
 import { deleteEventAndBackup, restoreDeletedEventsFromBackup } from '../src/helpers/EventHelpers';
 import HideableView from './core/views/HideableView';
 import Checkbox from './core/input/Checkbox';
-import { RGBAColor, RGBAToColorValue, gray, green, mixColor, white } from '../src/helpers/ColorHelpers';
+import { RGBAColor, RGBAToColorValue, gray, green, mixColor, red, white } from '../src/helpers/ColorHelpers';
 import DropdownMenu, { DropdownMenuRef } from './core/dropdown/DropdownMenu';
 import CategoryPickerDropdown from './CategoryPickerDropdown';
 import PressOutView, { PressOutViewRef } from './core/views/PressOutView';
@@ -118,6 +118,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                 setDeadlineSwitchInput(memorizedEventInput.deadlineEnabled);
                 suggestedDate.current = params.suggestedDueDate || DateYMDHelpers.today();
                 setDueDateInput(DateYMDHelpers.toDate(suggestedDate.current));
+                setTimeout(() => eventNameInputRef.current?.focus(), 100); // Highlight the text that's in the name input
             }
             else {
                 // Initialize input from provided event id
@@ -291,8 +292,8 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                         <TextInputWithClearButton
                             ref={eventNameInputRef}
                             value={eventNameInput}
-                            autoFocus={true}
                             onChangeText={setEventNameInput}
+                            autoFocus={mode.current === 'edit'}
                             selectTextOnFocus={mode.current !== 'edit'} // Don't autoselect text in edit mode
                             style={styles.nameTextInput}
                             closeButtonColor='white'
@@ -366,7 +367,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             iconName='check-box'
                             iconSize={24}
                             fontColor={{r:255,g:255,b:255,a:224}}
-                            backgroundColor={{r:0,g:64,b:255,a:224}}
+                            backgroundColor={{r:0,g:60,b:210,a:255}}
                             onPress={enterMultiselectMode}
                             style={[styles.selectButton, globalStyles.dropShadow]}
                         />
@@ -376,7 +377,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                             iconName='delete'
                             iconSize={24}
                             fontColor={{r:255,g:255,b:255,a:224}}
-                            backgroundColor={{r:225,g:0,b:0,a:224}}
+                            backgroundColor={red}
                             onPress={onDeleted}
                             style={[styles.deleatButton, globalStyles.dropShadow]}
                         />
