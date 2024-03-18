@@ -7,6 +7,7 @@ import { StatusBar } from "react-native";
 import DropdownMenuProvider from "./components/core/dropdown/DropdownMenuProvider";
 import UndoPopupOverlay from "./components/UndoPopupOverlay";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { colorTheme } from "./src/GlobalStyles";
 
 export default function App() {
     return (
@@ -17,8 +18,8 @@ export default function App() {
                         <DropdownMenuProvider>
                             <StatusBar
                                 translucent
-                                backgroundColor='#00000040'
-                                barStyle='light-content'
+                                backgroundColor='#0000'
+                                barStyle={colorTheme === 'dark' ? 'light-content' : 'dark-content'}
                             />
                             <MainScreen />
                         </DropdownMenuProvider>

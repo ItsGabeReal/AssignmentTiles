@@ -15,6 +15,7 @@ import {
     KeyboardAvoidingView,
     ViewStyle,
     StyleProp,
+    StatusBar,
 } from 'react-native';
 import ViewWithBackHandler from './ViewWithBackHandler';
 
@@ -80,6 +81,7 @@ const PressOutView = forwardRef<PressOutViewRef, PressOutViewProps>((props, ref)
                 }}
                 style={styles.pressOutContainer}
             >
+                <StatusBar barStyle='light-content'/>
                 <KeyboardAvoidingView behavior='padding' style={styles.keyboardAvoidingView}>
                     <View style={props.style}>
                         {props.children}

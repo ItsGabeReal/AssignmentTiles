@@ -160,7 +160,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
 
     // Returns the category color, but slightly darker and transparent
     function getBackgroundColor() {
-        const output = mixColor(getCategoryColor(), gray, 0.6);
+        const output = mixColor(getCategoryColor(), {r:100,g:100,b:100,a:255}, 0.7);
 
         output.a = 225;
         
@@ -168,7 +168,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
     }
 
     function getCategoryTextColor() {
-        const output = mixColor(getCategoryColor(), white);
+        const output = mixColor(getCategoryColor(), white, 0.25);
 
         return RGBAToColorValue(output);
     }

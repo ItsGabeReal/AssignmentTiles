@@ -86,7 +86,7 @@ const CategoryInput = forwardRef<CategoryInputRef, CategoryInputProps>((props, r
     }));
     
     function getBackgroundColor() {
-        let output = mixColor(colorInput, gray, 0.6);
+        const output = mixColor(colorInput, {r:100,g:100,b:100,a:255}, 0.7);
 
         output.a = 225;
         

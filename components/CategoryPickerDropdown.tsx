@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppDispatch, useAppSelector } from '../src/redux/hooks';
 import { fontSizes } from '../src/GlobalStyles';
 import { deleteCategoryAndBackup, restoreCategoryFromBackup } from '../src/helpers/CategoriesHelpers';
-import { RGBAToColorValue, gray, green } from '../src/helpers/ColorHelpers';
+import { RGBAToColorValue, gray, green, mixColor, white } from '../src/helpers/ColorHelpers';
 import { Category } from '../types/store-current';
 import Button from './Button';
 import { EventRegister } from 'react-native-event-listeners';
@@ -127,10 +127,14 @@ const CategoryListItem: React.FC<CategoryListItemProps> = (props) => {
         color: gray
     };
 
+    function getCategoryTextColor() {
+        return RGBAToColorValue(mixColor(category.color, white, 0.1));
+    }
+
     return (
         <>
             <TouchableOpacity onPress={() => props.onSelect(props.categoryID)} style={styles.categoryListItemContainer}>
-                <Text style={[styles.categoryText, {color: RGBAToColorValue(category.color)}]}>{category.name}</Text>
+                <Text style={[styles.categoryText, {color: getCategoryTextColor()}]}>{category.name}</Text>
                 {!hideCategoryActions ?
                     <TouchableOpacity onPress={props.onEditPressed} hitSlop={5}>
                         <Icon name='edit' color='#AA2' size={20} />
