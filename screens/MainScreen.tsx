@@ -29,6 +29,7 @@ import { green, red } from "../src/helpers/ColorHelpers";
 import FloatingCategoryPicker, { FloatingCategoryPickerRef } from "../components/FloatingCategoryPicker";
 import ReturnToTodayButton, { ReturnToTodayButtonRef } from "../components/ReturnToTodayButton";
 import { RowPlan } from "../types/store-current";
+import { getEventPlan } from "../src/redux/features/rowPlans/rowPlansSlice";
 
 export default function MainScreen() {
     const { height } = useWindowDimensions();
@@ -113,7 +114,8 @@ export default function MainScreen() {
     }, [multiselectState]);
 
     function onEventTilePressed({eventID}: any) {
-        eventInputRef.current?.open({mode: 'edit', eventID});
+        const currentPlannedDate = getEventPlan(rowPlans_closureSafeRef.current, eventID)?.plannedDate;
+        eventInputRef.current?.open({mode: 'edit', eventID, currentPlannedDate });
     }
 
     /**

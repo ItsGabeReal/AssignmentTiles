@@ -33,7 +33,8 @@ export function updateEventPlanFromDragPosition(
 
     let insertionIndex = getInsertionIndexFromGesture(visibleDays, targetVisibleDaysIndex, rowPlans, scrollYOffset, dragPosition);
 
-    const numEventsInRow = rowPlans[currentEventPlan.rowPlansKey].orderedEventIDs.length;
+    const overlappingRowPlansKey = DateYMDHelpers.toString(overlappingRowDate);
+    const numEventsInRow = rowPlans[overlappingRowPlansKey] ? rowPlans[overlappingRowPlansKey].orderedEventIDs.length : 0;
 
     /**
      * The insertion index might not be valid if the tile is dragged beyond the end of the row.

@@ -43,7 +43,7 @@ export type RepeatSettings = {
     recurrences: number;
 }
 
-type OpenEventInputParams = {mode: "create", suggestedDueDate?: DateYMD} | {mode: "edit", eventID: string};
+type OpenEventInputParams = {mode: "create", suggestedDueDate?: DateYMD} | {mode: "edit", currentPlannedDate?: DateYMD, eventID: string};
 
 export type EventInputRef = {
     /**
@@ -57,10 +57,10 @@ export type EventInputRef = {
      * 
      * @example 
      * // Creating an event
-     * eventInputRef.open({ mode: 'create', suggestedDueDate: DateYDM })
+     * eventInputRef.open({ mode: 'create', suggestedDueDate: DateYMD })
      * 
      * // Editing an event
-     * eventInputRef.open({ mode: 'edit', event: Event, eventID: string })
+     * eventInputRef.open({ mode: 'edit', currentPlannedDate: DateYMD, eventID: string })
      */
     open: ((params: OpenEventInputParams) => void);
 }
@@ -131,7 +131,7 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
                 setEventNameInput(event.details.name);
                 setCategoryInput(event.details.categoryID);
                 setDeadlineSwitchInput(event.details.dueDate !== null);
-                setDueDateInput(DateYMDHelpers.toDate(event.details.dueDate || DateYMDHelpers.today()));
+                setDueDateInput(DateYMDHelpers.toDate(event.details.dueDate || params.currentPlannedDate || DateYMDHelpers.today()));
                 setNotesInput(event.details.notes);
                 editedEventID.current = params.eventID;
             }
@@ -236,10 +236,11 @@ const EventInput = forwardRef<EventInputRef, EventInputProps>((props, ref) => {
             };
 
             // Don't submit unless something's actually changed
-            const nameChanged = newDetails.name !== originalDetails.name;
-            const categoryChanged = newDetails.categoryID !== originalDetails.categoryID;
-            const dueDateChanged = !DateYMDHelpers.datesEqual(newDetails.dueDate, originalDetails.dueDate);
-            if (nameChanged || categoryChanged || dueDateChanged) {
+            if (newDetails.name !== originalDetails.name ||
+                newDetails.categoryID !== originalDetails.categoryID ||
+                !DateYMDHelpers.datesEqual(newDetails.dueDate, originalDetails.dueDate) ||
+                newDetails.notes !== originalDetails.notes
+            ) {
                 props.onSubmit({
                     mode: 'edit',
                     details: newDetails,
