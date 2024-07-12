@@ -119,8 +119,10 @@ const migrations = {
 }
 
 export default function migrate(state: PersistedState) {
+    // Handle case state has not been created yet
     if (!state) return Promise.resolve(state);
     
+    // Determine if the state is outdated
     const currentVersion = state._persist.version;
     if (currentVersion === latestStoreVersion) {
         console.log('Store is up to date');
@@ -131,15 +133,15 @@ export default function migrate(state: PersistedState) {
     }
     
     /**
-     * Sequentually run store translation functions until the data is translated
-     * into the latest version.
-     * Example, updating store from v0 -> v3: Translate v0 -> v1, then v1 -> v2, then v2 -> v3.
+     * Sequentually run store data through migration functions until the data has been converted
+     * to the latest version.
+     * Example, updating store from v0 -> v3: Migrate v0 -> v1, then v1 -> v2, then v2 -> v3.
      */
     let output = {...state};
-    for (let i = currentVersion; i < latestStoreVersion; i++) {
-        console.log(`translating store form v${i} to v${i+1}`);
+    for (let v = currentVersion; v < latestStoreVersion; v++) {
+        console.log(`migrating store form v${v} to v${v+1}`);
 
-        const newState = migrations[i](output); // <- typescript is whining but this should be perfectly fine
+        const newState = migrations[v](output); // <- typescript is whining about this syntax, but it should be perfectly fine
 
         output = newState;
     }
